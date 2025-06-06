@@ -10,7 +10,7 @@ from typing import Any, Dict, Generator
 
 import pytest
 
-from domd.detector import ProjectCommandDetector
+from domd.core.detector import ProjectCommandDetector
 
 
 @pytest.fixture

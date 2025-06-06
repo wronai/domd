@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from domd.detector import ProjectCommandDetector
+from domd.core.detector import ProjectCommandDetector
 
 
 class TestProjectCommandDetector:

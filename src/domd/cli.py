@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from . import __version__
-from .detector import ProjectCommandDetector
+from .core.detector import ProjectCommandDetector
 
 
 def create_parser() -> argparse.ArgumentParser:

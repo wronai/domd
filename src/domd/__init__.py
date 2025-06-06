@@ -14,7 +14,7 @@ __license__ = "Apache-2.0"
 
 from typing import Callable, TypeVar
 
-from .detector import ProjectCommandDetector
+from .core.detector import ProjectCommandDetector
 
 # Define a type variable for the main function
 F = TypeVar("F", bound=Callable[..., int])
