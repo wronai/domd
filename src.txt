@@ -1,0 +1,64 @@
+todomd/
+├── pyproject.toml                 # Konfiguracja Poetry
+├── README.md                      # Dokumentacja główna
+├── CHANGELOG.md                   # Historia zmian
+├── LICENSE                        # Licencja MIT
+├── .gitignore                     # Pliki ignorowane przez Git
+├── .pre-commit-config.yaml        # Konfiguracja pre-commit hooks
+├── tox.ini                        # Konfiguracja testów w różnych środowiskach
+├── Makefile                       # Komendy pomocnicze
+├── docs/                          # Dokumentacja
+│   ├── index.md
+│   ├── installation.md
+│   ├── usage.md
+│   ├── api.md
+│   └── mkdocs.yml
+├── src/                           # Kod źródłowy
+│   └── todomd/
+│       ├── __init__.py
+│       ├── cli.py                 # Interfejs linii komend
+│       ├── detector.py            # Główna logika detektora
+│       ├── parsers/               # Parsery różnych typów plików
+│       │   ├── __init__.py
+│       │   ├── base.py            # Bazowa klasa parsera
+│       │   ├── javascript.py      # Parsery JS/Node.js
+│       │   ├── python.py          # Parsery Python
+│       │   ├── build_systems.py   # Make, CMake, Gradle, Maven
+│       │   ├── docker.py          # Docker i Docker Compose
+│       │   └── ci_cd.py           # CI/CD workflows
+│       ├── reporters/             # Generatory raportów
+│       │   ├── __init__.py
+│       │   ├── todo_md.py         # Generator TODO.md
+│       │   ├── json_reporter.py   # Reporter JSON
+│       │   └── console.py         # Reporter konsolowy
+│       └── utils/                 # Narzędzia pomocnicze
+│           ├── __init__.py
+│           ├── file_utils.py      # Narzędzia do plików
+│           └── command_runner.py  # Wykonywanie komend
+├── tests/                         # Testy
+│   ├── __init__.py
+│   ├── conftest.py                # Konfiguracja pytest
+│   ├── test_detector.py           # Testy głównej logiki
+│   ├── test_cli.py                # Testy CLI
+│   ├── parsers/                   # Testy parserów
+│   │   ├── test_javascript.py
+│   │   ├── test_python.py
+│   │   ├── test_build_systems.py
+│   │   ├── test_docker.py
+│   │   └── test_ci_cd.py
+│   ├── reporters/                 # Testy reporterów
+│   │   ├── test_todo_md.py
+│   │   ├── test_json_reporter.py
+│   │   └── test_console.py
+│   ├── fixtures/                  # Pliki testowe
+│   │   ├── sample_package.json
+│   │   ├── sample_makefile
+│   │   ├── sample_pyproject.toml
+│   │   └── sample_dockerfile
+│   └── utils/                     # Testy narzędzi
+│       ├── test_file_utils.py
+│       └── test_command_runner.py
+└── scripts/                       # Skrypty pomocnicze
+    ├── setup_dev.sh               # Konfiguracja środowiska dev
+    ├── run_tests.sh               # Uruchamianie testów
+    └── build_docs.sh              # Budowanie dokumentacji

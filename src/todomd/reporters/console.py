@@ -1,0 +1,4 @@
+# Reporter konsolowy
+"""
+console.py
+"""
