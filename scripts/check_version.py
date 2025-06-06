@@ -6,8 +6,9 @@ Ensures version is consistent across pyproject.toml, __init__.py, and CHANGELOG.
 
 import re
 import sys
-import toml
 from pathlib import Path
+
+import toml
 
 
 def get_version_from_pyproject():
@@ -42,7 +43,7 @@ def get_version_from_changelog():
             content = f.read()
 
         # Look for version patterns like ## [0.1.0]
-        matches = re.findall(r'##\s*\[([^\]]+)\]', content)
+        matches = re.findall(r"##\s*\[([^\]]+)\]", content)
         if matches:
             # Return the first (latest) version, excluding "Unreleased"
             for version in matches:
@@ -77,11 +78,17 @@ def check_version_consistency():
     else:
         print("❌ Version mismatch detected!")
         if pyproject_version != init_version:
-            print(f"   pyproject.toml vs __init__.py: {pyproject_version} != {init_version}")
+            print(
+                f"   pyproject.toml vs __init__.py: {pyproject_version} != {init_version}"
+            )
         if pyproject_version != changelog_version:
-            print(f"   pyproject.toml vs CHANGELOG.md: {pyproject_version} != {changelog_version}")
+            print(
+                f"   pyproject.toml vs CHANGELOG.md: {pyproject_version} != {changelog_version}"
+            )
         if init_version != changelog_version:
-            print(f"   __init__.py vs CHANGELOG.md: {init_version} != {changelog_version}")
+            print(
+                f"   __init__.py vs CHANGELOG.md: {init_version} != {changelog_version}"
+            )
         return False
 
 
@@ -108,7 +115,7 @@ def update_version(new_version):
         updated_content = re.sub(
             r'__version__\s*=\s*["\'][^"\']+["\']',
             f'__version__ = "{new_version}"',
-            content
+            content,
         )
         init_path.write_text(updated_content)
         print("✅ Updated __init__.py")

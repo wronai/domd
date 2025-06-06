@@ -80,7 +80,7 @@ Scanning project: /home/user/my-project
 
 Found 5 configuration files:
   - package.json
-  - Makefile  
+  - Makefile
   - pyproject.toml
   - docker-compose.yml
   - tox.ini
@@ -94,7 +94,7 @@ Command: npm run test
 Source: package.json
 ✅ SUKCES
 
-[2/12] Testing: NPM script - build  
+[2/12] Testing: NPM script - build
 Command: npm run build
 Source: package.json
 ❌ BŁĄD
@@ -187,7 +187,7 @@ npm ERR! missing script: build
 
 ### Suggested Actions:
 - [ ] Check if all dependencies are installed
-- [ ] Verify command syntax and arguments  
+- [ ] Verify command syntax and arguments
 - [ ] Check file permissions and access rights
 - [ ] Review error logs for specific issues
 - [ ] Ensure required tools/binaries are available
@@ -269,10 +269,10 @@ health-check:
 	@domd --quiet || (echo "❌ Some commands failed. Check TODO.md" && exit 1)
 	@echo "✅ All project commands working!"
 
-.PHONY: health-report  
+.PHONY: health-report
 health-report:
 	@domd --dry-run --verbose
-	
+
 .PHONY: health-full
 health-full:
 	@domd --verbose --format json --output health-report.json
@@ -428,7 +428,7 @@ pip show domd     # jeśli zainstalowane przez pip
 # Pip
 pip install --upgrade domd
 
-# Poetry  
+# Poetry
 poetry update domd
 
 # Development version
@@ -448,7 +448,7 @@ Po zainstalowaniu:
 
 1. **Uruchom na swoim projekcie**: `domd --dry-run`
 2. **Sprawdź co znaleziono**: przejrzyj listę wykrytych komend
-3. **Przetestuj**: `domd --verbose` 
+3. **Przetestuj**: `domd --verbose`
 4. **Napraw błędy**: użyj wygenerowanego TODO.md
 5. **Zintegruj z workflow**: dodaj do CI/CD, pre-commit, Makefile
 

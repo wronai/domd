@@ -1,6 +1,6 @@
 # .domdignore - TodoMD Ignore File
 # Commands and patterns to skip during testing
-# 
+#
 # Syntax:
 #   - Exact command match: npm run dev
 #   - Pattern match: *recursive*

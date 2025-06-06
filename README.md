@@ -279,7 +279,7 @@ from .base import BaseParser
 class NewProjectParser(BaseParser):
     def can_parse(self, file_path: Path) -> bool:
         return file_path.name == "config.yaml"
-    
+
     def parse_commands(self, file_path: Path) -> List[Dict]:
         # Implementation here
         pass

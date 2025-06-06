@@ -3,10 +3,11 @@ pytest configuration and shared fixtures for DoMD tests.
 """
 
 import json
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
-from typing import Dict, Generator, Any
+from typing import Any, Dict, Generator
+
 import pytest
 
 from domd.detector import ProjectCommandDetector
@@ -34,12 +35,9 @@ def sample_package_json() -> Dict[str, Any]:
             "start": "node server.js",
             "lint": "eslint src/",
             "dev": "webpack-dev-server",
-            "clean": "rm -rf dist/"
+            "clean": "rm -rf dist/",
         },
-        "devDependencies": {
-            "jest": "^29.0.0",
-            "webpack": "^5.0.0"
-        }
+        "devDependencies": {"jest": "^29.0.0", "webpack": "^5.0.0"},
     }
 
 
@@ -92,22 +90,14 @@ def sample_pyproject_toml() -> Dict[str, Any]:
                     "test": "pytest",
                     "lint": "flake8 src/",
                     "format": "black src/",
-                    "start": "python -m test_project"
-                }
+                    "start": "python -m test_project",
+                },
             },
             "pytest": {
-                "ini_options": {
-                    "testpaths": ["tests"],
-                    "python_files": ["test_*.py"]
-                }
+                "ini_options": {"testpaths": ["tests"], "python_files": ["test_*.py"]}
             },
-            "black": {
-                "line-length": 88,
-                "target-version": ["py38"]
-            },
-            "isort": {
-                "profile": "black"
-            }
+            "black": {"line-length": 88, "target-version": ["py38"]},
+            "isort": {"profile": "black"},
         }
     }
 
@@ -127,7 +117,7 @@ commands = pytest
 deps = flake8
        black
        isort
-commands = 
+commands =
     flake8 src/
     black --check src/
     isort --check-only src/
@@ -204,23 +194,15 @@ def sample_composer_json() -> Dict[str, Any]:
         "name": "test/project",
         "description": "Test PHP project",
         "type": "project",
-        "require": {
-            "php": "^8.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "^9.0"
-        },
+        "require": {"php": "^8.0"},
+        "require-dev": {"phpunit/phpunit": "^9.0"},
         "scripts": {
             "test": "phpunit",
             "lint": "php-cs-fixer fix --dry-run",
             "fix": "php-cs-fixer fix",
-            "static": "phpstan analyse"
+            "static": "phpstan analyse",
         },
-        "autoload": {
-            "psr-4": {
-                "Test\\": "src/"
-            }
-        }
+        "autoload": {"psr-4": {"Test\\": "src/"}},
     }
 
 
@@ -250,10 +232,12 @@ harness = false
 
 
 @pytest.fixture
-def populated_project(temp_project: Path,
-                     sample_package_json: Dict[str, Any],
-                     sample_makefile_content: str,
-                     sample_pyproject_toml: Dict[str, Any]) -> Path:
+def populated_project(
+    temp_project: Path,
+    sample_package_json: Dict[str, Any],
+    sample_makefile_content: str,
+    sample_pyproject_toml: Dict[str, Any],
+) -> Path:
     """Create a fully populated test project with multiple config files."""
 
     # Create package.json
@@ -266,6 +250,7 @@ def populated_project(temp_project: Path,
 
     # Create pyproject.toml
     import toml
+
     with open(temp_project / "pyproject.toml", "w") as f:
         toml.dump(sample_pyproject_toml, f)
 
@@ -281,10 +266,12 @@ def populated_project(temp_project: Path,
     # Create tests directory
     tests_dir = temp_project / "tests"
     tests_dir.mkdir()
-    (tests_dir / "test_example.py").write_text("""
+    (tests_dir / "test_example.py").write_text(
+        """
 def test_example():
     assert True
-""")
+"""
+    )
 
     return temp_project
 
@@ -296,7 +283,7 @@ def detector_instance(temp_project: Path) -> ProjectCommandDetector:
         project_path=str(temp_project),
         timeout=5,  # Short timeout for tests
         exclude_patterns=["__pycache__/*", "*.pyc"],
-        include_patterns=[]
+        include_patterns=[],
     )
 
 
@@ -355,7 +342,7 @@ def sample_failed_commands() -> list:
             "return_code": 1,
             "execution_time": 2.34,
             "error": "Error: Cannot find module 'jest'\nnpm ERR! missing script: test",
-            "original_command": "jest"
+            "original_command": "jest",
         },
         {
             "command": "make build",
@@ -364,7 +351,7 @@ def sample_failed_commands() -> list:
             "type": "make_target",
             "return_code": 2,
             "execution_time": 0.12,
-            "error": "make: *** No rule to make target 'src/main.c', needed by 'build'. Stop."
+            "error": "make: *** No rule to make target 'src/main.c', needed by 'build'. Stop.",
         },
         {
             "command": "docker build -t test .",
@@ -373,32 +360,20 @@ def sample_failed_commands() -> list:
             "type": "docker_build",
             "return_code": 1,
             "execution_time": 15.67,
-            "error": "Error response from daemon: Cannot locate specified Dockerfile: Dockerfile"
-        }
+            "error": "Error response from daemon: Cannot locate specified Dockerfile: Dockerfile",
+        },
     ]
 
 
 # Pytest configuration
 def pytest_configure(config):
     """Configure pytest with custom markers."""
-    config.addinivalue_line(
-        "markers", "unit: mark test as unit test"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test"
-    )
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow"
-    )
-    config.addinivalue_line(
-        "markers", "commands: mark test as command-related"
-    )
-    config.addinivalue_line(
-        "markers", "parsers: mark test as parser-related"
-    )
-    config.addinivalue_line(
-        "markers", "reporters: mark test as reporter-related"
-    )
+    config.addinivalue_line("markers", "unit: mark test as unit test")
+    config.addinivalue_line("markers", "integration: mark test as integration test")
+    config.addinivalue_line("markers", "slow: mark test as slow")
+    config.addinivalue_line("markers", "commands: mark test as command-related")
+    config.addinivalue_line("markers", "parsers: mark test as parser-related")
+    config.addinivalue_line("markers", "reporters: mark test as reporter-related")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -436,6 +411,6 @@ def create_test_file(directory: Path, filename: str, content: str) -> Path:
 def create_test_json_file(directory: Path, filename: str, data: dict) -> Path:
     """Helper function to create test JSON files."""
     file_path = directory / filename
-    with open(file_path, 'w') as f:
+    with open(file_path, "w") as f:
         json.dump(data, f, indent=2)
     return file_path

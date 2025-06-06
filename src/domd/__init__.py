@@ -26,6 +26,7 @@ except ImportError as e:
         print("Please check your installation.")
         return 1
 
+
 __all__ = [
     "ProjectCommandDetector",
     "main",

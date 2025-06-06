@@ -88,7 +88,7 @@ Found 8 commands to test
   3. Make target: install
      Command: make install
      Source:  Makefile
-     
+
   4. Docker build
      Command: docker build -t my-project .
      Source:  Dockerfile
