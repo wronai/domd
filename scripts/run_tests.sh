@@ -13,6 +13,6 @@ poetry run pytest tests/ -m "integration" -v
 
 # All tests with coverage
 echo "Running all tests with coverage..."
-poetry run pytest tests/ --cov=todomd --cov-report=html --cov-report=term
+poetry run pytest tests/ --cov=domd --cov-report=html --cov-report=term
 
 echo "Tests completed!"

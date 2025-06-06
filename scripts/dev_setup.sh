@@ -14,4 +14,4 @@ poetry run black src/ tests/
 poetry run isort src/ tests/
 
 echo "Development environment ready!"
-echo "Run: poetry run todomd --help"
+echo "Run: poetry run domd --help"

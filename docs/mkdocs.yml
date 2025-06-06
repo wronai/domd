@@ -1,8 +1,8 @@
 site_name: TodoMD Documentation
 site_description: Project Command Detector - Automatically detects and tests project commands
-site_url: https://todomd.readthedocs.io
-repo_url: https://github.com/yourusername/todomd
-repo_name: yourusername/todomd
+site_url: https://domd.readthedocs.io
+repo_url: https://github.com/yourusername/domd
+repo_name: yourusername/domd
 edit_uri: edit/main/docs/
 
 # Copyright
@@ -203,13 +203,13 @@ extra:
   # Social links
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/yourusername/todomd
+      link: https://github.com/yourusername/domd
       name: GitHub Repository
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/todomd/
+      link: https://pypi.org/project/domd/
       name: PyPI Package
     - icon: fontawesome/solid/book
-      link: https://todomd.readthedocs.io
+      link: https://domd.readthedocs.io
       name: Documentation
 
   # Analytics (optional)
@@ -232,7 +232,7 @@ hooks:
 
 # Watch additional files
 watch:
-  - src/todomd/
+  - src/domd/
 
 # Validation
 validation:

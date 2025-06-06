@@ -1,7 +1,7 @@
 """Test detector module"""
 
 import pytest
-from todomd.detector import ProjectCommandDetector
+from domd.detector import ProjectCommandDetector
 
 def test_detector_init():
     """Test detector initialization."""

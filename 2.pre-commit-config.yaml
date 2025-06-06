@@ -93,9 +93,9 @@ repos:
   - repo: local
     hooks:
       # TodoMD self-check
-      - id: todomd-health-check
+      - id: domd-health-check
         name: TodoMD Self Health Check
-        entry: poetry run todomd --dry-run --quiet
+        entry: poetry run domd --dry-run --quiet
         language: system
         pass_filenames: false
         always_run: true
@@ -106,12 +106,12 @@ repos:
         name: Version Consistency Check
         entry: python scripts/check_version.py
         language: system
-        files: ^(pyproject\.toml|src/todomd/__init__\.py|CHANGELOG\.md)$
+        files: ^(pyproject\.toml|src/domd/__init__\.py|CHANGELOG\.md)$
 
       # Test coverage check
       - id: coverage-check
         name: Test Coverage Check
-        entry: poetry run pytest --cov=todomd --cov-fail-under=80 --quiet
+        entry: poetry run pytest --cov=domd --cov-fail-under=80 --quiet
         language: system
         pass_filenames: false
         stages: [push]

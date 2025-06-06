@@ -61,12 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extensible reporter system
 
 ### Example Commands Added
-- `todomd` - Basic project scanning
-- `todomd --dry-run` - Preview mode
-- `todomd --verbose` - Detailed output
-- `todomd --format json` - JSON output
-- `todomd --timeout 120` - Custom timeout
-- `todomd --exclude "*.test.*"` - Pattern exclusion
+- `domd` - Basic project scanning
+- `domd --dry-run` - Preview mode
+- `domd --verbose` - Detailed output
+- `domd --format json` - JSON output
+- `domd --timeout 120` - Custom timeout
+- `domd --exclude "*.test.*"` - Pattern exclusion
 
 ### Parsers Implemented
 - **JavaScript**: package.json scripts, npm/yarn/pnpm installations
@@ -119,8 +119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### From Manual Command Testing
 If you're currently manually testing project commands:
 
-1. Install TodoMD: `pip install todomd`
-2. Run in your project: `todomd`
+1. Install TodoMD: `pip install domd`
+2. Run in your project: `domd`
 3. Review generated TODO.md for failed commands
 4. Fix issues using provided suggestions
 
@@ -130,7 +130,7 @@ If you're currently manually testing project commands:
 Add to your pipeline:
 ```yaml
 - name: Project Health Check
-  run: todomd --quiet || echo "Some commands failed"
+  run: domd --quiet || echo "Some commands failed"
 ```
 
 #### Pre-commit Integration
@@ -138,9 +138,9 @@ Add to `.pre-commit-config.yaml`:
 ```yaml
 - repo: local
   hooks:
-    - id: todomd
+    - id: domd
       name: TodoMD Health Check
-      entry: todomd
+      entry: domd
       language: system
 ```
 
@@ -148,13 +148,13 @@ Add to `.pre-commit-config.yaml`:
 Add to your Makefile:
 ```makefile
 health-check:
-	todomd --verbose
+	domd --verbose
 ```
 
 ## Roadmap
 
 ### v0.2.0 (Planned)
-- Configuration file support (.todomd.yaml)
+- Configuration file support (.domd.yaml)
 - Custom parser plugins
 - Parallel command execution
 - Interactive fix mode
@@ -181,6 +181,6 @@ See [CONTRIBUTING.md] for guidelines on how to contribute to this project.
 
 ## Support
 
-- Documentation: https://todomd.readthedocs.io
-- Issues: https://github.com/yourusername/todomd/issues
-- Discussions: https://github.com/yourusername/todomd/discussions
+- Documentation: https://domd.readthedocs.io
+- Issues: https://github.com/yourusername/domd/issues
+- Discussions: https://github.com/yourusername/domd/discussions

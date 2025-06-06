@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, Generator, Any
 import pytest
 
-from todomd.detector import ProjectCommandDetector
+from domd.detector import ProjectCommandDetector
 
 
 @pytest.fixture

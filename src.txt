@@ -1,4 +1,4 @@
-todomd/
+domd/
 ├── pyproject.toml                 # Konfiguracja Poetry
 ├── README.md                      # Dokumentacja główna
 ├── CHANGELOG.md                   # Historia zmian
@@ -14,7 +14,7 @@ todomd/
 │   ├── api.md
 │   └── mkdocs.yml
 ├── src/                           # Kod źródłowy
-│   └── todomd/
+│   └── domd/
 │       ├── __init__.py
 │       ├── cli.py                 # Interfejs linii komend
 │       ├── detector.py            # Główna logika detektora

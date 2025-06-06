@@ -817,7 +817,7 @@ class ProjectCommandDetector:
         results = {
             'metadata': {
                 'generated_at': datetime.datetime.now().isoformat(),
-                'todomd_version': '0.1.0',  # Should be imported from __init__.py
+                'domd_version': '0.1.0',  # Should be imported from __init__.py
                 'project_path': str(self.project_path),
                 'timeout': self.timeout,
                 'exclude_patterns': self.exclude_patterns,

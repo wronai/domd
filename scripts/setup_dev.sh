@@ -12,7 +12,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Project configuration
-PROJECT_NAME="todomd"
+PROJECT_NAME="domd"
 PROJECT_DESC="Project Command Detector - Automatically detects and tests project commands"
 AUTHOR_NAME="Your Name"
 AUTHOR_EMAIL="your.email@example.com"
@@ -163,7 +163,7 @@ def sample_package_json():
     create_file "tests/test_detector.py" '"""Test detector module"""
 
 import pytest
-from todomd.detector import ProjectCommandDetector
+from domd.detector import ProjectCommandDetector
 
 def test_detector_init():
     """Test detector initialization."""
@@ -186,8 +186,8 @@ Welcome to TodoMD documentation.
 ## Quick Start
 
 \`\`\`bash
-pip install todomd
-todomd
+pip install domd
+domd
 \`\`\`"
 
     create_file "docs/mkdocs.yml" "site_name: TodoMD Documentation
@@ -345,7 +345,7 @@ poetry run black src/ tests/
 poetry run isort src/ tests/
 
 echo "Development environment ready!"
-echo "Run: poetry run todomd --help"'
+echo "Run: poetry run domd --help"'
 
     # Create test runner script
     create_file "scripts/run_tests.sh" '#!/bin/bash
@@ -363,7 +363,7 @@ poetry run pytest tests/ -m "integration" -v
 
 # All tests with coverage
 echo "Running all tests with coverage..."
-poetry run pytest tests/ --cov=todomd --cov-report=html --cov-report=term
+poetry run pytest tests/ --cov=domd --cov-report=html --cov-report=term
 
 echo "Tests completed!"'
 
@@ -433,12 +433,12 @@ show_completion_message() {
     echo "Next steps:"
     echo "1. Update author information in pyproject.toml"
     echo "2. Update GitHub URLs in README.md and pyproject.toml"
-    echo "3. Implement the detector logic in src/todomd/detector.py"
+    echo "3. Implement the detector logic in src/domd/detector.py"
     echo "4. Add more comprehensive tests"
     echo "5. Build and publish: make build"
     echo
     echo "Quick commands:"
-    echo "  poetry run todomd --help      # Show CLI help"
+    echo "  poetry run domd --help      # Show CLI help"
     echo "  make test                      # Run tests"
     echo "  make lint                      # Run linting"
     echo "  make docs                      # Build documentation"
@@ -459,7 +459,7 @@ main() {
     echo
 
     # Check if we're in the right directory
-    if [ -f "pyproject.toml" ] && grep -q "name = \"todomd\"" pyproject.toml; then
+    if [ -f "pyproject.toml" ] && grep -q "name = \"domd\"" pyproject.toml; then
         log_info "Found existing TodoMD project configuration"
     else
         log_warning "pyproject.toml not found or not a TodoMD project"

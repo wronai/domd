@@ -32,7 +32,7 @@ test-integration: ## Run integration tests only
 	poetry run pytest -m "integration"
 
 test-cov: ## Run tests with coverage report
-	poetry run pytest --cov=todomd --cov-report=html --cov-report=term
+	poetry run pytest --cov=domd --cov-report=html --cov-report=term
 
 test-verbose: ## Run tests with verbose output
 	poetry run pytest -v
@@ -59,7 +59,7 @@ flake8: ## Run flake8 linter
 	poetry run flake8 src/ tests/
 
 pylint: ## Run pylint
-	poetry run pylint src/todomd/
+	poetry run pylint src/domd/
 
 # Documentation targets
 docs: ## Build documentation
@@ -91,14 +91,14 @@ publish: build ## Publish to PyPI
 	poetry publish
 
 # Development targets
-run: ## Run todomd on current directory
-	poetry run todomd
+run: ## Run domd on current directory
+	poetry run domd
 
-run-dry: ## Run todomd in dry-run mode
-	poetry run todomd --dry-run --verbose
+run-dry: ## Run domd in dry-run mode
+	poetry run domd --dry-run --verbose
 
-run-example: ## Run todomd on example project
-	poetry run todomd --path examples/ --verbose
+run-example: ## Run domd on example project
+	poetry run domd --path examples/ --verbose
 
 # Quality assurance targets
 qa: lint test ## Run quality assurance (lint + test)
@@ -145,11 +145,11 @@ env-info: ## Show environment information
 	@poetry show --no-dev
 
 # Health check (dogfooding)
-health-check: ## Run todomd on itself
-	poetry run todomd --path . --verbose
+health-check: ## Run domd on itself
+	poetry run domd --path . --verbose
 
-health-check-dry: ## Preview todomd run on itself
-	poetry run todomd --path . --dry-run --verbose
+health-check-dry: ## Preview domd run on itself
+	poetry run domd --path . --dry-run --verbose
 
 # Example and demo targets
 create-examples: ## Create example projects for testing
@@ -160,7 +160,7 @@ create-examples: ## Create example projects for testing
 
 demo: create-examples ## Run demo on example projects
 	@echo "Running TodoMD demo..."
-	poetry run todomd --path examples/ --verbose
+	poetry run domd --path examples/ --verbose
 
 # Cleanup targets
 clean-all: clean docs-clean ## Clean everything

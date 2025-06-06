@@ -15,13 +15,13 @@ from .detector import ProjectCommandDetector
 def create_parser() -> argparse.ArgumentParser:
     """Create and configure argument parser."""
     parser = argparse.ArgumentParser(
-        prog='todomd',
+        prog='domd',
         description='Project Command Detector - Automatically detects and tests project commands',
         epilog='Examples:\n'
-               '  todomd                          # Scan current directory\n'
-               '  todomd --path /path/to/project  # Scan specific project\n'
-               '  todomd --dry-run                # Preview commands without executing\n'
-               '  todomd --output custom.md       # Custom output file',
+               '  domd                          # Scan current directory\n'
+               '  domd --path /path/to/project  # Scan specific project\n'
+               '  domd --dry-run                # Preview commands without executing\n'
+               '  domd --output custom.md       # Custom output file',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 

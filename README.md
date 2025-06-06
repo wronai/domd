@@ -1,9 +1,9 @@
 # TodoMD - Project Command Detector
 
-[![PyPI version](https://badge.fury.io/py/todomd.svg)](https://badge.fury.io/py/todomd)
-[![Python Support](https://img.shields.io/pypi/pyversions/todomd.svg)](https://pypi.org/project/todomd/)
+[![PyPI version](https://badge.fury.io/py/domd.svg)](https://badge.fury.io/py/domd)
+[![Python Support](https://img.shields.io/pypi/pyversions/domd.svg)](https://pypi.org/project/domd/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/yourusername/todomd/workflows/Tests/badge.svg)](https://github.com/yourusername/todomd/actions)
+[![Tests](https://github.com/yourusername/domd/workflows/Tests/badge.svg)](https://github.com/yourusername/domd/actions)
 
 **TodoMD** automatically detects and tests project commands from various configuration files, then generates a detailed `TODO.md` file for failed commands with error reports and suggested fixes.
 
@@ -54,18 +54,18 @@
 
 ### Using pip
 ```bash
-pip install todomd
+pip install domd
 ```
 
 ### Using Poetry
 ```bash
-poetry add todomd
+poetry add domd
 ```
 
 ### From source
 ```bash
-git clone https://github.com/yourusername/todomd.git
-cd todomd
+git clone https://github.com/yourusername/domd.git
+cd domd
 poetry install
 ```
 
@@ -74,38 +74,38 @@ poetry install
 ### Basic Usage
 ```bash
 # Scan current directory
-todomd
+domd
 
 # Scan specific project
-todomd --path /path/to/project
+domd --path /path/to/project
 
 # Preview commands without executing
-todomd --dry-run
+domd --dry-run
 
 # Custom output file
-todomd --output FAILED_COMMANDS.md
+domd --output FAILED_COMMANDS.md
 ```
 
 ### Advanced Options
 ```bash
 # Verbose output with detailed logging
-todomd --verbose
+domd --verbose
 
 # Quiet mode (errors only)
-todomd --quiet
+domd --quiet
 
 # Custom timeout (default: 60 seconds)
-todomd --timeout 120
+domd --timeout 120
 
 # Different output formats
-todomd --format json
-todomd --format text
+domd --format json
+domd --format text
 
 # Exclude specific patterns
-todomd --exclude "*.test.js" --exclude "node_modules/*"
+domd --exclude "*.test.js" --exclude "node_modules/*"
 
 # Include only specific patterns
-todomd --include-only "Makefile" --include-only "package.json"
+domd --include-only "Makefile" --include-only "package.json"
 ```
 
 ### Example Output
@@ -186,7 +186,7 @@ make: *** No rule to make target 'src/main.c', needed by 'build'. Stop.
 ## 🤖 Programmatic Usage
 
 ```python
-from todomd import ProjectCommandDetector
+from domd import ProjectCommandDetector
 
 # Initialize detector
 detector = ProjectCommandDetector(
@@ -215,8 +215,8 @@ print(f"Success rate: {success_rate:.1f}%")
 
 ### Setup Development Environment
 ```bash
-git clone https://github.com/yourusername/todomd.git
-cd todomd
+git clone https://github.com/yourusername/domd.git
+cd domd
 poetry install --with dev,docs,testing
 
 # Install pre-commit hooks
@@ -229,7 +229,7 @@ poetry run pre-commit install
 poetry run pytest
 
 # Run with coverage
-poetry run pytest --cov=todomd --cov-report=html
+poetry run pytest --cov=domd --cov-report=html
 
 # Run specific test categories
 poetry run pytest -m "unit"
@@ -267,7 +267,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 To add support for a new project type:
 
-1. Create a parser in `src/todomd/parsers/`
+1. Create a parser in `src/domd/parsers/`
 2. Implement the parser interface
 3. Add tests in `tests/parsers/`
 4. Update documentation
@@ -305,11 +305,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [Documentation](https://todomd.readthedocs.io)
-- [PyPI Package](https://pypi.org/project/todomd/)
-- [GitHub Repository](https://github.com/yourusername/todomd)
-- [Issue Tracker](https://github.com/yourusername/todomd/issues)
-- [Changelog](https://github.com/yourusername/todomd/blob/main/CHANGELOG.md)
+- [Documentation](https://domd.readthedocs.io)
+- [PyPI Package](https://pypi.org/project/domd/)
+- [GitHub Repository](https://github.com/yourusername/domd)
+- [Issue Tracker](https://github.com/yourusername/domd/issues)
+- [Changelog](https://github.com/yourusername/domd/blob/main/CHANGELOG.md)
 
 ## 💡 Use Cases
 
@@ -336,9 +336,9 @@ jobs:
       with:
         python-version: '3.9'
     - name: Install TodoMD
-      run: pip install todomd
+      run: pip install domd
     - name: Run Project Health Check
-      run: todomd --verbose
+      run: domd --verbose
     - name: Upload TODO.md if failures
       if: failure()
       uses: actions/upload-artifact@v3
@@ -352,12 +352,12 @@ jobs:
 .PHONY: health-check
 health-check:
 	@echo "Running project health check..."
-	@todomd --quiet || (echo "❌ Some commands failed. Check TODO.md" && exit 1)
+	@domd --quiet || (echo "❌ Some commands failed. Check TODO.md" && exit 1)
 	@echo "✅ All project commands working!"
 
 .PHONY: health-report
 health-report:
-	@todomd --dry-run --verbose
+	@domd --dry-run --verbose
 ```
 
 ### Pre-commit Hook
@@ -366,9 +366,9 @@ health-report:
 repos:
   - repo: local
     hooks:
-      - id: todomd-check
+      - id: domd-check
         name: Project Command Health Check
-        entry: todomd
+        entry: domd
         language: system
         pass_filenames: false
         always_run: true

@@ -16,8 +16,8 @@ curl -sSL https://install.python-poetry.org | python3 -
 
 ```bash
 # Sklonuj repozytorium
-git clone https://github.com/yourusername/todomd.git
-cd todomd
+git clone https://github.com/yourusername/domd.git
+cd domd
 
 # Automatyczna konfiguracja (uruchom skrypt setup)
 chmod +x scripts/setup_project.sh
@@ -48,13 +48,13 @@ poetry build
 
 ```bash
 # Podstawowa instalacja
-pip install todomd
+pip install domd
 
 # Z dodatkowymi funkcjami
-pip install todomd[all]
+pip install domd[all]
 
 # Przy użyciu Poetry
-poetry add todomd
+poetry add domd
 ```
 
 ## 🔧 Podstawowe użycie
@@ -63,13 +63,13 @@ poetry add todomd
 
 ```bash
 # Podstawowe skanowanie
-todomd
+domd
 
 # Tryb podglądu (bez wykonywania komend)
-todomd --dry-run
+domd --dry-run
 
 # Szczegółowe informacje
-todomd --verbose
+domd --verbose
 ```
 
 ### Przykład wyjścia
@@ -121,38 +121,38 @@ EXECUTION SUMMARY
 
 ```bash
 # Skanowanie konkretnego projektu
-todomd --path /ścieżka/do/projektu
+domd --path /ścieżka/do/projektu
 
 # Własny plik wyjściowy
-todomd --output FAILED_TASKS.md
+domd --output FAILED_TASKS.md
 
 # Różne formaty wyjścia
-todomd --format json      # JSON
-todomd --format text      # Zwykły tekst
-todomd --format markdown  # Markdown (domyślny)
+domd --format json      # JSON
+domd --format text      # Zwykły tekst
+domd --format markdown  # Markdown (domyślny)
 
 # Timeout dla komend (domyślnie 60s)
-todomd --timeout 120
+domd --timeout 120
 
 # Wykluczanie plików
-todomd --exclude "*.test.js" --exclude "node_modules/*"
+domd --exclude "*.test.js" --exclude "node_modules/*"
 
 # Tylko konkretne pliki
-todomd --include-only "Makefile" --include-only "package.json"
+domd --include-only "Makefile" --include-only "package.json"
 ```
 
 ### Tryby działania
 
 ```bash
 # Tryb cichy (tylko błędy)
-todomd --quiet
+domd --quiet
 
 # Tryb szczegółowy
-todomd --verbose
+domd --verbose
 
 # Kombinacje
-todomd --path ./frontend --dry-run --verbose
-todomd --quiet --format json --output results.json
+domd --path ./frontend --dry-run --verbose
+domd --quiet --format json --output results.json
 ```
 
 ## 📊 Przykłady generowanych raportów
@@ -233,9 +233,9 @@ jobs:
       with:
         python-version: '3.9'
     - name: Install TodoMD
-      run: pip install todomd
+      run: pip install domd
     - name: Health Check
-      run: todomd --verbose
+      run: domd --verbose
     - name: Upload TODO if failed
       if: failure()
       uses: actions/upload-artifact@v3
@@ -251,9 +251,9 @@ jobs:
 repos:
   - repo: local
     hooks:
-      - id: todomd-check
+      - id: domd-check
         name: Project Health Check
-        entry: todomd
+        entry: domd
         language: system
         pass_filenames: false
         always_run: true
@@ -266,16 +266,16 @@ repos:
 .PHONY: health-check
 health-check:
 	@echo "🔍 Checking project health..."
-	@todomd --quiet || (echo "❌ Some commands failed. Check TODO.md" && exit 1)
+	@domd --quiet || (echo "❌ Some commands failed. Check TODO.md" && exit 1)
 	@echo "✅ All project commands working!"
 
 .PHONY: health-report  
 health-report:
-	@todomd --dry-run --verbose
+	@domd --dry-run --verbose
 	
 .PHONY: health-full
 health-full:
-	@todomd --verbose --format json --output health-report.json
+	@domd --verbose --format json --output health-report.json
 	@echo "📊 Full health report saved to health-report.json"
 ```
 
@@ -284,7 +284,7 @@ health-full:
 ### Python API
 
 ```python
-from todomd import ProjectCommandDetector
+from domd import ProjectCommandDetector
 
 # Podstawowe użycie
 detector = ProjectCommandDetector("./my-project")
@@ -362,7 +362,7 @@ chmod +x scripts/build.sh
 **3. Timeout errors**
 ```bash
 # Zwiększ timeout dla wolnych komend
-todomd --timeout 300  # 5 minut
+domd --timeout 300  # 5 minut
 ```
 
 **4. Problemy z encoding**
@@ -376,10 +376,10 @@ export LC_ALL=en_US.UTF-8
 
 ```bash
 # Maksymalnie szczegółowe informacje
-todomd --verbose --dry-run
+domd --verbose --dry-run
 
 # Python debug
-PYTHONPATH=src python -m todomd.detector --verbose --path .
+PYTHONPATH=src python -m domd.detector --verbose --path .
 ```
 
 ### Logi
@@ -388,7 +388,7 @@ PYTHONPATH=src python -m todomd.detector --verbose --path .
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-from todomd import ProjectCommandDetector
+from domd import ProjectCommandDetector
 detector = ProjectCommandDetector(".")
 # Teraz zobaczysz wszystkie debug informacje
 ```
@@ -399,13 +399,13 @@ detector = ProjectCommandDetector(".")
 
 ```bash
 # Wykluczenie ciężkich folderów
-todomd --exclude "node_modules/*" --exclude ".git/*" --exclude "build/*"
+domd --exclude "node_modules/*" --exclude ".git/*" --exclude "build/*"
 
 # Tylko najważniejsze pliki
-todomd --include-only "Makefile" --include-only "package.json" --include-only "pyproject.toml"
+domd --include-only "Makefile" --include-only "package.json" --include-only "pyproject.toml"
 
 # Krótszy timeout dla szybszego skanowania
-todomd --timeout 30 --quiet
+domd --timeout 30 --quiet
 ```
 
 ### Równoległe uruchamianie
@@ -417,19 +417,19 @@ TodoMD obecnie uruchamia komendy sekwencyjnie dla bezpieczeństwa. W przyszłych
 ### Sprawdzanie wersji
 
 ```bash
-todomd --version
-poetry show todomd  # jeśli zainstalowane przez Poetry
-pip show todomd     # jeśli zainstalowane przez pip
+domd --version
+poetry show domd  # jeśli zainstalowane przez Poetry
+pip show domd     # jeśli zainstalowane przez pip
 ```
 
 ### Aktualizacja
 
 ```bash
 # Pip
-pip install --upgrade todomd
+pip install --upgrade domd
 
 # Poetry  
-poetry update todomd
+poetry update domd
 
 # Development version
 git pull
@@ -438,17 +438,17 @@ poetry install
 
 ## 📞 Wsparcie
 
-- **Dokumentacja**: https://todomd.readthedocs.io
-- **Issues**: https://github.com/yourusername/todomd/issues
-- **Discussions**: https://github.com/yourusername/todomd/discussions
+- **Dokumentacja**: https://domd.readthedocs.io
+- **Issues**: https://github.com/yourusername/domd/issues
+- **Discussions**: https://github.com/yourusername/domd/discussions
 
 ## 🎯 Następne kroki
 
 Po zainstalowaniu:
 
-1. **Uruchom na swoim projekcie**: `todomd --dry-run`
+1. **Uruchom na swoim projekcie**: `domd --dry-run`
 2. **Sprawdź co znaleziono**: przejrzyj listę wykrytych komend
-3. **Przetestuj**: `todomd --verbose` 
+3. **Przetestuj**: `domd --verbose` 
 4. **Napraw błędy**: użyj wygenerowanego TODO.md
 5. **Zintegruj z workflow**: dodaj do CI/CD, pre-commit, Makefile
 
