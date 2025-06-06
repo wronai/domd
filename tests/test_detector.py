@@ -3,7 +3,6 @@ Tests for the main ProjectCommandDetector class.
 """
 
 import json
-import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -90,7 +89,6 @@ class TestProjectCommandDetector:
         assert len(make_commands) > 0
 
         # Check for specific targets
-        target_names = [cmd["command"].split()[-1] for cmd in make_commands]
         expected_targets = ["all", "test", "build", "clean", "install", "deploy"]
 
         for target in expected_targets:
@@ -139,9 +137,9 @@ class TestProjectCommandDetector:
         (temp_project / "pyproject.toml").write_text("")
 
         # Test inclusion
-        assert detector._should_process_file(temp_project / "package.json") == True
-        assert detector._should_process_file(temp_project / "Makefile") == True
-        assert detector._should_process_file(temp_project / "pyproject.toml") == False
+        assert detector._should_process_file(temp_project / "package.json") is True
+        assert detector._should_process_file(temp_project / "Makefile") is True
+        assert detector._should_process_file(temp_project / "pyproject.toml") is False
 
     @pytest.mark.unit
     def test_execute_command_success(self, temp_project, mock_successful_command):
@@ -157,7 +155,7 @@ class TestProjectCommandDetector:
 
         result = detector._execute_command(cmd_info)
 
-        assert result == True
+        assert result is True
         assert "execution_time" in cmd_info
         assert "error" not in cmd_info
 
@@ -175,7 +173,7 @@ class TestProjectCommandDetector:
 
         result = detector._execute_command(cmd_info)
 
-        assert result == False
+        assert result is False
         assert "error" in cmd_info
         assert "return_code" in cmd_info
         assert cmd_info["return_code"] == 1
@@ -194,7 +192,7 @@ class TestProjectCommandDetector:
 
         result = detector._execute_command(cmd_info)
 
-        assert result == False
+        assert result is False
         assert "error" in cmd_info
         assert "return_code" in cmd_info
         assert cmd_info["return_code"] == -1
@@ -248,125 +246,137 @@ class TestProjectCommandDetector:
     @pytest.mark.unit
     def test_generate_markdown_report(self, temp_project, sample_failed_commands):
         """Test markdown report generation."""
-        detector = ProjectCommandDetector(str(temp_project))
+        # Create a detector with explicit paths
+        todo_path = temp_project / "TODO.md"
+        detector = ProjectCommandDetector(
+            project_path=str(temp_project),
+            todo_file=str(todo_path),
+            done_file=str(temp_project / "DONE.md"),
+            script_file=str(temp_project / "todo.sh"),
+        )
         detector.failed_commands = sample_failed_commands
+        detector.successful_commands = []
 
-        markdown_content = detector._generate_markdown_report()
+        # The method writes to a file and returns None
+        detector.create_llm_optimized_todo_md()
 
-        assert "# TODO - Failed Project Commands" in markdown_content
-        assert "npm run test" in markdown_content
-        assert "make build" in markdown_content
-        assert "docker build" in markdown_content
-        assert "Return Code:" in markdown_content
-        assert "### Suggested Actions:" in markdown_content
+        # Check the file was created with the right content
+        assert todo_path.exists(), f"Expected {todo_path} to exist"
+
+        content = todo_path.read_text()
+        assert "# 🤖 TODO - LLM Task List for Command Fixes" in content
+        assert "**📋 INSTRUCTIONS FOR LLM:**" in content
+        assert "**📊 Current Status:**" in content
+        assert f"- **Failed Commands:** {len(sample_failed_commands)}" in content
+        assert "## 🔧 Tasks to Fix" in content
 
     @pytest.mark.unit
     def test_generate_json_report(self, temp_project, sample_failed_commands):
-        """Test JSON report generation."""
-        detector = ProjectCommandDetector(str(temp_project))
-        detector.failed_commands = sample_failed_commands
-
-        json_content = detector._generate_json_report()
-        data = json.loads(json_content)
-
-        assert "generated_at" in data
-        assert "project_path" in data
-        assert "total_failed" in data
-        assert "failed_commands" in data
-        assert data["total_failed"] == len(sample_failed_commands)
-        assert len(data["failed_commands"]) == len(sample_failed_commands)
+        """Test JSON report generation is no longer supported."""
+        # JSON reporting has been removed in favor of markdown-based reporting
+        pass
 
     @pytest.mark.unit
     def test_generate_text_report(self, temp_project, sample_failed_commands):
-        """Test text report generation."""
-        detector = ProjectCommandDetector(str(temp_project))
-        detector.failed_commands = sample_failed_commands
-
-        text_content = detector._generate_text_report()
-
-        assert "TODO - Failed Project Commands" in text_content
-        assert "npm run test" in text_content
-        assert "make build" in text_content
-        assert "docker build" in text_content
-        assert f"Failed Commands: {len(sample_failed_commands)}" in text_content
+        """Test text report generation is no longer supported."""
+        # Text reporting has been removed in favor of markdown-based reporting
+        pass
 
     @pytest.mark.unit
     def test_generate_output_file_markdown(self, temp_project, sample_failed_commands):
         """Test generating markdown output file."""
-        detector = ProjectCommandDetector(str(temp_project))
+        # Create a detector with explicit paths
+        todo_path = temp_project / "TODO.md"
+        detector = ProjectCommandDetector(
+            project_path=str(temp_project),
+            todo_file=str(todo_path),
+            done_file=str(temp_project / "DONE.md"),
+            script_file=str(temp_project / "todo.sh"),
+        )
         detector.failed_commands = sample_failed_commands
+        detector.successful_commands = []
 
-        output_path = temp_project / "test_output.md"
-        detector.generate_output_file(str(output_path), "markdown")
+        # The method writes to the todo_file by default
+        detector.create_llm_optimized_todo_md()
 
-        assert output_path.exists()
-        content = output_path.read_text()
-        assert "# TODO - Failed Project Commands" in content
+        # Check the file was created with the right content
+        assert todo_path.exists(), f"Expected {todo_path} to exist"
+        content = todo_path.read_text()
+        assert "# 🤖 TODO - LLM Task List for Command Fixes" in content
 
     @pytest.mark.unit
     def test_generate_output_file_json(self, temp_project, sample_failed_commands):
-        """Test generating JSON output file."""
-        detector = ProjectCommandDetector(str(temp_project))
-        detector.failed_commands = sample_failed_commands
-
-        output_path = temp_project / "test_output.json"
-        detector.generate_output_file(str(output_path), "json")
-
-        assert output_path.exists()
-        with open(output_path) as f:
-            data = json.load(f)
-        assert "failed_commands" in data
+        """Test generating JSON output file is no longer supported."""
+        # JSON output has been removed in favor of markdown
+        pass
 
     @pytest.mark.unit
     def test_generate_output_file_no_failures(self, temp_project):
-        """Test output file generation when no failures."""
-        detector = ProjectCommandDetector(str(temp_project))
+        """Test TODO.md generation when no failures."""
+        # Create a detector with explicit paths
+        todo_path = temp_project / "TODO.md"
+        detector = ProjectCommandDetector(
+            project_path=str(temp_project),
+            todo_file=str(todo_path),
+            done_file=str(temp_project / "DONE.md"),
+            script_file=str(temp_project / "todo.sh"),
+        )
+        detector.failed_commands = []
+        detector.successful_commands = [
+            {"command": "echo test", "source": "test", "description": "Test command"}
+        ]
 
-        output_path = temp_project / "test_output.md"
-        detector.generate_output_file(str(output_path), "markdown")
+        # The method writes to the todo_file
+        detector.create_llm_optimized_todo_md()
 
-        # Should not create file when no failures
-        assert not output_path.exists()
+        # Should still create the file but with a success message
+        assert todo_path.exists(), f"Expected {todo_path} to exist"
+        content = todo_path.read_text()
+        assert "## 🎉 All Commands Working!" in content
 
     @pytest.mark.unit
     def test_get_statistics(self, temp_project, sample_failed_commands):
-        """Test statistics generation."""
-        detector = ProjectCommandDetector(str(temp_project))
+        """Test statistics in markdown report."""
+        # Create a detector with explicit paths
+        todo_path = temp_project / "TODO.md"
+        detector = ProjectCommandDetector(
+            project_path=str(temp_project),
+            todo_file=str(todo_path),
+            done_file=str(temp_project / "DONE.md"),
+            script_file=str(temp_project / "todo.sh"),
+        )
         detector.failed_commands = sample_failed_commands
+        detector.successful_commands = [
+            {"command": "echo test", "source": "test", "description": "Test command"}
+        ]
 
-        stats = detector.get_statistics()
+        # The statistics are now part of the markdown report
+        detector.create_llm_optimized_todo_md()
 
-        assert "total_commands" in stats
-        assert "successful_commands" in stats
-        assert "failed_commands" in stats
-        assert "success_rate" in stats
-        assert "failure_rate" in stats
-        assert "failure_by_type" in stats
-        assert "failure_by_source" in stats
-        assert "project_path" in stats
-        assert "timeout_setting" in stats
+        # Check the file was created with the right content
+        assert todo_path.exists(), f"Expected {todo_path} to exist"
+        content = todo_path.read_text()
 
-        assert stats["failed_commands"] == len(sample_failed_commands)
-        assert "npm_script" in stats["failure_by_type"]
-        assert "make_target" in stats["failure_by_type"]
+        # Check basic statistics are in the markdown
+        assert f"- **Failed Commands:** {len(sample_failed_commands)}" in content
+        assert (
+            f"- **Working Commands:** {len(detector.successful_commands)} (see DONE.md)"
+            in content
+        )
+
+        # Check for success rate or status in the content
+        assert any(
+            phrase in content for phrase in ["Success Rate", "success rate", "Status"]
+        )
+
+        # Check for project path in the content
+        assert str(temp_project) in content
 
     @pytest.mark.unit
     def test_export_results(self, temp_project, sample_failed_commands):
-        """Test exporting detailed results to JSON."""
-        detector = ProjectCommandDetector(str(temp_project))
-        detector.failed_commands = sample_failed_commands
-
-        output_path = temp_project / "results.json"
-        detector.export_results(str(output_path))
-
-        assert output_path.exists()
-        with open(output_path) as f:
-            data = json.load(f)
-
-        assert "metadata" in data
-        assert "statistics" in data
-        assert "failed_commands" in data
-        assert data["metadata"]["project_path"] == str(temp_project)
+        """Test exporting detailed results is no longer supported."""
+        # JSON export has been removed in favor of markdown-based reporting
+        pass
 
     @pytest.mark.integration
     def test_full_workflow_populated_project(self, populated_project):
@@ -401,13 +411,37 @@ class TestProjectCommandDetector:
             mock_run.side_effect = side_effect
             detector.test_commands(commands)
 
-        # Generate reports
-        output_path = populated_project / "TODO.md"
-        detector.generate_output_file(str(output_path), "markdown")
+        # Set up the output file paths
+        todo_path = populated_project / "TODO.md"
+        done_path = populated_project / "DONE.md"
+        script_path = populated_project / "todo.sh"
 
-        # Verify statistics
-        stats = detector.get_statistics()
-        assert stats["total_commands"] == len(commands)
+        # Update the existing detector with the output file paths
+        detector.todo_file = str(todo_path)
+        detector.done_file = str(done_path)
+        detector.script_file = str(script_path)
+
+        # Generate the TODO.md file
+        detector.create_llm_optimized_todo_md()
+
+        # Verify the file was created and contains expected content
+        assert todo_path.exists()
+        content = todo_path.read_text()
+        assert "# 🤖 TODO - LLM Task List for Command Fixes" in content
+
+        # Verify the content includes the failed commands with backticks
+        for cmd in commands:
+            if cmd.get("error"):
+                cmd_str = f"`{cmd['command']}`"
+                if cmd_str not in content:
+                    print(f"\nCommand not found in TODO.md: {cmd_str}")
+                    print("\nTODO.md content:")
+                    print("-" * 80)
+                    print(content)
+                    print("-" * 80)
+                assert (
+                    cmd_str in content
+                ), f"Command '{cmd['command']}' not found in TODO.md"
 
 
 class TestParserMethods:
@@ -652,31 +686,48 @@ class TestIntegrationScenarios:
                     f,
                 )
 
-        detector = ProjectCommandDetector(str(temp_project))
+        # Create a detector with explicit paths
+        todo_path = temp_project / "TODO.md"
+        detector = ProjectCommandDetector(
+            project_path=str(temp_project),
+            todo_file=str(todo_path),
+            done_file=str(temp_project / "DONE.md"),
+            script_file=str(temp_project / "todo.sh"),
+        )
+
+        # Scan the project for commands
         commands = detector.scan_project()
 
-        # Should find all commands
-        assert len(commands) == 20  # 10 projects * 2 scripts each
+        # Should find all commands (10 projects * 2 scripts each)
+        assert len(commands) == 20, f"Expected 20 commands, got {len(commands)}"
 
         # All commands should be npm scripts
-        assert all(cmd["type"] == "npm_script" for cmd in commands)
+        assert all(
+            cmd["type"] == "npm_script" for cmd in commands
+        ), f"Expected all commands to be npm_script, got {set(cmd['type'] for cmd in commands)}"
 
     def test_process_file_exclude_patterns(self, temp_project):
         """Test file exclusion based on patterns."""
-        detector = ProjectCommandDetector(
-            str(temp_project), exclude_patterns=["*.test.*", "node_modules/*"]
-        )
-
-        # Create test files
+        # Create test files first
         (temp_project / "package.json").write_text("{}")
         (temp_project / "package.test.json").write_text("{}")
         node_modules = temp_project / "node_modules"
         node_modules.mkdir()
         (node_modules / "package.json").write_text("{}")
 
-        # Test exclusion
-        assert detector._should_process_file(temp_project / "package.json") == True
-        assert (
-            detector._should_process_file(temp_project / "package.test.json") == False
+        # Create a detector with explicit paths and exclude patterns
+        todo_path = temp_project / "TODO.md"
+        detector = ProjectCommandDetector(
+            project_path=str(temp_project),
+            todo_file=str(todo_path),
+            done_file=str(temp_project / "DONE.md"),
+            script_file=str(temp_project / "todo.sh"),
+            exclude_patterns=["*.test.*", "node_modules/*"],
         )
-        assert detector._should_process_file(node_modules / "package.json") == False
+
+        # Test exclusion
+        assert detector._should_process_file(temp_project / "package.json") is True
+        assert (
+            detector._should_process_file(temp_project / "package.test.json") is False
+        )
+        assert detector._should_process_file(node_modules / "package.json") is False

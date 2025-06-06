@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced CLI with .domdignore support
+Enhanced CLI with .doignore support
 """
 
 import argparse
@@ -14,27 +14,27 @@ from .detector import ProjectCommandDetector
 
 
 def create_parser() -> argparse.ArgumentParser:
-    """Create enhanced argument parser with .domdignore support."""
+    """Create enhanced argument parser with .doignore support."""
     parser = argparse.ArgumentParser(
         prog="domd",
-        description="Project Command Detector with .domdignore support",
+        description="Project Command Detector with .doignore support",
         epilog="""
 Examples:
-  domd                              # Scan, filter via .domdignore, create files, test
-  domd --init-only                  # Only create TODO.md, todo.sh, and .domdignore template
-  domd --generate-ignore            # Generate .domdignore template file
+  domd                              # Scan, filter via .doignore, create files, test
+  domd --init-only                  # Only create TODO.md, todo.sh, and .doignore template
+  domd --generate-ignore            # Generate .doignore template file
   domd --ignore-file custom.ignore  # Use custom ignore file
   domd --show-ignored               # Show what commands would be ignored
 
-.domdignore Syntax:
+.doignore Syntax:
   npm run dev                       # Exact command match
   *serve*                          # Pattern match (any command containing "serve")
   poetry run *                     # Pattern match (commands starting with "poetry run")
   # Comment line                   # Comments (ignored)
 
 Workflow:
-  1. domd --generate-ignore         # Create .domdignore template
-  2. Edit .domdignore              # Add your project-specific ignores
+  1. domd --generate-ignore         # Create .doignore template
+  2. Edit .doignore                 # Add your project-specific ignores
   3. domd --show-ignored           # Preview what will be ignored
   4. domd --init-only              # Create files without testing
   5. domd                          # Full run with filtering
@@ -64,13 +64,13 @@ Workflow:
     parser.add_argument(
         "--init-only",
         action="store_true",
-        help="Only create TODO.md, todo.sh, and .domdignore template (no testing)",
+        help="Only create TODO.md, todo.sh, and .doignore template (no testing)",
     )
 
     parser.add_argument(
         "--generate-ignore",
         action="store_true",
-        help="Generate .domdignore template file and exit",
+        help="Generate .doignore template file and exit",
     )
 
     parser.add_argument(
@@ -82,8 +82,8 @@ Workflow:
     parser.add_argument(
         "--ignore-file",
         type=str,
-        default=".domdignore",
-        help="Custom ignore file path (default: .domdignore)",
+        default=".doignore",
+        help="Custom ignore file path (default: .doignore)",
     )
 
     parser.add_argument(
@@ -192,19 +192,19 @@ def setup_logging(verbose: bool, quiet: bool) -> None:
 
 def handle_generate_ignore(detector: ProjectCommandDetector) -> int:
     """Handle --generate-ignore option."""
-    print("📝 Generating .domdignore template...")
-    detector.generate_domdignore_template()
+    print("📝 Generating .doignore template...")
+    detector.generate_doignore_template()
 
     ignore_file_path = (
         detector.project_path / detector.ignore_parser.ignore_file_path.name
     )
     if ignore_file_path.exists():
-        print(f"✅ Created .domdignore template at {ignore_file_path}")
-        print(f"💡 Edit this file to customize which commands to skip")
-        print(f"📖 See examples and patterns in the template")
+        print(f"✅ Created .doignore template at {ignore_file_path}")
+        print("💡 Edit this file to customize which commands to skip")
+        print("📖 See examples and patterns in the template")
         return 0
     else:
-        print(f"❌ Failed to create .domdignore template")
+        print("❌ Failed to create .doignore template")
         return 1
 
 
@@ -236,13 +236,13 @@ def handle_show_ignored(detector: ProjectCommandDetector) -> int:
     ignored_count = len(ignored_commands)
     testable_count = len(testable_commands)
 
-    print(f"\n📊 Command Analysis Results:")
+    print("\n📊 Command Analysis Results:")
     print(f"   Total commands found: {total}")
     print(f"   🧪 Commands to test: {testable_count}")
     print(f"   🚫 Commands to ignore: {ignored_count}")
 
     if ignored_commands:
-        print(f"\n🚫 Commands that will be IGNORED:")
+        print("\n🚫 Commands that will be IGNORED:")
         print("   (based on .domdignore rules)")
         print()
 
@@ -255,13 +255,13 @@ def handle_show_ignored(detector: ProjectCommandDetector) -> int:
             by_reason[reason].append(cmd)
 
         for reason, commands in by_reason.items():
-            print(f"   📋 {reason}:")
+            print(f"   📋 {reason}:")  # noqa: E231
             for cmd in commands:
-                print(f"      🚫 {cmd['command']} ({cmd['source']})")
+                print(f"      🚫 {cmd['command']} ({cmd['source']})")  # noqa: E231
             print()
 
     if testable_commands:
-        print(f"🧪 Commands that will be TESTED:")
+        print("🧪 Commands that will be TESTED:")
         print()
         for i, cmd in enumerate(testable_commands, 1):
             print(f"   {i:3d}. {cmd['command']}")
@@ -283,42 +283,42 @@ def print_summary(detector: ProjectCommandDetector, total_commands: int) -> None
     failed = len(detector.failed_commands)
     ignored = len(detector.ignored_commands)
 
-    print(f"\n{'=' * 60}")
+    print("\n" + "=" * 60)
     print("EXECUTION SUMMARY")
-    print(f"{'=' * 60}")
-    print(f"📊 Results:")
+    print("=" * 60)
+    print("📊 Results:")
     print(f"   Total commands found: {total_commands + ignored}")
-    print(f"   Commands tested: {total_commands}")
-    print(f"   Commands ignored: {ignored} (via .domdignore)")
-    print(f"   ✅ Successful: {successful}")
-    print(f"   ❌ Failed: {failed}")
+    print(f"   Commands tested:  {total_commands}")
+    print(f"   Commands ignored:  {ignored} (via .domdignore)")
+    print(f"   ✅ Successful:  {successful}")
+    print(f"   ❌ Failed:  {failed}")
 
     if total_commands > 0:
         success_rate = (successful / total_commands) * 100
         print(f"   📈 Success rate: {success_rate:.1f}%")
 
-    print(f"📝 Files:")
+    print("📝 Files:")
     print(f"   📋 TODO file: {detector.todo_file}")
     print(f"   🔧 Script file: {detector.script_file}")
-    print(f"   🚫 Ignore file: {detector.ignore_parser.ignore_file_path}")
+    print(f"   🚫 Ignore file: {detector.ignore_parser.ignore_file_path}")  # noqa: E231
 
     if failed > 0:
-        print(f"\n🔧 Next steps:")
+        print("\n🔧 Next steps:")
         print(f"   1. Review failed commands in {detector.todo_file}")
-        print(f"   2. Add problematic commands to .domdignore")
+        print("   2. Add problematic commands to .doignore")
         print(f"   3. Edit {detector.script_file} if needed")
-        print(f"   4. Re-run: domd")
+        print("   4. Re-run: domd")
     else:
-        print(f"\n🎉 All testable commands executed successfully!")
+        print("\n🎉 All testable commands executed successfully!")
 
     if ignored > 0:
-        print(f"\n🚫 Ignored commands:")
-        print(f"   {ignored} commands were skipped via .domdignore")
-        print(f"   Use --show-ignored to see which commands are ignored")
+        print("\n🚫 Ignored commands:")
+        print(f"   {ignored} commands were skipped via .doignore")
+        print("   Use --show-ignored to see which commands are ignored")
 
 
 def main() -> int:
-    """Enhanced main entry point with .domdignore support."""
+    """Enhanced main entry point with .doignore support."""
     parser = create_parser()
     args = parser.parse_args()
 
@@ -371,8 +371,8 @@ def main() -> int:
                 print("\n🔍 DRY RUN MODE - Filtered commands:")
                 for i, cmd in enumerate(commands, 1):
                     print(f"{i:3d}. {cmd['description']}")
-                    print(f"     Command: {cmd['command']}")
-                    print(f"     Source:  {cmd['source']}")
+                    print(f"     Command:  {cmd['command']}")
+                    print(f"     Source:   {cmd['source']}")
                     print()
 
                 if detector.ignored_commands:
@@ -388,7 +388,7 @@ def main() -> int:
                 detector.generate_domdignore_template()
 
             if not args.quiet:
-                print(f"\n✅ Initialization complete!")
+                print("\n✅ Initialization complete!")
                 print(
                     f"📋 Created {args.todo_file} with {len(commands)} testable commands"
                 )
@@ -397,13 +397,13 @@ def main() -> int:
                     print(
                         f"🚫 Ignored {len(detector.ignored_commands)} commands via .domdignore"
                     )
-                print(f"\n💡 Next steps:")
+                print("\n💡 Next steps:")
                 print(
                     f"   • Review and edit {args.ignore_file} to adjust ignored commands"
                 )
                 print(f"   • Run: ./{args.script_file} to execute commands manually")
-                print(f"   • Or run: domd to test with TodoMD")
-                print(f"   • Use: domd --show-ignored to see ignored commands")
+                print("   • Or run: domd to test with TodoMD")
+                print("   • Use: domd --show-ignored to see ignored commands")
             return 0
 
         # Test commands with real-time updates

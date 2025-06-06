@@ -376,7 +376,7 @@ cython_debug/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
+todo.sh
 # DoMD specific
 TODO.md
 FAILED_COMMANDS.md

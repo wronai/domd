@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced Project Command Detector with .domdignore support
-
-Automatically detects and tests project commands, with support for:
-- .domdignore file for skipping specific commands
-- Pattern matching for command filtering
-- Immediate TODO.md and script generation
+Enhanced detector with DONE.md and LLM-optimized TODO.md generation
 """
 
 import configparser
@@ -13,13 +8,11 @@ import datetime
 import fnmatch
 import json
 import logging
-import os
 import re
 import stat
 import subprocess
-import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set
 
 try:
     import toml
@@ -30,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class DomdIgnoreParser:
-    """Parser for .domdignore file."""
+    """Parser for .doignore file."""
 
     def __init__(self, ignore_file_path: Path):
         self.ignore_file_path = ignore_file_path
@@ -38,10 +31,10 @@ class DomdIgnoreParser:
         self.exact_matches: Set[str] = set()
         self._load_ignore_file()
 
-    def _load_ignore_file(self):
-        """Load and parse .domdignore file."""
+    def _load_ignore_file(self) -> None:
+        """Load and parse .doignore file."""
         if not self.ignore_file_path.exists():
-            logger.info(f"No .domdignore file found at {self.ignore_file_path}")
+            logger.info(f"No .doignore file found at {self.ignore_file_path}")
             return
 
         try:
@@ -51,11 +44,9 @@ class DomdIgnoreParser:
             for line_num, line in enumerate(lines, 1):
                 line = line.strip()
 
-                # Skip empty lines and comments
                 if not line or line.startswith("#"):
                     continue
 
-                # Check if it's a pattern (contains wildcards) or exact match
                 if "*" in line or "?" in line or "[" in line:
                     self.ignore_patterns.append(line)
                     logger.debug(f"Added ignore pattern: {line}")
@@ -67,25 +58,19 @@ class DomdIgnoreParser:
             logger.info(
                 f"Loaded {total_rules} ignore rules from {self.ignore_file_path}"
             )
-            logger.info(f"  - {len(self.exact_matches)} exact matches")
-            logger.info(f"  - {len(self.ignore_patterns)} patterns")
 
         except Exception as e:
-            logger.error(f"Error loading .domdignore file: {e}")
+            logger.error(f"Error loading .doignore file: {e}")
 
     def should_ignore_command(self, command: str) -> bool:
-        """Check if a command should be ignored based on .domdignore rules."""
+        """Check if a command should be ignored."""
         command_clean = command.strip()
 
-        # Check exact matches first (faster)
         if command_clean in self.exact_matches:
-            logger.debug(f"Command ignored (exact match): {command}")
             return True
 
-        # Check pattern matches
         for pattern in self.ignore_patterns:
             if fnmatch.fnmatch(command_clean, pattern):
-                logger.debug(f"Command ignored (pattern '{pattern}'): {command}")
                 return True
 
         return False
@@ -105,7 +90,7 @@ class DomdIgnoreParser:
 
 
 class ProjectCommandDetector:
-    """Enhanced detector with .domdignore support."""
+    """Enhanced detector with DONE.md and LLM-optimized TODO.md."""
 
     def __init__(
         self,
@@ -114,10 +99,11 @@ class ProjectCommandDetector:
         exclude_patterns: List[str] = None,
         include_patterns: List[str] = None,
         todo_file: str = "TODO.md",
+        done_file: str = "DONE.md",
         script_file: str = "todo.sh",
-        ignore_file: str = ".domdignore",
+        ignore_file: str = ".doignore",
     ):
-        """Initialize the detector with ignore file support."""
+        """Initialize the detector with DONE.md support."""
         self.project_path = Path(project_path).resolve()
         self.timeout = timeout
         self.exclude_patterns = exclude_patterns or []
@@ -126,42 +112,430 @@ class ProjectCommandDetector:
         self.successful_commands = []
         self.ignored_commands = []
         self.todo_file = Path(todo_file)
+        self.done_file = Path(done_file)
         self.script_file = Path(script_file)
 
         # Initialize ignore parser
         ignore_file_path = self.project_path / ignore_file
         self.ignore_parser = DomdIgnoreParser(ignore_file_path)
 
-        # Configuration files mapping
+        # Configuration files mapping (using method names as strings to avoid reference issues)
         self.config_files = {
-            "package.json": self._parse_package_json,
-            "pyproject.toml": self._parse_pyproject_toml,
-            "Makefile": self._parse_makefile,
-            "makefile": self._parse_makefile,
-            "tox.ini": self._parse_tox_ini,
-            "pytest.ini": self._parse_pytest_ini,
-            "requirements.txt": self._check_pip_install,
-            "setup.py": self._parse_setup_py,
-            "Dockerfile": self._parse_dockerfile,
-            "docker-compose.yml": self._parse_docker_compose,
-            "docker-compose.yaml": self._parse_docker_compose,
-            "CMakeLists.txt": self._parse_cmake,
-            "composer.json": self._parse_composer_json,
-            "Gemfile": self._parse_gemfile,
-            "Cargo.toml": self._parse_cargo_toml,
-            "go.mod": self._check_go_commands,
+            "package.json": "_parse_package_json",
+            "pyproject.toml": "_parse_pyproject_toml",
+            "Makefile": "_parse_makefile",
+            "makefile": "_parse_makefile",
+            "tox.ini": "_parse_tox_ini",
+            "pytest.ini": "_parse_pytest_ini",
+            "requirements.txt": "_check_pip_install",
+            "setup.py": "_parse_setup_py",
+            "Dockerfile": "_parse_dockerfile",
+            "docker-compose.yml": "_parse_docker_compose",
+            "docker-compose.yaml": "_parse_docker_compose",
+            "CMakeLists.txt": "_parse_cmake",
+            "composer.json": "_parse_composer_json",
+            "Gemfile": "_parse_gemfile",
+            "Cargo.toml": "_parse_cargo_toml",
+            "go.mod": "_check_go_commands",
         }
 
+    def create_done_md(self):
+        """Create DONE.md with all successful commands."""
+        if not self.successful_commands:
+            logger.info("No successful commands to write to DONE.md")
+            return
+
+        content = [
+            "# ✅ DONE - Successfully Working Commands",
+            "",
+            "**🎉 Generated by TodoMD** - List of all working project commands",
+            f"**Last Updated:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Project:** {self.project_path}",
+            f"**Total Working Commands: **{len(self.successful_commands)}",
+            "",
+            "---",
+            "",
+            "## 📊 Summary",
+            "",
+            f"✅ **{len(self.successful_commands)} commands are working correctly**",
+            "",
+            "These commands have been tested and are functioning properly.",
+            "You can safely use them in your development workflow.",
+            "",
+            "---",
+            "",
+            "## 🟢 Working Commands",
+            "",
+        ]
+
+        # Group commands by source for better organization
+        by_source = {}
+        for cmd in self.successful_commands:
+            source = cmd["source"]
+            if source not in by_source:
+                by_source[source] = []
+            by_source[source].append(cmd)
+
+        for source, source_commands in sorted(by_source.items()):
+            content.extend([f"### 📄 From {source}", ""])
+
+            for cmd in source_commands:
+                execution_time = cmd.get("execution_time", 0)
+                content.extend(
+                    [
+                        f"#### ✅ {cmd['description']}",
+                        "",
+                        f"**Command:** `{cmd['command']}`",
+                        f"**Execution Time:** {execution_time:.2f}s",
+                        f"**Type: **{cmd.get('type', 'unknown')}",
+                        "",
+                        "**Status:** 🟢 **WORKING**",
+                        "",
+                        "---",
+                        "",
+                    ]
+                )
+
+        content.extend(
+            [
+                "",
+                "## 🔄 Updating This File",
+                "",
+                "This file is automatically updated when commands are tested.",
+                "To refresh the status:",
+                "",
+                "1. Run: `domd` to test all commands",
+                "2. Working commands will appear here",
+                "3. Failed commands will be moved to TODO.md for fixing",
+                "",
+                f"**Last test run:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                "",
+            ]
+        )
+
+        # Write to file
+        with open(self.done_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(content))
+
+        logger.info(
+            f"Created {self.done_file} with {len(self.successful_commands)} successful commands"
+        )
+
+    def create_llm_optimized_todo_md(self):
+        """Create LLM-optimized TODO.md with detailed fix instructions."""
+        content = [
+            "# 🤖 TODO - LLM Task List for Command Fixes",
+            "",
+            "**📋 INSTRUCTIONS FOR LLM:**",
+            "This file contains a list of broken commands that need to be fixed.",
+            "Each task is a separate command that failed during testing.",
+            "",
+            "**🎯 YOUR MISSION:**",
+            "1. **Analyze each failed command** and its error output",
+            "2. **Identify the root cause** of the failure",
+            "3. **Implement the fix** by modifying source code, config files, or dependencies",
+            "4. **Test the fix** by running the command manually",
+            "5. **Update progress** - when a command starts working, it will be moved to DONE.md automatically",
+            "",
+            "**📝 TASK FORMAT:**",
+            "Each task has:",
+            "- ❌ **Command** that failed",
+            "- 📁 **Source file** where the command is defined",
+            "- 🔴 **Error output** with full details",
+            "- 💡 **Suggested actions** for fixing",
+            "",
+            "**🔄 WORKFLOW:**",
+            "1. Pick a task from the list below",
+            "2. Read the error details carefully",
+            "3. Implement the fix",
+            "4. Run `domd` to retest all commands",
+            "5. Fixed commands will automatically move to DONE.md",
+            "",
+            "---",
+            "",
+            "**📊 Current Status:**",
+            f"- **Failed Commands:** {len(self.failed_commands)}",
+            f"- **Working Commands:** {len(self.successful_commands)} (see DONE.md)",
+            f"- **Last Updated: **{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            "",
+            "---",
+            "",
+        ]
+
+        if not self.failed_commands:
+            content.extend(
+                [
+                    "## 🎉 All Commands Working!",
+                    "",
+                    "✅ **No failed commands found!**",
+                    "",
+                    "All project commands are working correctly.",
+                    f"Check {self.done_file} for the list of working commands.",
+                    "",
+                ]
+            )
+        else:
+            content.extend(
+                [
+                    f"## 🔧 Tasks to Fix ({len(self.failed_commands)} commands)",
+                    "",
+                    "Each section below is a separate task. Fix them one by one:",
+                    "",
+                ]
+            )
+
+            for i, cmd in enumerate(self.failed_commands, 1):
+                content.extend(
+                    [
+                        f"### [ ] Task {i}: {cmd['description']}",
+                        "",
+                        f"**📋 Command:** `{cmd['command']}`",
+                        f"**📁 Source:** `{cmd['source']}`",
+                        f"**⏱️ Timeout:** {self.timeout}s",
+                        f"**🔴 Return Code:** {cmd.get('return_code', 'N/A')}",
+                        f"**⚡ Execution Time:** {cmd.get('execution_time', 0):.2f}s",
+                        "",
+                        "#### 🔴 Error Output:",
+                        "",
+                        "```bash",
+                        "# Command that failed:",
+                        cmd["command"],
+                        "",
+                        "# Error output:",
+                        cmd.get("error", "No error output captured"),
+                        "```",
+                        "",
+                        "#### 💡 Suggested Fix Actions:",
+                        "",
+                    ]
+                )
+
+                # Generate specific suggestions based on error type
+                suggestions = self._generate_fix_suggestions(cmd)
+                for suggestion in suggestions:
+                    content.append(f"- [ ] {suggestion}")
+
+                content.extend(
+                    [
+                        "",
+                        "#### 🔍 Investigation Steps:",
+                        "",
+                        f"1. **Check source file:** Open `{cmd['source']}` and locate the command definition",
+                        "2. **Analyze error:** Read the error output above for clues",
+                        "3. **Check dependencies:** Verify all required tools/packages are installed",
+                        f"4. **Test manually:** Run `{cmd['command']}` in terminal to reproduce the issue",
+                        "5. **Implement fix:** Based on error analysis, modify files as needed",
+                        "6. **Verify fix:** Run the command again to confirm it works",
+                        "",
+                        "#### ✅ Completion Criteria:",
+                        "",
+                        f"This task is complete when `{cmd['command']}` runs without errors.",
+                        "The command will then automatically appear in DONE.md on the next test run.",
+                        "",
+                        "---",
+                        "",
+                    ]
+                )
+
+        content.extend(
+            [
+                "",
+                "## 🔄 After Making Fixes",
+                "",
+                "When you've fixed one or more commands:",
+                "",
+                "1. **Test your fixes:**",
+                "   ```bash",
+                "   # Test specific command manually:",
+                f"   cd {self.project_path}",
+                "   [your-fixed-command]",
+                "   ",
+                "   # Or test all commands:",
+                "   domd",
+                "   ```",
+                "",
+                "2. **Check results:**",
+                "   - Fixed commands → will appear in DONE.md",
+                "   - Still broken commands → remain in this TODO.md",
+                "   - New failures → will be added to this TODO.md",
+                "",
+                "3. **Iterate:**",
+                "   - Continue fixing remaining tasks",
+                "   - Re-run `domd` after each fix",
+                "   - Monitor progress in both files",
+                "",
+                "## 📚 Common Fix Patterns",
+                "",
+                "### Missing Dependencies",
+                "```bash",
+                "# Python",
+                "pip install missing-package",
+                "poetry add missing-package",
+                "",
+                "# Node.js",
+                "npm install missing-package",
+                "yarn add missing-package",
+                "",
+                "# System",
+                "sudo apt install missing-tool",
+                "brew install missing-tool",
+                "```",
+                "",
+                "### Configuration Issues",
+                "```bash",
+                "# Check config files for typos",
+                "# Verify paths and settings",
+                "# Update outdated configurations",
+                "```",
+                "",
+                "### Permission Issues",
+                "```bash",
+                "chmod +x script-file",
+                "sudo chown user:group file",
+                "```",
+                "",
+                "### Version Compatibility",
+                "```bash",
+                "# Update to compatible versions",
+                "# Check tool documentation",
+                "# Use version-specific commands",
+                "```",
+                "",
+            ]
+        )
+
+        # Write to file
+        with open(self.todo_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(content))
+
+        logger.info(
+            f"Created LLM-optimized {self.todo_file} with {len(self.failed_commands)} tasks"
+        )
+
+    def _generate_fix_suggestions(self, cmd: Dict) -> List[str]:
+        """Generate specific fix suggestions based on command and error."""
+        suggestions = []
+        command = cmd["command"]
+        error = cmd.get("error", "").lower()
+        source = cmd.get("source", "")
+        cmd_type = cmd.get("type", "")
+
+        # Common patterns
+        if "command not found" in error or "not found" in error:
+            suggestions.extend(
+                [
+                    "Install missing tool/command: Look for installation instructions",
+                    f"Check if command is in PATH: `which {command.split()[0]}`",
+                    f"Verify spelling of command in {source}",
+                ]
+            )
+
+        elif "permission denied" in error:
+            suggestions.extend(
+                [
+                    "Fix file permissions: `chmod +x` for executable files",
+                    "Check directory permissions for write access",
+                    "Run with appropriate user privileges if needed",
+                ]
+            )
+
+        elif "no such file" in error or "file not found" in error:
+            suggestions.extend(
+                [
+                    "Check if referenced files exist in the project",
+                    f"Verify file paths in {source} are correct",
+                    "Create missing files or update paths",
+                ]
+            )
+
+        elif "timeout" in error or cmd.get("return_code") == -1:
+            suggestions.extend(
+                [
+                    f"Command took longer than {self.timeout}s - consider increasing timeout",
+                    "Check if command is hanging or waiting for input",
+                    "Add to .doignore if this is a long-running service command",
+                ]
+            )
+
+        # Type-specific suggestions
+        if cmd_type == "npm_script":
+            suggestions.extend(
+                [
+                    "Run `npm install` to ensure all dependencies are installed",
+                    "Check package.json for script definition errors",
+                    "Verify Node.js and npm versions are compatible",
+                ]
+            )
+
+        elif cmd_type == "poetry_script":
+            suggestions.extend(
+                [
+                    "Run `poetry install` to install dependencies",
+                    "Check pyproject.toml for script configuration",
+                    "Verify poetry is installed and accessible",
+                ]
+            )
+
+        elif cmd_type == "make_target":
+            suggestions.extend(
+                [
+                    "Check Makefile syntax and dependencies",
+                    "Verify all required tools are installed (gcc, etc.)",
+                    "Check if target dependencies exist",
+                ]
+            )
+
+        elif cmd_type == "pytest":
+            suggestions.extend(
+                [
+                    "Install pytest: `pip install pytest`",
+                    "Check test file syntax and imports",
+                    "Verify test configuration in pytest.ini or pyproject.toml",
+                ]
+            )
+
+        elif cmd_type == "tox_env":
+            suggestions.extend(
+                [
+                    "Install tox: `pip install tox`",
+                    "Check tox.ini configuration",
+                    "Verify Python versions are available",
+                ]
+            )
+
+        elif "docker" in cmd_type:
+            suggestions.extend(
+                [
+                    "Check if Docker is running: `docker --version`",
+                    "Verify Dockerfile syntax",
+                    "Check Docker permissions for current user",
+                ]
+            )
+
+        # Generic fallbacks
+        if not suggestions:
+            suggestions.extend(
+                [
+                    "Read the error output carefully for specific clues",
+                    f"Check {source} for command definition and syntax",
+                    "Manually run the command to reproduce and debug the issue",
+                    "Search for similar errors online or in documentation",
+                    "Consider if this command should be added to .doignore",
+                ]
+            )
+
+        return suggestions
+
     def scan_and_initialize(self) -> List[Dict]:
-        """Scan project, filter commands through .domdignore, and create initial files."""
+        """Scan project, filter commands, and create initial files."""
         print(f"🔍 Scanning project: {self.project_path}")
 
-        # Check if .domdignore exists
-        ignore_file_path = self.project_path / ".domdignore"
+        # Check if .doignore exists
+        ignore_file_path = self.project_path / ".doignore"
         if ignore_file_path.exists():
-            print(f"📋 Found .domdignore file with ignore rules")
+            print("📋 Found .doignore file with ignore rules")
         else:
-            print(f"💡 No .domdignore file found - create one to skip specific commands")
+            print("💡 No .doignore file found - create one to skip specific commands")
 
         # Scan for all commands
         all_commands = self.scan_project()
@@ -170,7 +544,7 @@ class ProjectCommandDetector:
             print("❌ No commands found to test.")
             return []
 
-        # Filter commands through .domdignore
+        # Filter commands through .doignore
         filtered_commands = []
         for cmd in all_commands:
             if self.ignore_parser.should_ignore_command(cmd["command"]):
@@ -188,318 +562,70 @@ class ProjectCommandDetector:
 
         print(f"✅ Found {total_found} total commands")
         if total_ignored > 0:
-            print(f"🚫 Ignored {total_ignored} commands (via .domdignore)")
+            print(f"🚫 Ignored {total_ignored} commands (via .doignore)")
         print(f"🧪 Will test {total_to_test} commands")
 
         if not filtered_commands:
             print("⚠️  No commands to test after filtering!")
             return []
 
-        # Create initial files with filtered commands
-        self._create_initial_todo_md(filtered_commands, all_commands)
+        # Create initial files
+        self._create_initial_status_files(filtered_commands, all_commands)
         self._create_todo_script(filtered_commands)
 
-        print(f"📝 Created {self.todo_file} with command status")
-        print(f"🔧 Created {self.script_file} executable script")
+        print(f"📝 Created {self.todo_file} (LLM task list)")
+        print(f"✅ Created {self.done_file} (working commands)")
+        print(f"🔧 Created {self.script_file} (executable script)")
 
         return filtered_commands
 
-    def _create_initial_todo_md(
+    def _create_initial_status_files(
         self, commands_to_test: List[Dict], all_commands: List[Dict]
     ):
-        """Create TODO.md with both testable and ignored commands."""
-        total_commands = len(all_commands)
-        ignored_count = len(self.ignored_commands)
-        testing_count = len(commands_to_test)
-
+        """Create initial TODO.md and DONE.md files."""
+        # Create initial TODO.md with pending tasks
         content = [
-            "# TODO - Project Commands Status",
+            "# 🤖 TODO - LLM Task List for Command Fixes",
             "",
-            f"**🔄 INITIALIZED** - Generated by TodoMD v0.1.1",
-            f"**Created:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-            f"**Project:** {self.project_path}",
-            f"**Total Commands Found:** {total_commands}",
-            f"**Commands to Test:** {testing_count}",
-            f"**Ignored Commands:** {ignored_count}",
+            "**📋 INSTRUCTIONS FOR LLM:**",
+            "This file will be populated with failed commands after testing.",
+            "Commands are currently being scanned and will be tested shortly.",
             "",
-            "## 📊 Current Status",
+            "**📊 Scan Results:**",
+            f"- **Total Commands Found:** {len(all_commands)}",
+            f"- **Commands to Test: **{len(commands_to_test)}",
+            f"- **Commands Ignored: **{len(self.ignored_commands)} (via .doignore)",
             "",
-            f"- **Total Found:** {total_commands}",
-            f"- **Will Test:** {testing_count}",
-            f"- **Ignored:** {ignored_count} (via .domdignore)",
-            f"- **Tested:** 0/{testing_count}",
-            f"- **Successful:** 0",
-            f"- **Failed:** 0",
-            f"- **Progress:** 0.0%",
+            "**⏳ Status:** Ready for testing",
+            "",
+            "Run `domd` to test all commands and populate this file with specific tasks.",
             "",
         ]
 
-        if commands_to_test:
-            content.extend(
-                [
-                    "## 🧪 Commands To Test",
-                    "",
-                    "| # | Status | Command | Source | Description |",
-                    "|---|--------|---------|--------|-------------|",
-                ]
-            )
-
-            for i, cmd in enumerate(commands_to_test, 1):
-                status = "⏳ Pending"
-                content.append(
-                    f"| {i} | {status} | `{cmd['command']}` | `{cmd['source']}` | {cmd['description']} |"
-                )
-
-        if self.ignored_commands:
-            content.extend(
-                [
-                    "",
-                    f"## 🚫 Ignored Commands ({ignored_count})",
-                    "",
-                    "These commands are skipped based on .domdignore rules:",
-                    "",
-                    "| Command | Source | Description | Ignore Reason |",
-                    "|---------|--------|-------------|---------------|",
-                ]
-            )
-
-            for cmd in self.ignored_commands:
-                reason = cmd.get("ignore_reason", "unknown")
-                content.append(
-                    f"| `{cmd['command']}` | `{cmd['source']}` | {cmd['description']} | {reason} |"
-                )
-
-        content.extend(
-            [
-                "",
-                "## ❌ Failed Commands",
-                "",
-                "*No failed commands yet - testing not started*",
-                "",
-                "## ✅ Successful Commands",
-                "",
-                "*No successful commands yet - testing not started*",
-                "",
-                "---",
-                "",
-                "💡 **Next Steps:**",
-                "1. Run: `domd` to start testing commands",
-                "2. Or run: `./todo.sh` to execute all commands manually",
-                "3. Edit `.domdignore` to skip additional commands",
-                "4. Monitor this file for real-time updates during testing",
-                "",
-            ]
-        )
-
-        # Write to file
         with open(self.todo_file, "w", encoding="utf-8") as f:
             f.write("\n".join(content))
 
-    def _create_todo_script(self, commands: List[Dict]):
-        """Create executable todo.sh script with testable commands only."""
-        if not commands:
-            print("⚠️  No commands to include in script after filtering")
-            return
-
-        script_content = [
-            "#!/bin/bash",
-            "# TodoMD Generated Script",
-            f"# Created: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-            f"# Project: {self.project_path}",
-            f"# Commands to Test: {len(commands)}",
-            f"# Ignored Commands: {len(self.ignored_commands)} (see .domdignore)",
+        # Create initial empty DONE.md
+        done_content = [
+            "# ✅ DONE - Successfully Working Commands",
             "",
-            "set -e  # Exit on any error",
+            "**🎉 Generated by TodoMD** - List of all working project commands",
+            f"**Last Updated:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Project:** {self.project_path}",
             "",
-            "# Colors for output",
-            "RED='\\033[0;31m'",
-            "GREEN='\\033[0;32m'",
-            "YELLOW='\\033[1;33m'",
-            "BLUE='\\033[0;34m'",
-            "NC='\\033[0m' # No Color",
+            "**⏳ Status:** Commands not yet tested",
             "",
-            "# Counters",
-            "TOTAL_COMMANDS=" + str(len(commands)),
-            "SUCCESSFUL=0",
-            "FAILED=0",
-            "CURRENT=0",
-            "",
-            "# Functions",
-            "log_info() {",
-            '    echo -e "${BLUE}[INFO]${NC} $1"',
-            "}",
-            "",
-            "log_success() {",
-            '    echo -e "${GREEN}[SUCCESS]${NC} $1"',
-            "    ((SUCCESSFUL++))",
-            "}",
-            "",
-            "log_error() {",
-            '    echo -e "${RED}[ERROR]${NC} $1"',
-            "    ((FAILED++))",
-            "}",
-            "",
-            "log_warning() {",
-            '    echo -e "${YELLOW}[WARNING]${NC} $1"',
-            "}",
-            "",
-            "run_command() {",
-            '    local cmd="$1"',
-            '    local desc="$2"',
-            '    local source="$3"',
-            "    ((CURRENT++))",
-            "",
-            "    echo",
-            '    log_info "[${CURRENT}/${TOTAL_COMMANDS}] Testing: $desc"',
-            '    log_info "Command: $cmd"',
-            '    log_info "Source: $source"',
-            "",
-            '    if timeout 60 bash -c "$cmd"; then',
-            '        log_success "Command succeeded"',
-            "        return 0",
-            "    else",
-            '        log_error "Command failed"',
-            "        return 1",
-            "    fi",
-            "}",
-            "",
-            "# Main execution",
-            'echo "=========================================="',
-            'echo "TodoMD Generated Script - Testing Commands"',
-            'echo "=========================================="',
-            'echo "Project: $(pwd)"',
-            'echo "Commands to Test: $TOTAL_COMMANDS"',
-            f'echo "Ignored Commands: {len(self.ignored_commands)} (see .domdignore)"',
-            'echo "Started: $(date)"',
-            "echo",
+            "This file will be populated with working commands after testing.",
+            "Run `domd` to test all commands and see results here.",
             "",
         ]
 
-        # Add each testable command
-        for i, cmd in enumerate(commands, 1):
-            escaped_cmd = cmd["command"].replace('"', '\\"').replace("'", "\\'")
-            script_content.extend(
-                [
-                    f"# Command {i}: {cmd['description']}",
-                    f"if ! run_command \"{escaped_cmd}\" \"{cmd['description']}\" \"{cmd['source']}\"; then",
-                    f'    log_warning "Continuing with next command..."',
-                    f"fi",
-                    "",
-                ]
-            )
-
-        # Add summary
-        script_content.extend(
-            [
-                "# Final summary",
-                "echo",
-                'echo "=========================================="',
-                'echo "EXECUTION SUMMARY"',
-                'echo "=========================================="',
-                'echo "Commands Tested: $TOTAL_COMMANDS"',
-                f'echo "Commands Ignored: {len(self.ignored_commands)}"',
-                'echo "Successful: $SUCCESSFUL"',
-                'echo "Failed: $FAILED"',
-                "",
-                "if [ $FAILED -eq 0 ]; then",
-                '    log_success "All testable commands executed successfully! 🎉"',
-                "    exit 0",
-                "else",
-                '    log_error "$FAILED commands failed. Check output above for details."',
-                "    exit 1",
-                "fi",
-            ]
-        )
-
-        # Write script file
-        with open(self.script_file, "w", encoding="utf-8") as f:
-            f.write("\n".join(script_content))
-
-        # Make executable
-        self.script_file.chmod(self.script_file.stat().st_mode | stat.S_IEXEC)
-
-    def generate_domdignore_template(self) -> None:
-        """Generate a template .domdignore file if it doesn't exist."""
-        ignore_file_path = self.project_path / ".domdignore"
-
-        if ignore_file_path.exists():
-            print(f"📋 .domdignore already exists at {ignore_file_path}")
-            return
-
-        template_content = """# .domdignore - TodoMD Ignore File
-# Commands and patterns to skip during testing
-#
-# Syntax:
-#   - Exact command match: npm run dev
-#   - Pattern match: *recursive*
-#   - Comment with #
-#   - Empty lines ignored
-
-# === RECURSIVE/SELF-REFERENTIAL COMMANDS ===
-# Prevent infinite loops
-poetry run domd
-poetry run project-detector
-poetry run cmd-detector
-domd
-
-# === INTERACTIVE/BLOCKING COMMANDS ===
-# Commands that require user input or run indefinitely
-npm run dev
-npm run start
-*serve*
-*watch*
-
-# === DEPLOYMENT/DESTRUCTIVE COMMANDS ===
-# Commands that deploy, publish, or modify production
-*publish*
-*deploy*
-*release*
-
-# === SLOW/RESOURCE-INTENSIVE COMMANDS ===
-# Commands that take very long or use lots of resources
-tox
-*integration*
-*e2e*
-*docker*build*
-
-# Add your project-specific ignores below:
-"""
-
-        try:
-            with open(ignore_file_path, "w", encoding="utf-8") as f:
-                f.write(template_content)
-
-            print(f"📝 Created .domdignore template at {ignore_file_path}")
-            print(f"💡 Edit this file to customize which commands to skip")
-
-        except Exception as e:
-            logger.error(f"Error creating .domdignore template: {e}")
-
-    def scan_project(self) -> List[Dict]:
-        """Scan project for configuration files and extract commands."""
-        logger.info(f"Scanning project: {self.project_path}")
-
-        found_files = []
-        commands_to_test = []
-
-        for config_file, parser_func in self.config_files.items():
-            file_path = self.project_path / config_file
-            if file_path.exists() and self._should_process_file(file_path):
-                found_files.append(file_path)
-                try:
-                    commands = parser_func(file_path)
-                    commands_to_test.extend(commands)
-                except Exception as e:
-                    logger.error(f"Error parsing {file_path}: {e}")
-
-        logger.info(f"Found {len(found_files)} configuration files")
-        logger.info(f"Extracted {len(commands_to_test)} commands")
-
-        return commands_to_test
+        with open(self.done_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(done_content))
 
     def test_commands(self, commands: List[Dict]) -> None:
-        """Test commands with real-time TODO.md updates."""
-        logger.info(f"Testing {len(commands)} commands (after .domdignore filtering)")
+        """Test commands and update both TODO.md and DONE.md."""
+        logger.info(f"Testing {len(commands)} commands (after .doignore filtering)")
 
         for i, cmd_info in enumerate(commands, 1):
             logger.info(f"[{i}/{len(commands)}] Testing: {cmd_info['description']}")
@@ -513,162 +639,84 @@ tox
                 self.failed_commands.append(cmd_info)
                 logger.warning(f"❌ Command failed: {cmd_info['description']}")
 
-            # Update TODO.md with current progress
-            self.update_todo_md_progress(i, len(commands), cmd_info, success)
+        # Generate final files
+        self.create_llm_optimized_todo_md()
+        self.create_done_md()
 
-        # Final update
-        self._finalize_todo_md(commands)
+        # Print summary
+        print("\n📊 Test Results:")
+        print(f"   ✅ Working: {len(self.successful_commands)} → {self.done_file}")
+        print(f"   ❌ Failed: {len(self.failed_commands)} → {self.todo_file}")
+        print(f"   🚫 Ignored: {len(self.ignored_commands)} (via .doignore)")
 
-    def update_todo_md_progress(
-        self, current_index: int, total: int, cmd_info: Dict, success: bool
-    ):
-        """Update TODO.md with current progress."""
-        if not self.todo_file.exists():
+    def _create_todo_script(self, commands: List[Dict]):
+        """Create executable todo.sh script."""
+        if not commands:
             return
 
-        try:
-            with open(self.todo_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+        script_content = [
+            "#!/bin/bash",
+            "# TodoMD Generated Script",
+            f"# Created: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"# Project: {self.project_path}",
+            f"# Commands to Test: {len(commands)}",
+            "",
+            "set -e",
+            "",
+            "TOTAL_COMMANDS=" + str(len(commands)),
+            "SUCCESSFUL=0",
+            "FAILED=0",
+            "CURRENT=0",
+            "",
+            "run_command() {",
+            '    local cmd="$1"',
+            '    local desc="$2"',
+            "    ((CURRENT++))",
+            "    echo",
+            '    echo "[${CURRENT}/${TOTAL_COMMANDS}] Testing: $desc"',
+            '    echo "Command: $cmd"',
+            '    if timeout 60 bash -c "$cmd"; then',
+            '        echo "✅ SUCCESS"',
+            "        ((SUCCESSFUL++))",
+            "    else",
+            '        echo "❌ FAILED"',
+            "        ((FAILED++))",
+            "    fi",
+            "}",
+            "",
+            'echo "TodoMD Test Script"',
+            'echo "=================="',
+            f'echo "Commands to test: {len(commands)}"',
+            f'echo "Ignored commands: {len(self.ignored_commands)}"',
+            "echo",
+            "",
+        ]
 
-            successful_count = len(self.successful_commands)
-            failed_count = len(self.failed_commands)
-            progress = (current_index / total) * 100
+        for i, cmd in enumerate(commands, 1):
+            escaped_cmd = cmd["command"].replace('"', '\\"')
+            script_content.extend(
+                [
+                    f"run_command \"{escaped_cmd}\" \"{cmd['description']}\"",
+                ]
+            )
 
-            # Update status section
-            for i, line in enumerate(lines):
-                if "- **Tested:**" in line:
-                    lines[i] = f"- **Tested:** {current_index}/{total}\n"
-                elif "- **Successful:**" in line:
-                    lines[i] = f"- **Successful:** {successful_count}\n"
-                elif "- **Failed:**" in line:
-                    lines[i] = f"- **Failed:** {failed_count}\n"
-                elif "- **Progress:**" in line:
-                    lines[i] = f"- **Progress:** {progress:.1f}%\n"
-
-            # Update command status in table
-            for i, line in enumerate(lines):
-                if f"| {current_index} |" in line and "⏳ Pending" in line:
-                    status = "✅ Success" if success else "❌ Failed"
-                    lines[i] = line.replace("⏳ Pending", status)
-                    break
-
-            with open(self.todo_file, "w", encoding="utf-8") as f:
-                f.writelines(lines)
-
-        except Exception as e:
-            logger.error(f"Error updating TODO.md progress: {e}")
-
-    def _finalize_todo_md(self, commands: List[Dict]):
-        """Finalize TODO.md with complete results."""
-        try:
-            content = [
-                "# TODO - Project Commands Results",
+        script_content.extend(
+            [
                 "",
-                f"**✅ COMPLETED** - Generated by TodoMD v0.1.1",
-                f"**Completed:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                f"**Project:** {self.project_path}",
-                "",
-                "## 📊 Final Results",
-                "",
-                f"- **Total Commands Found:** {len(commands) + len(self.ignored_commands)}",
-                f"- **Commands Tested:** {len(commands)}",
-                f"- **Commands Ignored:** {len(self.ignored_commands)} (via .domdignore)",
-                f"- **Successful:** {len(self.successful_commands)}",
-                f"- **Failed:** {len(self.failed_commands)}",
-                f"- **Success Rate:** {(len(self.successful_commands) / len(commands) * 100):.1f}%",
-                "",
+                "echo",
+                'echo "=================="',
+                'echo "SUMMARY"',
+                'echo "=================="',
+                'echo "Successful: $SUCCESSFUL"',
+                'echo "Failed: $FAILED"',
+                'echo "Total: $TOTAL_COMMANDS"',
             ]
+        )
 
-            if self.failed_commands:
-                content.extend(
-                    [f"## ❌ Failed Commands ({len(self.failed_commands)})", ""]
-                )
+        with open(self.script_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(script_content))
 
-                for i, cmd in enumerate(self.failed_commands, 1):
-                    content.extend(
-                        [
-                            f"### {i}. {cmd['description']}",
-                            "",
-                            f"**Source:** `{cmd['source']}`",
-                            f"**Command:** `{cmd['command']}`",
-                            f"**Error:** {cmd.get('error', 'Unknown error')}",
-                            f"**Return Code:** {cmd.get('return_code', 'N/A')}",
-                            "",
-                            "**Suggested Actions:**",
-                            "- [ ] Check if all dependencies are installed",
-                            "- [ ] Verify command syntax and arguments",
-                            "- [ ] Check file permissions and access rights",
-                            "- [ ] Add to .domdignore if command should be skipped",
-                            "",
-                            "---",
-                            "",
-                        ]
-                    )
-            else:
-                content.extend(
-                    [
-                        "## 🎉 All Tested Commands Successful!",
-                        "",
-                        "No issues found with testable commands.",
-                        "",
-                    ]
-                )
-
-            if self.ignored_commands:
-                content.extend(
-                    [
-                        f"## 🚫 Ignored Commands ({len(self.ignored_commands)})",
-                        "",
-                        "These commands were skipped based on .domdignore rules:",
-                        "",
-                    ]
-                )
-
-                for cmd in self.ignored_commands:
-                    reason = cmd.get("ignore_reason", "unknown")
-                    content.append(
-                        f"- 🚫 **{cmd['description']}** (`{cmd['command']}`) - {reason}"
-                    )
-
-                content.append("")
-
-            if self.successful_commands:
-                content.extend(
-                    [f"## ✅ Successful Commands ({len(self.successful_commands)})", ""]
-                )
-
-                for cmd in self.successful_commands:
-                    execution_time = cmd.get("execution_time", 0)
-                    content.append(
-                        f"- ✅ **{cmd['description']}** (`{cmd['command']}`) - {execution_time:.2f} s"
-                    )
-
-            with open(self.todo_file, "w", encoding="utf-8") as f:
-                f.write("\n".join(content))
-
-            logger.info(f"Finalized {self.todo_file} with complete results")
-
-        except Exception as e:
-            logger.error(f"Error finalizing TODO.md: {e}")
-
-    def _should_process_file(self, file_path: Path) -> bool:
-        """Check if file should be processed."""
-        try:
-            relative_path = str(file_path.relative_to(self.project_path))
-        except ValueError:
-            return False
-
-        for pattern in self.exclude_patterns:
-            if re.search(pattern, relative_path):
-                return False
-
-        if self.include_patterns:
-            for pattern in self.include_patterns:
-                if re.search(pattern, relative_path):
-                    return True
-            return False
-
-        return True
+        self.script_file.chmod(self.script_file.stat().st_mode | stat.S_IEXEC)
 
     def _execute_command(self, cmd_info: Dict) -> bool:
         """Execute a single command."""
@@ -705,9 +753,140 @@ tox
             cmd_info["execution_time"] = 0
             return False
 
-    # Parser methods (same as before)
+    def scan_project(self) -> List[Dict]:
+        """Scan project for configuration files and extract commands."""
+        logger.info(f"Scanning project: {self.project_path}")
+
+        found_files = []
+        commands_to_test = []
+
+        # Search for all configuration files in the project directory and subdirectories
+        for config_file, parser_name in self.config_files.items():
+            # Find all matching files in the project directory
+            for file_path in self.project_path.rglob(config_file):
+                if file_path.is_file() and self._should_process_file(file_path):
+                    found_files.append(file_path)
+                    try:
+                        # Get the parser method by name
+                        parser_func = getattr(self, parser_name, None)
+                        if parser_func is None:
+                            logger.error(
+                                f"Parser method {parser_name} not found for {file_path}"
+                            )
+                            continue
+
+                        # Call the parser function
+                        commands = parser_func(file_path)
+                        if commands:  # Only extend if commands were returned
+                            commands_to_test.extend(commands)
+                    except Exception as e:
+                        logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
+
+        logger.info(f"Found {len(found_files)} configuration files")
+        logger.info(f"Extracted {len(commands_to_test)} commands")
+
+        return commands_to_test
+
+    def _should_process_file(self, file_path: Path) -> bool:
+        """Check if file should be processed."""
+        try:
+            relative_path = str(file_path.relative_to(self.project_path))
+        except ValueError:
+            return False
+
+        for pattern in self.exclude_patterns:
+            if re.search(pattern, relative_path):
+                return False
+
+        if self.include_patterns:
+            for pattern in self.include_patterns:
+                if re.search(pattern, relative_path):
+                    return True
+            return False
+
+        return True
+
+    # Parser methods (same as before - abbreviated for space)
+    def _parse_makefile(self, file_path: Path) -> List[Dict]:
+        """Parse Makefile and extract targets as commands.
+
+        Args:
+            file_path: Path to the Makefile
+
+        Returns:
+            List of command dictionaries with 'command' and 'source' keys
+        """
+        commands = []
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.readlines()
+
+            # Skip special targets that don't make sense to run directly
+            skip_targets = {
+                "PHONY",
+                "DEFAULT",
+                "SUFFIXES",
+                "PRECIOUS",
+                "INTERMEDIATE",
+                "SECONDARY",
+                "SECONDEXPANSION",
+                "DELETE_ON_ERROR",
+                "IGNORE",
+                "LOW_RESOLUTION_TIME",
+                "SILENT",
+                "EXPORT_ALL_VARIABLES",
+                "NOTPARALLEL",
+                "ONESHELL",
+                "POSIX",
+                "DEFAULT_GOAL",
+                "help",
+            }
+
+            found_targets = set()
+
+            for line in content:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+
+                # Skip variable assignments and other non-target lines
+                if "=" in line and ":" not in line:
+                    continue
+
+                # Handle .PHONY and other special targets
+                if line.startswith("."):
+                    parts = line.split(":")
+                    if len(parts) > 1 and parts[0].strip() == ".PHONY":
+                        # Skip adding PHONY targets as commands
+                        continue
+
+                # Check if line contains a target (target: [prerequisites])
+                if ":" in line:
+                    target = line.split(":", 1)[0].strip()
+
+                    # Skip empty targets and special targets
+                    if not target or target in skip_targets or target.startswith("."):
+                        continue
+
+                    # Skip duplicates
+                    if target not in found_targets:
+                        found_targets.add(target)
+                        commands.append(
+                            {
+                                "command": f"make {target}",
+                                "source": str(file_path.relative_to(self.project_path)),
+                                "description": f"Make target: {target}",
+                                "type": "make_target",
+                            }
+                        )
+
+        except Exception as e:
+            logger.error(f"Error parsing Makefile {file_path}: {e}")
+
+        return commands
+
     def _parse_package_json(self, file_path: Path) -> List[Dict]:
-        """Parse package.json for npm scripts."""
         commands = []
         try:
             with open(file_path, "r", encoding="utf-8") as f:
@@ -726,32 +905,7 @@ tox
             logger.error(f"Error parsing {file_path}: {e}")
         return commands
 
-    def _parse_makefile(self, file_path: Path) -> List[Dict]:
-        """Parse Makefile for targets."""
-        commands = []
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            targets = re.findall(
-                r"^([a-zA-Z][a-zA-Z0-9_-]*)\s*:", content, re.MULTILINE
-            )
-            special_targets = {".PHONY", "PHONY", ".DEFAULT"}
-            for target in targets:
-                if target not in special_targets:
-                    commands.append(
-                        {
-                            "command": f"make {target}",
-                            "description": f"Make target: {target}",
-                            "source": str(file_path.relative_to(self.project_path)),
-                            "type": "make_target",
-                        }
-                    )
-        except Exception as e:
-            logger.error(f"Error parsing {file_path}: {e}")
-        return commands
-
     def _parse_pyproject_toml(self, file_path: Path) -> List[Dict]:
-        """Parse pyproject.toml for Python commands."""
         commands = []
         if not toml:
             return commands
@@ -939,6 +1093,12 @@ tox
                 "source": str(file_path.relative_to(self.project_path)),
                 "type": "cargo_test",
             },
+            {
+                "command": "cargo check",
+                "description": "Check Rust code",
+                "source": str(file_path.relative_to(self.project_path)),
+                "type": "cargo_check",
+            },
         ]
 
     def _check_go_commands(self, file_path: Path) -> List[Dict]:
@@ -956,3 +1116,49 @@ tox
                 "type": "go_test",
             },
         ]
+
+    def generate_doignore_template(self) -> None:
+        """Generate a template .doignore file if it doesn't exist."""
+        ignore_file_path = self.project_path / ".doignore"
+
+        if ignore_file_path.exists():
+            print(f"📋 .doignore already exists at {ignore_file_path}")
+            return
+
+        template_content = """# .doignore - TodoMD Ignore File
+# Commands and patterns to skip during testing
+
+# === RECURSIVE/SELF-REFERENTIAL COMMANDS ===
+poetry run domd
+poetry run project-detector
+poetry run cmd-detector
+domd
+
+# === INTERACTIVE/BLOCKING COMMANDS ===
+npm run dev
+npm run start
+*serve*
+*watch*
+
+# === DEPLOYMENT/DESTRUCTIVE COMMANDS ===
+*publish*
+*deploy*
+*release*
+
+# === SLOW/RESOURCE-INTENSIVE COMMANDS ===
+tox
+*integration*
+*e2e*
+*docker*build*
+
+# Add your project-specific ignores below:
+"""
+
+        try:
+            with open(ignore_file_path, "w", encoding="utf-8") as f:
+                f.write(template_content)
+
+            print(f"📝 Created .doignore template at {ignore_file_path}")
+
+        except Exception as e:
+            logger.error(f"Error creating .doignore template: {e}")

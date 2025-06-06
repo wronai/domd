@@ -15,6 +15,67 @@
 - **Multiple Formats**: Output in Markdown, JSON, or plain text
 - **CI/CD Ready**: Perfect for automated project health checks
 - **Zero Configuration**: Works out of the box with sensible defaults
+- **Command Filtering**: Skip specific commands using `.doignore`
+- **Docker Integration**: Run commands in isolated Docker containers using `.dodocker`
+
+## 🔧 Command Filtering with .doignore
+
+Easily skip specific commands during testing by creating a `.doignore` file in your project root. This is perfect for excluding long-running services, deployment scripts, or commands that require special handling.
+
+### Example `.doignore`:
+```
+# Skip specific commands
+npm run dev
+npm run start
+
+# Skip patterns
+*serve*
+*deploy*
+*release*
+
+# Skip test commands
+*test*
+*e2e*
+```
+
+### Usage:
+```bash
+# Generate a template .doignore file
+domd --generate-ignore
+
+# Show which commands would be ignored
+domd --show-ignored
+
+# Use a custom ignore file
+domd --ignore-file custom.ignore
+```
+
+## 🐳 Docker Integration with .dodocker
+
+Run commands in isolated Docker containers by creating a `.dodocker` file in your project root. This is great for ensuring consistent environments and avoiding local system dependencies.
+
+### Example `.dodocker`:
+```
+# Install dependencies
+pip install -e .
+
+# Run tests
+pytest -v
+
+# Run linters
+black --check .
+isort --check-only .
+flake8 .
+```
+
+### Usage:
+```bash
+# Commands will be executed in a Docker container
+domd
+
+# Specify a different Docker image
+domd --docker-image python:3.9
+```
 
 ## 📦 Supported Project Types
 

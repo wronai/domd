@@ -76,11 +76,12 @@ clean: ## Clean build artifacts
 	rm -rf dist/
 	rm -rf build/
 	rm -rf *.egg-info/
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
-	find . -type f -name "*.pyo" -delete
+	find . -path './.venv' -prune -o -type d -name '__pycache__' -exec rm -rf {} +
+	find . -path './.venv' -prune -o -type f -name '*.pyc' -exec rm -f {} +
+	find . -path './.venv' -prune -o -type f -name '*.pyo' -exec rm -f {} +
 
 build: clean ## Build the package
+	poetry version patch
 	poetry build
 
 publish-test: build ## Publish to test PyPI
