@@ -1,0 +1,128 @@
+# .domdignore - TodoMD Ignore File
+# Commands and patterns to skip during testing
+# 
+# Syntax:
+#   - Exact command match: npm run dev
+#   - Pattern match: *recursive*
+#   - Comment with #
+#   - Empty lines ignored
+
+# === RECURSIVE/SELF-REFERENTIAL COMMANDS ===
+# Prevent infinite loops
+poetry run domd
+poetry run project-detector
+poetry run cmd-detector
+poetry run todomd
+poetry run llmtask
+domd
+project-detector
+cmd-detector
+todomd
+
+# === INTERACTIVE/BLOCKING COMMANDS ===
+# Commands that require user input or run indefinitely
+npm run dev
+npm run start
+npm run serve
+yarn dev
+yarn start
+pnpm dev
+pnpm start
+python -m http.server
+mkdocs serve
+poetry run mkdocs serve
+make serve-docs
+make watch-test
+*serve*
+*watch*
+*dev-server*
+
+# === DEPLOYMENT/DESTRUCTIVE COMMANDS ===
+# Commands that deploy, publish, or modify production
+poetry publish
+npm publish
+yarn publish
+pnpm publish
+make publish
+make publish-test
+make deploy
+make release
+*publish*
+*deploy*
+*release*
+git push
+git tag
+
+# === SLOW/RESOURCE-INTENSIVE COMMANDS ===
+# Commands that take very long or use lots of resources
+make release-check
+tox
+*integration*
+*e2e*
+*benchmark*
+docker-compose up
+*docker*build*
+*slow*
+
+# === VERSION/TAG MANAGEMENT ===
+# Commands that modify version or tags
+make bump-patch
+make bump-minor
+make bump-major
+make tag
+poetry version
+npm version
+
+# === CLEANUP/DESTRUCTIVE ===
+# Commands that delete files or clean up
+make clean
+make clean-all
+make git-clean
+git clean
+rm -rf
+*clean*
+*purge*
+
+# === DEPENDENCY UPDATES ===
+# Commands that modify dependencies (potentially disruptive)
+make deps-update
+poetry update
+npm update
+yarn upgrade
+pip install --upgrade
+
+# === IDE/EDITOR SPECIFIC ===
+# IDE or editor related commands
+code .
+vim
+emacs
+nano
+
+# === SYSTEM SPECIFIC ===
+# System-level commands that might require permissions
+sudo *
+systemctl *
+service *
+
+# === TESTING PATTERNS ===
+# Specific test patterns that are problematic
+*test*integration*
+*test*e2e*
+*test*slow*
+
+# === BUILD PATTERNS ===
+# Build commands that take too long
+*build*production*
+*build*release*
+
+# === CUSTOM PROJECT SPECIFIC ===
+# Add your project-specific commands here
+# Example:
+# make setup-database
+# ./scripts/heavy-migration.sh
+
+# === PATTERN EXAMPLES ===
+# *pattern*    - matches any command containing "pattern"
+# pattern*     - matches commands starting with "pattern"
+# *pattern     - matches commands ending with "pattern"
+# exact-match  - matches exactly "exact-match"

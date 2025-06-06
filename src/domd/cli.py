@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
-Enhanced CLI for domd with streaming TODO.md updates
+Enhanced CLI with immediate TODO.md creation and script generation
 """
 
 import argparse
 import sys
 import signal
-import time
-import threading
 from pathlib import Path
 from typing import Optional
 
@@ -15,69 +13,30 @@ from . import __version__
 from .detector import ProjectCommandDetector
 
 
-class ProgressMonitor:
-    """Monitor and display progress during command execution."""
-
-    def __init__(self, output_file: str):
-        self.output_file = Path(output_file)
-        self.monitoring = False
-        self.monitor_thread = None
-
-    def start_monitoring(self):
-        """Start monitoring the output file for changes."""
-        self.monitoring = True
-        self.monitor_thread = threading.Thread(target=self._monitor_file)
-        self.monitor_thread.daemon = True
-        self.monitor_thread.start()
-
-    def stop_monitoring(self):
-        """Stop monitoring."""
-        self.monitoring = False
-        if self.monitor_thread:
-            self.monitor_thread.join(timeout=1)
-
-    def _monitor_file(self):
-        """Monitor file changes and show progress."""
-        last_size = 0
-        dots = 0
-
-        while self.monitoring:
-            try:
-                if self.output_file.exists():
-                    current_size = self.output_file.stat().st_size
-                    if current_size != last_size:
-                        # File updated, show progress
-                        print(".", end="", flush=True)
-                        dots += 1
-                        if dots >= 50:  # New line after 50 dots
-                            print()
-                            dots = 0
-                        last_size = current_size
-
-                time.sleep(0.5)  # Check every 500ms
-            except Exception:
-                pass  # Ignore file access errors
-
-
 def create_parser() -> argparse.ArgumentParser:
-    """Create and configure argument parser."""
+    """Create enhanced argument parser."""
     parser = argparse.ArgumentParser(
         prog='domd',
-        description='Project Command Detector with streaming TODO.md updates',
+        description='Project Command Detector with immediate TODO.md and script generation',
         epilog='''
 Examples:
-  domd                              # Scan with streaming updates
-  domd --no-streaming               # Traditional mode (no live updates)
-  domd --path /path/to/project      # Scan specific project
-  domd --dry-run                    # Preview without execution
-  domd --output ISSUES.md           # Custom output file
-  domd --watch                      # Show live progress indicators
+  domd                              # Scan, create TODO.md + todo.sh, then test
+  domd --init-only                  # Only create TODO.md and todo.sh (no testing)
+  domd --from-script                # Load commands from existing todo.sh
+  domd --script-file my_tasks.sh    # Custom script filename
+  domd --todo-file ISSUES.md        # Custom TODO filename
 
-Streaming Features:
-  - TODO.md updates in real-time during execution
-  - Progress tracking and status updates
-  - Safe interruption with partial results saved
-  - Current command status and recent completions
+Workflow:
+  1. domd --init-only               # Create files without testing
+  2. Edit todo.sh if needed         # Remove unwanted commands
+  3. ./todo.sh                      # Execute manually
+  4. OR: domd --from-script         # Resume testing from script
+
+Features:
+  - TODO.md created immediately on start with all commands listed
+  - todo.sh executable script with all commands for manual execution
+  - Real-time TODO.md updates during testing
+  - Resume from existing todo.sh script
         ''',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -98,7 +57,19 @@ Streaming Features:
     parser.add_argument(
         '--dry-run', '-d',
         action='store_true',
-        help='Only detect commands without executing them'
+        help='Only detect commands without creating files or executing'
+    )
+
+    parser.add_argument(
+        '--init-only',
+        action='store_true',
+        help='Only create TODO.md and todo.sh files, do not test commands'
+    )
+
+    parser.add_argument(
+        '--from-script',
+        action='store_true',
+        help='Load commands from existing todo.sh and test them'
     )
 
     parser.add_argument(
@@ -114,17 +85,17 @@ Streaming Features:
     )
 
     parser.add_argument(
-        '--output', '-o',
+        '--todo-file',
         type=str,
         default='TODO.md',
-        help='Output file for failed commands (default: TODO.md)'
+        help='TODO markdown file path (default: TODO.md)'
     )
 
     parser.add_argument(
-        '--format',
-        choices=['markdown', 'json', 'text'],
-        default='markdown',
-        help='Output format (default: markdown)'
+        '--script-file',
+        type=str,
+        default='todo.sh',
+        help='Executable script file path (default: todo.sh)'
     )
 
     parser.add_argument(
@@ -146,46 +117,26 @@ Streaming Features:
         help='Include only specific file patterns (can be used multiple times)'
     )
 
-    # Streaming-specific options
-    parser.add_argument(
-        '--no-streaming',
-        action='store_true',
-        help='Disable streaming updates (traditional mode - generate file only at end)'
-    )
-
-    parser.add_argument(
-        '--watch',
-        action='store_true',
-        help='Show live progress indicators during execution'
-    )
-
     return parser
 
 
-def setup_signal_handlers(detector: ProjectCommandDetector, output_file: str):
+def setup_signal_handlers(detector: ProjectCommandDetector):
     """Setup signal handlers for graceful interruption."""
 
     def signal_handler(signum, frame):
         """Handle interruption signals gracefully."""
         print("\n🛑 Execution interrupted by user")
-        print("💾 Saving current progress to TODO.md...")
+        print("💾 Saving current progress...")
 
-        # Finalize the current state
-        if hasattr(detector, 'todo_writer') and detector.todo_writer:
-            detector.todo_writer.finalize_file(detector.failed_commands)
+        # Finalize TODO.md with current state
+        if hasattr(detector, 'failed_commands') and hasattr(detector, 'successful_commands'):
+            all_commands = detector.failed_commands + detector.successful_commands
+            if all_commands:
+                detector._finalize_todo_md(all_commands)
+                print(f"📝 Progress saved to {detector.todo_file}")
 
-        # Show current status
-        total_tested = len(detector.failed_commands)  # Simplified for now
-        if total_tested > 0:
-            failed = len(detector.failed_commands)
-            print(f"\n📊 Progress at interruption:")
-            print(f"   Commands tested: {total_tested}")
-            print(f"   ❌ Failed: {failed}")
-            print(f"   📝 Partial results saved to: {output_file}")
+        sys.exit(130)
 
-        sys.exit(130)  # Standard exit code for SIGINT
-
-    # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     if hasattr(signal, 'SIGTERM'):
         signal.signal(signal.SIGTERM, signal_handler)
@@ -193,7 +144,6 @@ def setup_signal_handlers(detector: ProjectCommandDetector, output_file: str):
 
 def validate_args(args: argparse.Namespace) -> Optional[str]:
     """Validate command line arguments."""
-    # Check if project path exists
     project_path = Path(args.path)
     if not project_path.exists():
         return f"Project path does not exist: {project_path}"
@@ -201,13 +151,14 @@ def validate_args(args: argparse.Namespace) -> Optional[str]:
     if not project_path.is_dir():
         return f"Project path is not a directory: {project_path}"
 
-    # Check timeout value
     if args.timeout <= 0:
         return "Timeout must be a positive integer"
 
-    # Check if verbose and quiet are both specified
     if args.verbose and args.quiet:
         return "Cannot specify both --verbose and --quiet"
+
+    if args.from_script and args.init_only:
+        return "Cannot specify both --from-script and --init-only"
 
     return None
 
@@ -231,65 +182,90 @@ def setup_logging(verbose: bool, quiet: bool) -> None:
 
 def print_summary(detector: ProjectCommandDetector, total_commands: int) -> None:
     """Print execution summary."""
+    successful = len(detector.successful_commands)
     failed = len(detector.failed_commands)
-    success = total_commands - failed
 
-    print(f"\n{'=' * 50}")
+    print(f"\n{'=' * 60}")
     print("EXECUTION SUMMARY")
-    print(f"{'=' * 50}")
-    print(f"✅ Successful: {success}/{total_commands}")
-    print(f"❌ Failed: {failed}/{total_commands}")
+    print(f"{'=' * 60}")
+    print(f"📊 Results:")
+    print(f"   Total commands: {total_commands}")
+    print(f"   ✅ Successful: {successful}")
+    print(f"   ❌ Failed: {failed}")
 
     if total_commands > 0:
-        success_rate = (success / total_commands) * 100
-        print(f"📊 Success rate: {success_rate:.1f}%")
+        success_rate = (successful / total_commands) * 100
+        print(f"   📈 Success rate: {success_rate:.1f}%")
+
+    print(f"📝 Files created:")
+    print(f"   📋 TODO file: {detector.todo_file}")
+    print(f"   🔧 Script file: {detector.script_file}")
 
     if failed > 0:
-        print(f"📝 Check TODO.md for failed command details")
+        print(f"\n🔧 Next steps:")
+        print(f"   1. Review failed commands in {detector.todo_file}")
+        print(f"   2. Edit {detector.script_file} to remove problematic commands")
+        print(f"   3. Run: ./{detector.script_file} to execute manually")
+        print(f"   4. Or run: domd --from-script to resume testing")
     else:
-        print(f"🎉 All commands executed successfully!")
+        print(f"\n🎉 All commands executed successfully!")
 
 
 def main() -> int:
-    """Main entry point for the CLI."""
+    """Enhanced main entry point."""
     parser = create_parser()
     args = parser.parse_args()
 
     # Validate arguments
     error_msg = validate_args(args)
     if error_msg:
-        print(f"Error: {error_msg}", file=sys.stderr)
+        print(f"❌ Error: {error_msg}", file=sys.stderr)
         return 1
 
     # Setup logging
     setup_logging(args.verbose, args.quiet)
 
     try:
-        # Initialize detector
+        # Initialize enhanced detector
         detector = ProjectCommandDetector(
             project_path=args.path,
             timeout=args.timeout,
             exclude_patterns=args.exclude or [],
-            include_patterns=args.include_only or []
+            include_patterns=args.include_only or [],
+            todo_file=args.todo_file,
+            script_file=args.script_file
         )
 
         if not args.quiet:
-            print(f"domd v{__version__}")
-            print(f"Scanning project: {Path(args.path).resolve()}")
+            print(f"TodoMD v{__version__} - Enhanced Project Command Detector")
+            print(f"🔍 Project: {Path(args.path).resolve()}")
+            print(f"📝 TODO file: {args.todo_file}")
+            print(f"🔧 Script file: {args.script_file}")
 
         # Setup signal handlers
-        setup_signal_handlers(detector, args.output)
+        setup_signal_handlers(detector)
 
-        # Scan project for commands
-        commands = detector.scan_project()
+        # Handle different modes
+        if args.from_script:
+            # Load commands from existing script
+            if not Path(args.script_file).exists():
+                print(f"❌ Script file {args.script_file} not found")
+                print(f"💡 Run 'domd --init-only' first to create the script")
+                return 1
 
-        if not commands:
+            commands = detector.load_commands_from_script()
+            if not commands:
+                print("❌ No commands found in script file")
+                return 1
+
             if not args.quiet:
-                print("No commands found to test.")
-            return 0
+                print(f"📥 Loaded {len(commands)} commands from {args.script_file}")
 
-        if not args.quiet:
-            print(f"Found {len(commands)} commands to test")
+        else:
+            # Scan project and create initial files
+            commands = detector.scan_and_initialize()
+            if not commands:
+                return 0
 
         # Handle dry-run mode
         if args.dry_run:
@@ -299,19 +275,27 @@ def main() -> int:
                     print(f"{i:3d}. {cmd['description']}")
                     print(f"     Command: {cmd['command']}")
                     print(f"     Source:  {cmd['source']}")
-                    if args.verbose:
-                        print(f"     Type:    {cmd.get('type', 'unknown')}")
                     print()
             return 0
 
-        # Test commands
+        # Handle init-only mode
+        if args.init_only:
+            if not args.quiet:
+                print(f"\n✅ Initialization complete!")
+                print(f"📋 Created {args.todo_file} with {len(commands)} commands")
+                print(f"🔧 Created executable {args.script_file}")
+                print(f"\n💡 Next steps:")
+                print(f"   • Review and edit {args.script_file} if needed")
+                print(f"   • Run: ./{args.script_file} to execute commands manually")
+                print(f"   • Or run: domd --from-script to test with TodoMD")
+            return 0
+
+        # Test commands with real-time updates
         if not args.quiet:
-            print(f"\nTesting commands...")
+            print(f"\n🧪 Testing {len(commands)} commands...")
+            print(f"📊 Progress will be updated in {args.todo_file}")
 
         detector.test_commands(commands)
-
-        # Generate output file
-        detector.generate_output_file(args.output, args.format)
 
         # Print summary
         if not args.quiet:
@@ -324,7 +308,7 @@ def main() -> int:
         print("\n⚠️  Operation cancelled by user", file=sys.stderr)
         return 130
     except Exception as e:
-        print(f"❌ Unexpected error: {e}", file=sys.stderr)
+        print(f"💥 Unexpected error: {e}", file=sys.stderr)
         if args.verbose:
             import traceback
             traceback.print_exc()
