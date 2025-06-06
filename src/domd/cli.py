@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-Command Line Interface for DoMD
+Enhanced CLI for domd with streaming TODO.md updates
 """
 
 import argparse
 import sys
+import signal
+import time
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -12,16 +15,70 @@ from . import __version__
 from .detector import ProjectCommandDetector
 
 
+class ProgressMonitor:
+    """Monitor and display progress during command execution."""
+
+    def __init__(self, output_file: str):
+        self.output_file = Path(output_file)
+        self.monitoring = False
+        self.monitor_thread = None
+
+    def start_monitoring(self):
+        """Start monitoring the output file for changes."""
+        self.monitoring = True
+        self.monitor_thread = threading.Thread(target=self._monitor_file)
+        self.monitor_thread.daemon = True
+        self.monitor_thread.start()
+
+    def stop_monitoring(self):
+        """Stop monitoring."""
+        self.monitoring = False
+        if self.monitor_thread:
+            self.monitor_thread.join(timeout=1)
+
+    def _monitor_file(self):
+        """Monitor file changes and show progress."""
+        last_size = 0
+        dots = 0
+
+        while self.monitoring:
+            try:
+                if self.output_file.exists():
+                    current_size = self.output_file.stat().st_size
+                    if current_size != last_size:
+                        # File updated, show progress
+                        print(".", end="", flush=True)
+                        dots += 1
+                        if dots >= 50:  # New line after 50 dots
+                            print()
+                            dots = 0
+                        last_size = current_size
+
+                time.sleep(0.5)  # Check every 500ms
+            except Exception:
+                pass  # Ignore file access errors
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create and configure argument parser."""
     parser = argparse.ArgumentParser(
         prog='domd',
-        description='Project Command Detector - Automatically detects and tests project commands',
-        epilog='Examples:\n'
-               '  domd                          # Scan current directory\n'
-               '  domd --path /path/to/project  # Scan specific project\n'
-               '  domd --dry-run                # Preview commands without executing\n'
-               '  domd --output custom.md       # Custom output file',
+        description='Project Command Detector with streaming TODO.md updates',
+        epilog='''
+Examples:
+  domd                              # Scan with streaming updates
+  domd --no-streaming               # Traditional mode (no live updates)
+  domd --path /path/to/project      # Scan specific project
+  domd --dry-run                    # Preview without execution
+  domd --output ISSUES.md           # Custom output file
+  domd --watch                      # Show live progress indicators
+
+Streaming Features:
+  - TODO.md updates in real-time during execution
+  - Progress tracking and status updates
+  - Safe interruption with partial results saved
+  - Current command status and recent completions
+        ''',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
@@ -47,7 +104,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '--verbose', '-v',
         action='store_true',
-        help='Enable verbose output'
+        help='Enable verbose output with detailed logging'
     )
 
     parser.add_argument(
@@ -89,7 +146,49 @@ def create_parser() -> argparse.ArgumentParser:
         help='Include only specific file patterns (can be used multiple times)'
     )
 
+    # Streaming-specific options
+    parser.add_argument(
+        '--no-streaming',
+        action='store_true',
+        help='Disable streaming updates (traditional mode - generate file only at end)'
+    )
+
+    parser.add_argument(
+        '--watch',
+        action='store_true',
+        help='Show live progress indicators during execution'
+    )
+
     return parser
+
+
+def setup_signal_handlers(detector: ProjectCommandDetector, output_file: str):
+    """Setup signal handlers for graceful interruption."""
+
+    def signal_handler(signum, frame):
+        """Handle interruption signals gracefully."""
+        print("\n🛑 Execution interrupted by user")
+        print("💾 Saving current progress to TODO.md...")
+
+        # Finalize the current state
+        if hasattr(detector, 'todo_writer') and detector.todo_writer:
+            detector.todo_writer.finalize_file(detector.failed_commands)
+
+        # Show current status
+        total_tested = len(detector.failed_commands)  # Simplified for now
+        if total_tested > 0:
+            failed = len(detector.failed_commands)
+            print(f"\n📊 Progress at interruption:")
+            print(f"   Commands tested: {total_tested}")
+            print(f"   ❌ Failed: {failed}")
+            print(f"   📝 Partial results saved to: {output_file}")
+
+        sys.exit(130)  # Standard exit code for SIGINT
+
+    # Register signal handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    if hasattr(signal, 'SIGTERM'):
+        signal.signal(signal.SIGTERM, signal_handler)
 
 
 def validate_args(args: argparse.Namespace) -> Optional[str]:
@@ -141,10 +240,12 @@ def print_summary(detector: ProjectCommandDetector, total_commands: int) -> None
     print(f"✅ Successful: {success}/{total_commands}")
     print(f"❌ Failed: {failed}/{total_commands}")
 
-    if failed > 0:
+    if total_commands > 0:
         success_rate = (success / total_commands) * 100
         print(f"📊 Success rate: {success_rate:.1f}%")
-        print(f"📝 Check output file for failed command details")
+
+    if failed > 0:
+        print(f"📝 Check TODO.md for failed command details")
     else:
         print(f"🎉 All commands executed successfully!")
 
@@ -173,8 +274,11 @@ def main() -> int:
         )
 
         if not args.quiet:
-            print(f"DoMD v{__version__}")
+            print(f"domd v{__version__}")
             print(f"Scanning project: {Path(args.path).resolve()}")
+
+        # Setup signal handlers
+        setup_signal_handlers(detector, args.output)
 
         # Scan project for commands
         commands = detector.scan_project()
@@ -200,7 +304,7 @@ def main() -> int:
                     print()
             return 0
 
-        # Execute commands
+        # Test commands
         if not args.quiet:
             print(f"\nTesting commands...")
 

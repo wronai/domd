@@ -182,5 +182,5 @@ See [CONTRIBUTING.md] for guidelines on how to contribute to this project.
 ## Support
 
 - Documentation: https://domd.readthedocs.io
-- Issues: https://github.com/yourusername/domd/issues
-- Discussions: https://github.com/yourusername/domd/discussions
+- Issues: https://github.com/wronai/domd/issues
+- Discussions: https://github.com/wronai/domd/discussions

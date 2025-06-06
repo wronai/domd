@@ -1,8 +1,8 @@
-# 🎉 TodoMD
+# 🎉 domd
 
 ## ✅ **STATUS: WSZYSTKIE PLIKI WYGENEROWANE KOMPLETNIE**
 
-Bazując na Twoim pliku `pyproject.toml`, została stworzona **kompletna, profesjonalna paczka Python TodoMD** z pełną implementacją oryginalnego skryptu oraz zaawansowanymi funkcjami.
+Bazując na Twoim pliku `pyproject.toml`, została stworzona **kompletna, profesjonalna paczka Python domd** z pełną implementacją oryginalnego skryptu oraz zaawansowanymi funkcjami.
 
 ---
 
@@ -20,9 +20,9 @@ Bazując na Twoim pliku `pyproject.toml`, została stworzona **kompletna, profes
 ### 🐍 **Kod Źródłowy**
 | Plik | Opis | Status |
 |------|------|--------|
-| `src/todomd/__init__.py` | Inicjalizacja paczki | ✅ Kompletny |
-| `src/todomd/cli.py` | Interfejs linii komend | ✅ Kompletny |
-| `src/todomd/detector.py` | **Główna logika detektora** (oryginalny skrypt) | ✅ Kompletny |
+| `src/domd/__init__.py` | Inicjalizacja paczki | ✅ Kompletny |
+| `src/domd/cli.py` | Interfejs linii komend | ✅ Kompletny |
+| `src/domd/detector.py` | **Główna logika detektora** (oryginalny skrypt) | ✅ Kompletny |
 
 ### 🧪 **Testy**
 | Plik | Opis | Status |
@@ -84,14 +84,14 @@ Bazując na Twoim pliku `pyproject.toml`, została stworzona **kompletna, profes
 ## 🏗️ **Architektura Projektu**
 
 ```
-todomd/
+domd/
 ├── 📋 Konfiguracja
 │   ├── pyproject.toml           # Poetry config
 │   ├── tox.ini                  # Multi-env testing
 │   ├── .pre-commit-config.yaml  # Code quality hooks
 │   └── .github/workflows/       # CI/CD pipeline
 ├── 🐍 Kod Źródłowy
-│   └── src/todomd/
+│   └── src/domd/
 │       ├── __init__.py          # Package init
 │       ├── cli.py               # Command line interface
 │       └── detector.py          # Main detection logic
@@ -115,7 +115,7 @@ todomd/
 ### 1. **Utwórz Projekt**
 ```bash
 # Utwórz katalog i skopiuj wszystkie pliki
-mkdir todomd && cd todomd
+mkdir domd && cd domd
 
 # Skopiuj wszystkie artefakty (pyproject.toml, src/, tests/, etc.)
 ```
@@ -130,12 +130,12 @@ chmod +x scripts/setup_project.sh
 ### 3. **Pierwsze Użycie**
 ```bash
 # Podgląd komend (bezpieczny)
-poetry run todomd --dry-run
+poetry run domd --dry-run
 
 # Test rzeczywisty
-poetry run todomd --verbose
+poetry run domd --verbose
 
-# Dogfooding - TodoMD testuje sam siebie!
+# Dogfooding - domd testuje sam siebie!
 make health-check
 ```
 
@@ -149,7 +149,7 @@ make dev           # Pełne środowisko deweloperskie
 make test          # Uruchom testy
 make lint          # Sprawdź jakość kodu
 make build         # Zbuduj paczkę
-make health-check  # TodoMD testuje sam siebie
+make health-check  # domd testuje sam siebie
 ```
 
 ### ✅ **CI/CD Ready**
@@ -183,13 +183,13 @@ make health-check  # TodoMD testuje sam siebie
 ## 🔄 **Następne Kroki**
 
 ### 1. **Dostosuj Do Swoich Potrzeb**
-- Zmień `yourusername` na prawdziwy username w URL-ach
+- Zmień `wronai` na prawdziwy username w URL-ach
 - Zaktualizuj informacje o autorze w `pyproject.toml`
 - Dostosuj exclude/include patterns do swojego projektu
 
 ### 2. **Rozwijaj**
-- Dodaj nowe parsery w `src/todomd/parsers/`
-- Stwórz custom reportery w `src/todomd/reporters/`
+- Dodaj nowe parsery w `src/domd/parsers/`
+- Stwórz custom reportery w `src/domd/reporters/`
 - Dodaj integracje z narzędziami (Slack, Teams, etc.)
 
 ### 3. **Publikuj**
@@ -214,7 +214,7 @@ make release-minor  # Publikuj wersję minor
 
 ## 🎉 **Podsumowanie**
 
-**TodoMD jest gotowe do użycia w produkcji!** 
+**domd jest gotowe do użycia w produkcji!** 
 
 Projekt zawiera:
 - **Kompletną implementację** oryginalnego skryptu

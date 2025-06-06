@@ -1,40 +1,56 @@
-# 🚀 TodoMD - Quick Start Guide
+# 🚀 domd - Quick Start Guide
 
-**Get TodoMD running in your project in under 5 minutes!**
+**Get domd running in your project in under 5 minutes!**
 
 ## ⚡ Super Quick Start
 
 ```bash
 # 1. Clone and setup (automated)
-git clone https://github.com/yourusername/todomd.git
-cd todomd
+git clone https://github.com/wronai/domd.git
+cd domd
 chmod +x scripts/setup_project.sh
 ./scripts/setup_project.sh
 
 # 2. Test on example project
-poetry run todomd --path examples --dry-run
+poetry run domd --path examples --dry-run
 
 # 3. Test on current project (dogfooding!)
-poetry run todomd --verbose
+poetry run domd --verbose
+```
+
+
+```bash
+# Domyślnie włączone - strumieniowy zapis
+domd
+
+# Z wskaźnikami postępu
+domd --watch
+
+# Tradycyjny tryb (tylko na końcu)
+domd --no-streaming
+
+# Live monitoring postępu
+domd --watch &
+tail -f TODO.md
 ```
 
 ## 📦 Installation Options
 
 ### Option 1: From PyPI (when published)
 ```bash
-pip install todomd
-todomd --help
+pip install domd
+domd --help
 ```
 
 ### Option 2: From Source (recommended for development)
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/todomd.git
-cd todomd
+git clone https://github.com/wronai/domd.git
+cd domd
 
 # Quick setup with Poetry
 poetry install
-poetry run todomd --version
+poetry run domd --version
 ```
 
 ### Option 3: Development Setup
@@ -49,13 +65,13 @@ make dev  # Runs format, lint, test
 
 ### 1. Preview Mode (Safe)
 ```bash
-# See what commands TodoMD would test
-todomd --dry-run
+# See what commands domd would test
+domd --dry-run
 ```
 
 **Example output:**
 ```
-TodoMD v0.1.0
+domd v0.1.0
 Scanning project: /home/user/my-project
 
 Found 8 commands to test
@@ -81,13 +97,13 @@ Found 8 commands to test
 ### 2. Verbose Mode (Detailed Info)
 ```bash
 # Detailed scanning and execution info
-todomd --verbose
+domd --verbose
 ```
 
 ### 3. Actual Testing
 ```bash
 # Test all commands and generate TODO.md for failures
-todomd
+domd
 ```
 
 ## 📊 Understanding Output
@@ -134,38 +150,38 @@ Error: Cannot find module 'jest'
 ### CI/CD Health Check
 ```bash
 # Add to your pipeline
-todomd --quiet && echo "All commands working!" || echo "Some commands failed"
+domd --quiet && echo "All commands working!" || echo "Some commands failed"
 ```
 
 ### Pre-deployment Validation
 ```bash
 # Check before deploying
-todomd --timeout 120 --format json --output health-check.json
+domd --timeout 120 --format json --output health-check.json
 ```
 
 ### New Developer Onboarding
 ```bash
 # Help new team members identify setup issues
-todomd --verbose --output SETUP_ISSUES.md
+domd --verbose --output SETUP_ISSUES.md
 ```
 
 ### Legacy Project Analysis
 ```bash
 # Analyze old projects
-todomd --path /path/to/legacy/project --dry-run
+domd --path /path/to/legacy/project --dry-run
 ```
 
 ## 🎛️ Essential Options
 
 | Option | Purpose | Example |
 |--------|---------|---------|
-| `--dry-run` | Preview without execution | `todomd --dry-run` |
-| `--verbose` | Detailed output | `todomd --verbose` |
-| `--quiet` | Errors only | `todomd --quiet` |
-| `--path` | Different project | `todomd --path ./frontend` |
-| `--timeout` | Custom timeout | `todomd --timeout 30` |
-| `--format` | Output format | `todomd --format json` |
-| `--output` | Custom file | `todomd --output ISSUES.md` |
+| `--dry-run` | Preview without execution | `domd --dry-run` |
+| `--verbose` | Detailed output | `domd --verbose` |
+| `--quiet` | Errors only | `domd --quiet` |
+| `--path` | Different project | `domd --path ./frontend` |
+| `--timeout` | Custom timeout | `domd --timeout 30` |
+| `--format` | Output format | `domd --format json` |
+| `--output` | Custom file | `domd --output ISSUES.md` |
 
 ## 🏗️ Project Types Detected
 
@@ -203,31 +219,31 @@ todomd --path /path/to/legacy/project --dry-run
 ### Pattern Filtering
 ```bash
 # Exclude test files and build artifacts
-todomd --exclude "*.test.*" --exclude "node_modules/*" --exclude "build/*"
+domd --exclude "*.test.*" --exclude "node_modules/*" --exclude "build/*"
 
 # Only check specific files
-todomd --include-only "Makefile" --include-only "package.json"
+domd --include-only "Makefile" --include-only "package.json"
 ```
 
 ### Output Formats
 ```bash
 # Markdown (default)
-todomd --output TODO.md
+domd --output TODO.md
 
 # JSON for processing
-todomd --format json --output results.json
+domd --format json --output results.json
 
 # Plain text
-todomd --format text --output summary.txt
+domd --format text --output summary.txt
 ```
 
 ### Timeout Control
 ```bash
 # Quick check (30s timeout)
-todomd --timeout 30 --quiet
+domd --timeout 30 --quiet
 
 # Patient check (5 min timeout)
-todomd --timeout 300 --verbose
+domd --timeout 300 --verbose
 ```
 
 ## 🔗 Integration Examples
@@ -237,12 +253,12 @@ todomd --timeout 300 --verbose
 # Add to your Makefile
 .PHONY: health-check
 health-check:
-	@todomd --quiet || (echo "❌ Failed commands in TODO.md" && exit 1)
+	@domd --quiet || (echo "❌ Failed commands in TODO.md" && exit 1)
 	@echo "✅ All project commands working!"
 
 .PHONY: health-report
 health-report:
-	@todomd --verbose --format json --output health-report.json
+	@domd --verbose --format json --output health-report.json
 	@echo "📊 Health report: health-report.json"
 ```
 
@@ -250,8 +266,8 @@ health-report:
 ```yaml
 - name: Project Health Check
   run: |
-    pip install todomd
-    todomd --verbose
+    pip install domd
+    domd --verbose
 - name: Upload failed commands
   if: failure()
   uses: actions/upload-artifact@v3
@@ -266,9 +282,9 @@ health-report:
 repos:
   - repo: local
     hooks:
-      - id: todomd
-        name: TodoMD Health Check
-        entry: todomd --quiet
+      - id: domd
+        name: domd Health Check
+        entry: domd --quiet
         language: system
         pass_filenames: false
 ```
@@ -283,7 +299,7 @@ repos:
 ls -la | grep -E "(package\.json|Makefile|pyproject\.toml|Dockerfile)"
 
 # Run with verbose to see scanning process
-todomd --dry-run --verbose
+domd --dry-run --verbose
 ```
 
 **"Command not found" errors**
@@ -299,10 +315,10 @@ brew install make node python  # macOS
 **Timeout issues**
 ```bash
 # Increase timeout for slow commands
-todomd --timeout 180
+domd --timeout 180
 
 # Or exclude slow commands
-todomd --exclude "*integration*" --exclude "*e2e*"
+domd --exclude "*integration*" --exclude "*e2e*"
 ```
 
 **Permission denied**
@@ -319,13 +335,13 @@ chmod +x scripts/*.sh
 ### For Large Projects
 ```bash
 # Quick scan (exclude heavy directories)
-todomd --exclude "node_modules/*" --exclude ".git/*" --exclude "build/*"
+domd --exclude "node_modules/*" --exclude ".git/*" --exclude "build/*"
 
 # Focus on main configs only
-todomd --include-only "package.json" --include-only "Makefile" --include-only "pyproject.toml"
+domd --include-only "package.json" --include-only "Makefile" --include-only "pyproject.toml"
 
 # Shorter timeout for CI
-todomd --timeout 30 --quiet
+domd --timeout 30 --quiet
 ```
 
 ### Parallel Projects
@@ -333,15 +349,15 @@ todomd --timeout 30 --quiet
 # Check multiple projects
 for project in frontend backend mobile; do
     echo "=== Checking $project ==="
-    todomd --path ./$project --quiet
+    domd --path ./$project --quiet
 done
 ```
 
 ## 🎓 Learning Path
 
 ### Beginner (5 minutes)
-1. `todomd --dry-run` - See what would be tested
-2. `todomd --verbose` - Run with detailed output
+1. `domd --dry-run` - See what would be tested
+2. `domd --verbose` - Run with detailed output
 3. Review generated `TODO.md`
 
 ### Intermediate (15 minutes)
@@ -364,27 +380,27 @@ done
 ### Customize for Your Project
 ```bash
 # Create project-specific alias
-alias project-health="todomd --exclude 'test/*' --timeout 60 --verbose"
+alias project-health="domd --exclude 'test/*' --timeout 60 --verbose"
 
 # Add to package.json scripts
 {
   "scripts": {
-    "health-check": "todomd --quiet",
-    "health-report": "todomd --format json --output health.json"
+    "health-check": "domd --quiet",
+    "health-report": "domd --format json --output health.json"
   }
 }
 ```
 
-### Extend TodoMD
+### Extend domd
 - **Custom Parsers**: Add support for new project types
 - **Integration Scripts**: Connect with monitoring tools
 - **Team Workflows**: Build project-specific health dashboards
 
 ## ✅ Quick Checklist
 
-- [ ] Install TodoMD (`poetry install` or `pip install todomd`)
-- [ ] Run preview: `todomd --dry-run`
-- [ ] First test: `todomd --verbose`
+- [ ] Install domd (`poetry install` or `pip install domd`)
+- [ ] Run preview: `domd --dry-run`
+- [ ] First test: `domd --verbose`
 - [ ] Review `TODO.md` for any failures
 - [ ] Fix failed commands using suggestions
 - [ ] Add to project workflow (Makefile, CI/CD, etc.)
@@ -392,17 +408,17 @@ alias project-health="todomd --exclude 'test/*' --timeout 60 --verbose"
 
 ## 🆘 Need Help?
 
-**Documentation**: [Full docs](https://todomd.readthedocs.io)
-**Issues**: [GitHub Issues](https://github.com/yourusername/todomd/issues)
+**Documentation**: [Full docs](https://domd.readthedocs.io)
+**Issues**: [GitHub Issues](https://github.com/wronai/domd/issues)
 **Examples**: Check `examples/` directory
-**API Reference**: [Python API docs](https://todomd.readthedocs.io/api/)
+**API Reference**: [Python API docs](https://domd.readthedocs.io/api/)
 
 ---
 
 ## 🎉 You're Ready!
 
-TodoMD is now monitoring your project health. Every run helps ensure your commands work for the entire team!
+domd is now monitoring your project health. Every run helps ensure your commands work for the entire team!
 
-**Pro tip**: Run `todomd --dry-run` regularly to catch issues early, and use `todomd` before important deployments.
+**Pro tip**: Run `domd --dry-run` regularly to catch issues early, and use `domd` before important deployments.
 
 **Happy coding!** 🚀

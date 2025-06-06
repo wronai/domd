@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/domd.svg)](https://badge.fury.io/py/domd)
 [![Python Support](https://img.shields.io/pypi/pyversions/domd.svg)](https://pypi.org/project/domd/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/yourusername/domd/workflows/Tests/badge.svg)](https://github.com/yourusername/domd/actions)
+[![Tests](https://github.com/wronai/domd/workflows/Tests/badge.svg)](https://github.com/wronai/domd/actions)
 
 **DoMD** automatically detects and tests project commands from various configuration files, then generates a detailed `TODO.md` file for failed commands with error reports and suggested fixes.
 
@@ -64,7 +64,7 @@ poetry add domd
 
 ### From source
 ```bash
-git clone https://github.com/yourusername/domd.git
+git clone https://github.com/wronai/domd.git
 cd domd
 poetry install
 ```
@@ -215,7 +215,7 @@ print(f"Success rate: {success_rate:.1f}%")
 
 ### Setup Development Environment
 ```bash
-git clone https://github.com/yourusername/domd.git
+git clone https://github.com/wronai/domd.git
 cd domd
 poetry install --with dev,docs,testing
 
@@ -307,9 +307,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Documentation](https://domd.readthedocs.io)
 - [PyPI Package](https://pypi.org/project/domd/)
-- [GitHub Repository](https://github.com/yourusername/domd)
-- [Issue Tracker](https://github.com/yourusername/domd/issues)
-- [Changelog](https://github.com/yourusername/domd/blob/main/CHANGELOG.md)
+- [GitHub Repository](https://github.com/wronai/domd)
+- [Issue Tracker](https://github.com/wronai/domd/issues)
+- [Changelog](https://github.com/wronai/domd/blob/main/CHANGELOG.md)
 
 ## 💡 Use Cases
 

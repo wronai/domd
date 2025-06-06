@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Version consistency checker for TodoMD project.
+Version consistency checker for domd project.
 Ensures version is consistent across pyproject.toml, __init__.py, and CHANGELOG.md
 """
 
@@ -22,9 +22,9 @@ def get_version_from_pyproject():
 
 
 def get_version_from_init():
-    """Get version from src/todomd/__init__.py."""
+    """Get version from src/domd/__init__.py."""
     try:
-        init_path = Path("src/todomd/__init__.py")
+        init_path = Path("src/domd/__init__.py")
         content = init_path.read_text()
         match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
         if match:
@@ -103,7 +103,7 @@ def update_version(new_version):
 
     # Update __init__.py
     try:
-        init_path = Path("src/todomd/__init__.py")
+        init_path = Path("src/domd/__init__.py")
         content = init_path.read_text()
         updated_content = re.sub(
             r'__version__\s*=\s*["\'][^"\']+["\']',

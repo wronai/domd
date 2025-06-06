@@ -16,7 +16,7 @@ curl -sSL https://install.python-poetry.org | python3 -
 
 ```bash
 # Sklonuj repozytorium
-git clone https://github.com/yourusername/domd.git
+git clone https://github.com/wronai/domd.git
 cd domd
 
 # Automatyczna konfiguracja (uruchom skrypt setup)
@@ -439,8 +439,8 @@ poetry install
 ## 📞 Wsparcie
 
 - **Dokumentacja**: https://domd.readthedocs.io
-- **Issues**: https://github.com/yourusername/domd/issues
-- **Discussions**: https://github.com/yourusername/domd/discussions
+- **Issues**: https://github.com/wronai/domd/issues
+- **Discussions**: https://github.com/wronai/domd/discussions
 
 ## 🎯 Następne kroki
 

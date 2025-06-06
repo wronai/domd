@@ -1,8 +1,8 @@
 site_name: DoMD Documentation
 site_description: Project Command Detector - Automatically detects and tests project commands
 site_url: https://domd.readthedocs.io
-repo_url: https://github.com/yourusername/domd
-repo_name: yourusername/domd
+repo_url: https://github.com/wronai/domd
+repo_name: wronai/domd
 edit_uri: edit/main/docs/
 
 # Copyright
@@ -203,7 +203,7 @@ extra:
   # Social links
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/yourusername/domd
+      link: https://github.com/wronai/domd
       name: GitHub Repository
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/domd/

@@ -16,7 +16,7 @@ PROJECT_NAME="domd"
 PROJECT_DESC="Project Command Detector - Automatically detects and tests project commands"
 AUTHOR_NAME="Your Name"
 AUTHOR_EMAIL="your.email@example.com"
-GITHUB_USERNAME="yourusername"
+GITHUB_USERNAME="wronai"
 
 # Functions
 log_info() {
