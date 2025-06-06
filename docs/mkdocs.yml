@@ -1,9 +1,253 @@
 site_name: TodoMD Documentation
+site_description: Project Command Detector - Automatically detects and tests project commands
+site_url: https://todomd.readthedocs.io
+repo_url: https://github.com/yourusername/todomd
+repo_name: yourusername/todomd
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2025 TodoMD Project
+
+# Navigation
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - Usage: usage.md
-  - API Reference: api.md
+  - Getting Started:
+    - Installation: installation.md
+    - Quick Start: quickstart.md
+    - Basic Usage: usage.md
+  - User Guide:
+    - Command Line Interface: cli.md
+    - Configuration: configuration.md
+    - Supported Projects: supported-projects.md
+    - Output Formats: output-formats.md
+  - Integration:
+    - CI/CD Integration: integration/cicd.md
+    - Pre-commit Hooks: integration/precommit.md
+    - Makefile Integration: integration/makefile.md
+    - Docker Integration: integration/docker.md
+  - Advanced:
+    - Programmatic API: api.md
+    - Custom Parsers: advanced/custom-parsers.md
+    - Performance Tuning: advanced/performance.md
+    - Troubleshooting: troubleshooting.md
+  - Development:
+    - Contributing: contributing.md
+    - Development Setup: development.md
+    - Architecture: architecture.md
+    - Release Process: release.md
+  - Reference:
+    - API Reference: reference/api.md
+    - CLI Reference: reference/cli.md
+    - Configuration Reference: reference/config.md
+  - About:
+    - Changelog: changelog.md
+    - License: license.md
 
+# Theme configuration
 theme:
   name: material
+  language: en
+
+  # Colors
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+  # Font
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  # Features
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - header.autohide
+
+  # Logo and favicon
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
+
+  # Custom CSS
+  custom_dir: docs/overrides
+
+# Plugins
+plugins:
+  # Search
+  - search:
+      lang: en
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+
+  # Documentation generation from docstrings
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_toc_entry: false
+            show_object_full_path: false
+            show_category_heading: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            group_by_category: true
+            show_submodules: false
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+
+  # Git information
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+
+  # Minification
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
+
+  # Site map
+  - sitemap:
+      pretty_print: true
+
+# Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Extra CSS and JavaScript
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Extra content
+extra:
+  # Version
+  version:
+    provider: mike
+    default: stable
+
+  # Social links
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/yourusername/todomd
+      name: GitHub Repository
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/todomd/
+      name: PyPI Package
+    - icon: fontawesome/solid/book
+      link: https://todomd.readthedocs.io
+      name: Documentation
+
+  # Analytics (optional)
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX  # Replace with your Google Analytics ID
+
+  # Feedback
+  consent:
+    title: Cookie consent
+    description: >- 
+      We use cookies to recognize your repeated visits and preferences, as well
+      as to measure the effectiveness of our documentation and whether users
+      find what they're searching for. With your consent, you're helping us to
+      make our documentation better.
+
+# Hooks
+hooks:
+  - docs/hooks/custom_hooks.py
+
+# Watch additional files
+watch:
+  - src/todomd/
+
+# Validation
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+# Build directory
+site_dir: site
+
+# Documentation directory
+docs_dir: docs
+
+# Strict mode
+strict: false
+
+# Use directory URLs
+use_directory_urls: true

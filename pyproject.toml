@@ -62,7 +62,7 @@ black = "^23.0"
 isort = "^5.0"
 flake8 = "^6.0"
 mypy = "^1.0"
-pre-comApache  = "^3.0"
+pre-commit = "^3.0"
 tox = "^4.0"
 
 [tool.poetry.group.docs.dependencies]
