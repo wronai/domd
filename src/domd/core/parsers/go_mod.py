@@ -1,7 +1,7 @@
 """Parser for Go module files (go.mod and go.work)."""
 
 import re
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from .base import BaseParser
 

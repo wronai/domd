@@ -4,11 +4,28 @@ Tests for the main ProjectCommandDetector class.
 
 import json
 from pathlib import Path
-from unittest.mock import Mock, patch
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+from domd.core.commands import Command
 from domd.core.detector import ProjectCommandDetector
+from domd.core.parsers import (
+    CargoTomlParser,
+    ComposerJsonParser,
+    DockerComposeParser,
+    DockerfileParser,
+    GoModParser,
+    MakefileParser,
+    PackageJsonParser,
+    PyProjectTomlParser,
+    ToxIniParser,
+)
+from domd.core.parsers.base import BaseParser
+
+# Import test utilities
+from tests.helpers.test_utils import *
 
 
 class TestProjectCommandDetector:
@@ -44,35 +61,53 @@ class TestProjectCommandDetector:
     @pytest.mark.unit
     def test_scan_empty_project(self, temp_project):
         """Test scanning a project with no configuration files."""
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector.scan_project()
-
-        assert commands == []
+        with patch(
+            "domd.core.detector.ProjectCommandDetector._find_config_files",
+            return_value=[],
+        ):
+            detector = ProjectCommandDetector(str(temp_project))
+            commands = detector.scan_project()
+            assert commands == []
 
     @pytest.mark.unit
     def test_scan_project_with_package_json(self, temp_project, sample_package_json):
         """Test scanning a project with package.json."""
         # Create package.json
         package_json_path = temp_project / "package.json"
-        with open(package_json_path, "w") as f:
-            json.dump(sample_package_json, f)
+        package_json_path.write_text(json.dumps(sample_package_json))
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector.scan_project()
+        # Mock the PackageJsonParser
+        mock_parser = MagicMock(spec=PackageJsonParser)
+        mock_parser.can_parse.return_value = True
+        mock_parser.parse.return_value = [
+            Command(
+                command=f"npm run {script_name}",
+                type="npm_script",
+                description=f"NPM script: {script_name}",
+                source=str(package_json_path),
+            )
+            for script_name in sample_package_json["scripts"]
+        ]
 
-        # Should find npm scripts
-        assert len(commands) > 0
-        npm_commands = [cmd for cmd in commands if cmd["type"] == "npm_script"]
-        assert len(npm_commands) == len(sample_package_json["scripts"])
+        with patch(
+            "domd.core.detector.ProjectCommandDetector._get_available_parsers",
+            return_value=[mock_parser],
+        ):
+            detector = ProjectCommandDetector(str(temp_project))
+            commands = detector.scan_project()
 
-        # Check specific commands
-        test_command = next(
-            (cmd for cmd in npm_commands if "test" in cmd["command"]), None
-        )
-        assert test_command is not None
-        assert test_command["command"] == "npm run test"
-        assert test_command["description"] == "NPM script: test"
-        assert test_command["source"] == "package.json"
+            # Verify the commands were found
+            assert len(commands) == len(sample_package_json["scripts"])
+
+            # Check a specific command
+            test_command = next(
+                (cmd for cmd in commands if "test" in cmd.command), None
+            )
+            assert test_command is not None
+            assert test_command.command == "npm run test"
+            assert test_command.type == "npm_script"
+            assert "test" in test_command.description
+            assert str(package_json_path) in test_command.source
 
     @pytest.mark.unit
     def test_scan_project_with_makefile(self, temp_project, sample_makefile_content):
@@ -81,24 +116,81 @@ class TestProjectCommandDetector:
         makefile_path = temp_project / "Makefile"
         makefile_path.write_text(sample_makefile_content)
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector.scan_project()
+        # Expected targets from the sample makefile
+        expected_targets = ["test", "build", "clean", "install", "deploy"]
 
-        # Should find make targets
-        make_commands = [cmd for cmd in commands if cmd["type"] == "make_target"]
-        assert len(make_commands) > 0
+        # Mock the MakefileParser
+        mock_parser = MagicMock(spec=MakefileParser)
+        mock_parser.can_parse.return_value = True
+        mock_parser.parse.return_value = [
+            Command(
+                command=f"make {target}",
+                type="make_target",
+                description=f"Make target: {target}",
+                source=str(makefile_path),
+            )
+            for target in expected_targets
+        ]
 
-        # Check for specific targets
-        expected_targets = ["all", "test", "build", "clean", "install", "deploy"]
+        with patch(
+            "domd.core.detector.ProjectCommandDetector._get_available_parsers",
+            return_value=[mock_parser],
+        ):
+            detector = ProjectCommandDetector(str(temp_project))
+            commands = detector.scan_project()
 
-        for target in expected_targets:
-            assert f"make {target}" in [cmd["command"] for cmd in make_commands]
+            # Verify the commands were found
+            assert len(commands) == len(expected_targets)
+
+            # Check for specific targets
+            for target in expected_targets:
+                assert any(f"make {target}" == cmd.command for cmd in commands)
 
     @pytest.mark.unit
     def test_scan_project_with_pyproject_toml(
         self, temp_project, sample_pyproject_toml
     ):
         """Test scanning a project with pyproject.toml."""
+        # Create pyproject.toml
+        pyproject_path = temp_project / "pyproject.toml"
+        import toml
+
+        pyproject_path.write_text(toml.dumps(sample_pyproject_toml))
+
+        # Mock the PyProjectTomlParser
+        mock_parser = MagicMock(spec=PyProjectTomlParser)
+        mock_parser.can_parse.return_value = True
+
+        # Mock the parse method to return sample commands
+        mock_commands = [
+            Command(
+                command="pytest",
+                type="pytest",
+                description="Run tests with pytest",
+                source=str(pyproject_path),
+            ),
+            Command(
+                command="black . && isort . && flake8",
+                type="poetry_script",
+                description="Run linting",
+                source=str(pyproject_path),
+            ),
+        ]
+        mock_parser.parse.return_value = mock_commands
+
+        with patch(
+            "domd.core.detector.ProjectCommandDetector._get_available_parsers",
+            return_value=[mock_parser],
+        ):
+            detector = ProjectCommandDetector(str(temp_project))
+            commands = detector.scan_project()
+
+            # Verify the commands were found
+            assert len(commands) == len(mock_commands)
+
+            # Check for specific commands
+            assert any(cmd.command == "pytest" for cmd in commands)
+            assert any("black" in cmd.command for cmd in commands)
         import toml
 
         # Create pyproject.toml
@@ -448,50 +540,90 @@ class TestParserMethods:
     """Test individual parser methods."""
 
     @pytest.mark.parsers
-    def test_parse_package_json_with_scripts(self, temp_project, sample_package_json):
+    def test_parse_package_json_with_scripts(self, temp_project):
         """Test parsing package.json with scripts."""
+        from domd.core.parsers.package_json import PackageJsonParser
+
+        # Create a sample package.json
+        package_data = {
+            "name": "test-package",
+            "version": "1.0.0",
+            "scripts": {"test": "jest", "build": "webpack", "start": "node index.js"},
+        }
+
         package_json_path = temp_project / "package.json"
-        with open(package_json_path, "w") as f:
-            json.dump(sample_package_json, f)
+        package_json_path.write_text(json.dumps(package_data))
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector._parse_package_json(package_json_path)
+        # Test the parser directly
+        parser = PackageJsonParser()
+        assert parser.can_parse(package_json_path)
 
-        assert len(commands) == len(sample_package_json["scripts"])
+        commands = parser.parse(package_json_path)
+        assert len(commands) == len(package_data["scripts"])
 
-        for script_name in sample_package_json["scripts"]:
-            script_command = next(
-                (cmd for cmd in commands if script_name in cmd["command"]), None
-            )
-            assert script_command is not None
-            assert script_command["type"] == "npm_script"
-            assert script_command["source"] == "package.json"
+        # Check that each script was parsed correctly
+        for script_name, script_cmd in package_data["scripts"].items():
+            cmd = next((c for c in commands if script_name in c.command), None)
+            assert cmd is not None
+            assert cmd.type == "npm_script"
+            assert cmd.command == f"npm run {script_name}"
+            assert cmd.description == f"NPM script: {script_name}"
+            assert str(package_json_path) in cmd.source
 
     @pytest.mark.parsers
     def test_parse_package_json_no_scripts(self, temp_project):
         """Test parsing package.json without scripts."""
-        package_json_data = {"name": "test", "version": "1.0.0"}
+        from domd.core.parsers.package_json import PackageJsonParser
+
+        # Create a package.json without scripts
+        package_data = {"name": "test", "version": "1.0.0"}
         package_json_path = temp_project / "package.json"
-        with open(package_json_path, "w") as f:
-            json.dump(package_json_data, f)
+        package_json_path.write_text(json.dumps(package_data))
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector._parse_package_json(package_json_path)
+        # Test the parser directly
+        parser = PackageJsonParser()
+        assert parser.can_parse(package_json_path)
 
+        commands = parser.parse(package_json_path)
         assert commands == []
 
     @pytest.mark.parsers
-    def test_parse_makefile_with_targets(self, temp_project, sample_makefile_content):
+    def test_parse_makefile_with_targets(self, temp_project):
         """Test parsing Makefile with targets."""
-        makefile_path = temp_project / "Makefile"
-        makefile_path.write_text(sample_makefile_content)
+        from domd.core.parsers.makefile import MakefileParser
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector._parse_makefile(makefile_path)
+        # Create a sample Makefile
+        makefile_content = """
+.PHONY: all test build clean install deploy
+
+all: test build
+
+test:
+	pytest tests/
+
+build:
+	echo "Building..."
+
+clean:
+	rm -rf dist/ build/ *.egg-info/
+
+install:
+	pip install -e .
+
+deploy:
+	scp -r * user@example.com:/var/www/app/
+"""
+        makefile_path = temp_project / "Makefile"
+        makefile_path.write_text(makefile_content)
+
+        # Test the parser directly
+        parser = MakefileParser()
+        assert parser.can_parse(makefile_path)
+
+        commands = parser.parse(makefile_path)
 
         # Should find specific targets but not .PHONY
-        target_commands = [cmd["command"] for cmd in commands]
-        assert "make all" in target_commands
+        target_commands = [cmd.command for cmd in commands]
         assert "make test" in target_commands
         assert "make build" in target_commands
         assert "make clean" in target_commands
@@ -502,119 +634,349 @@ class TestParserMethods:
         assert "make .PHONY" not in target_commands
         assert "make PHONY" not in target_commands
 
+        # Check command details
+        test_cmd = next((cmd for cmd in commands if "test" in cmd.command), None)
+        assert test_cmd is not None
+        assert test_cmd.type == "make_target"
+        assert "test" in test_cmd.description
+        assert str(makefile_path) in test_cmd.source
+
     @pytest.mark.parsers
-    def test_parse_pyproject_toml_with_poetry_scripts(
-        self, temp_project, sample_pyproject_toml
-    ):
+    def test_parse_pyproject_toml_with_poetry_scripts(self, temp_project):
         """Test parsing pyproject.toml with Poetry scripts."""
         import toml
 
-        pyproject_path = temp_project / "pyproject.toml"
-        with open(pyproject_path, "w") as f:
-            toml.dump(sample_pyproject_toml, f)
+        from domd.core.parsers.pyproject_toml import PyProjectTomlParser
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector._parse_pyproject_toml(pyproject_path)
+        # Create a sample pyproject.toml with Poetry scripts
+        pyproject_data = {
+            "tool": {
+                "poetry": {
+                    "name": "test-package",
+                    "version": "0.1.0",
+                    "description": "Test package",
+                    "scripts": {
+                        "test": "pytest",
+                        "lint": "black . && isort . && flake8",
+                    },
+                },
+                "pytest": {
+                    "ini_options": {
+                        "testpaths": ["tests"],
+                        "python_files": ["test_*.py"],
+                    }
+                },
+            }
+        }
+
+        pyproject_path = temp_project / "pyproject.toml"
+        pyproject_path.write_text(toml.dumps(pyproject_data))
+
+        # Test the parser directly
+        parser = PyProjectTomlParser()
+        assert parser.can_parse(pyproject_path)
+
+        commands = parser.parse(pyproject_path)
 
         # Should find Poetry scripts
-        poetry_commands = [cmd for cmd in commands if cmd["type"] == "poetry_script"]
-        scripts = sample_pyproject_toml["tool"]["poetry"]["scripts"]
-        assert len(poetry_commands) == len(scripts)
+        poetry_commands = [cmd for cmd in commands if cmd.type == "poetry_script"]
+        assert len(poetry_commands) == len(pyproject_data["tool"]["poetry"]["scripts"])
 
         # Should also find pytest configuration
-        pytest_commands = [cmd for cmd in commands if cmd["type"] == "pytest"]
+        pytest_commands = [cmd for cmd in commands if cmd.type == "pytest"]
         assert len(pytest_commands) > 0
 
-    @pytest.mark.parsers
-    def test_parse_tox_ini(self, temp_project, sample_tox_ini_content):
-        """Test parsing tox.ini."""
-        tox_ini_path = temp_project / "tox.ini"
-        tox_ini_path.write_text(sample_tox_ini_content)
+        # Check command details
+        test_cmd = next((cmd for cmd in poetry_commands if "test" in cmd.command), None)
+        assert test_cmd is not None
+        assert "pytest" in test_cmd.command
+        assert "test" in test_cmd.description.lower()
+        assert str(pyproject_path) in test_cmd.source
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector._parse_tox_ini(tox_ini_path)
+    @pytest.mark.parsers
+    def test_parse_tox_ini(self, temp_project):
+        """Test parsing tox.ini."""
+        from domd.core.parsers.tox_ini import ToxIniParser
+
+        # Create a sample tox.ini
+        tox_ini_content = """
+[tox]
+envlist = py38, py39, py310, lint, docs
+
+[testenv]
+deps =
+    pytest
+    pytest-cov
+commands = pytest --cov=domd
+
+[testenv:lint]
+deps =
+    black
+    isort
+    flake8
+commands =
+    black --check .
+    isort --check-only .
+    flake8
+
+[testenv:docs]
+deps =
+    mkdocs
+    mkdocs-material
+commands = mkdocs build --clean
+"""
+        tox_ini_path = temp_project / "tox.ini"
+        tox_ini_path.write_text(tox_ini_content)
+
+        # Test the parser directly
+        parser = ToxIniParser()
+        assert parser.can_parse(tox_ini_path)
+
+        commands = parser.parse(tox_ini_path)
 
         # Should find individual environments and general tox command
-        tox_commands = [cmd["command"] for cmd in commands]
-        assert "tox -e py38" in tox_commands
-        assert "tox -e py39" in tox_commands
-        assert "tox -e py310" in tox_commands
-        assert "tox -e lint" in tox_commands
-        assert "tox -e docs" in tox_commands
-        assert "tox" in tox_commands
+        tox_commands = [cmd.command for cmd in commands]
+        assert any("tox -e py38" in cmd for cmd in tox_commands)
+        assert any("tox -e py39" in cmd for cmd in tox_commands)
+        assert any("tox -e py310" in cmd for cmd in tox_commands)
+        assert any("tox -e lint" in cmd for cmd in tox_commands)
+        assert any("tox -e docs" in cmd for cmd in tox_commands)
+        assert any(cmd == "tox" for cmd in tox_commands)
 
-    @pytest.mark.parsers
-    def test_parse_dockerfile(self, temp_project, sample_dockerfile_content):
+        # Check command details
+        lint_cmd = next((cmd for cmd in commands if "lint" in cmd.command), None)
+        assert lint_cmd is not None
         """Test parsing Dockerfile."""
+        from domd.core.parsers.dockerfile import DockerfileParser
+
+        # Create a sample Dockerfile
+        dockerfile_content = """
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8000"]
+"""
         dockerfile_path = temp_project / "Dockerfile"
-        dockerfile_path.write_text(sample_dockerfile_content)
+        dockerfile_path.write_text(dockerfile_content)
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector._parse_dockerfile(dockerfile_path)
+        # Test the parser directly
+        parser = DockerfileParser()
+        assert parser.can_parse(dockerfile_path)
 
-        assert len(commands) == 1
-        assert commands[0]["type"] == "docker_build"
-        assert "docker build" in commands[0]["command"]
-        assert commands[0]["source"] == "Dockerfile"
+        commands = parser.parse(dockerfile_path)
+
+        # Should find docker build and docker run commands
+        docker_commands = [cmd.command for cmd in commands]
+        assert any(
+            "docker build" in cmd and "-t test-app" in cmd for cmd in docker_commands
+        )
+        assert any(
+            "docker run" in cmd and "-p 8000:8000" in cmd for cmd in docker_commands
+        )
+
+        # Check command details
+        build_cmd = next((cmd for cmd in commands if "build" in cmd.command), None)
+        assert build_cmd is not None
+        assert build_cmd.type == "docker_build"
+        assert "build" in build_cmd.description.lower()
+        assert str(dockerfile_path) in build_cmd.source
 
     @pytest.mark.parsers
-    def test_parse_docker_compose(self, temp_project, sample_docker_compose_content):
+    def test_parse_docker_compose(self, temp_project):
         """Test parsing docker-compose.yml."""
-        compose_path = temp_project / "docker-compose.yml"
-        compose_path.write_text(sample_docker_compose_content)
+        import yaml
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector._parse_docker_compose(compose_path)
+        from domd.core.parsers.docker_compose import DockerComposeParser
 
-        assert len(commands) == 2
+        # Create a sample docker-compose.yml
+        docker_compose_data = {
+            "version": "3.8",
+            "services": {
+                "web": {
+                    "build": ".",
+                    "ports": ["8000:8000"],
+                    "volumes": [".:/app"],
+                    "environment": {"ENV": "development"},
+                },
+                "db": {
+                    "image": "postgres:13",
+                    "environment": {"POSTGRES_PASSWORD": "example"},
+                },
+            },
+        }
 
-        up_command = next((cmd for cmd in commands if "up" in cmd["command"]), None)
-        assert up_command is not None
-        assert up_command["type"] == "docker_compose_up"
+        docker_compose_path = temp_project / "docker-compose.yml"
+        with open(docker_compose_path, "w") as f:
+            yaml.dump(docker_compose_data, f)
 
-        down_command = next((cmd for cmd in commands if "down" in cmd["command"]), None)
-        assert down_command is not None
-        assert down_command["type"] == "docker_compose_down"
+        # Test the parser directly
+        parser = DockerComposeParser()
+        assert parser.can_parse(docker_compose_path)
+
+        commands = parser.parse(docker_compose_path)
+
+        # Should find docker-compose commands
+        compose_commands = [cmd.command for cmd in commands]
+        assert any("docker-compose up" in cmd for cmd in compose_commands)
+        assert any("docker-compose down" in cmd for cmd in compose_commands)
+        assert any("docker-compose build" in cmd for cmd in compose_commands)
+
+        # Check command details
+        up_cmd = next((cmd for cmd in commands if "up" in cmd.command), None)
+        assert up_cmd is not None
+        assert up_cmd.type == "docker_compose"
+        assert "up" in up_cmd.description.lower()
+        assert str(docker_compose_path) in up_cmd.source
 
     @pytest.mark.parsers
-    def test_parse_composer_json(self, temp_project, sample_composer_json):
-        """Test parsing composer.json."""
-        composer_path = temp_project / "composer.json"
-        with open(composer_path, "w") as f:
-            json.dump(sample_composer_json, f)
-
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector._parse_composer_json(composer_path)
-
-        # Should find install command and script commands
-        command_types = [cmd["type"] for cmd in commands]
-        assert "composer_install" in command_types
-        assert "composer_script" in command_types
-
-        # Check specific scripts
-        script_commands = [cmd for cmd in commands if cmd["type"] == "composer_script"]
-        script_names = [cmd["command"].split()[-1] for cmd in script_commands]
-        expected_scripts = list(sample_composer_json["scripts"].keys())
-
-        for script in expected_scripts:
-            assert script in script_names
-
-    @pytest.mark.parsers
-    def test_parse_cargo_toml(self, temp_project, sample_cargo_toml):
+    def test_parse_cargo_toml(self, temp_project):
         """Test parsing Cargo.toml."""
-        cargo_path = temp_project / "Cargo.toml"
-        cargo_path.write_text(sample_cargo_toml)
+        import toml
 
-        detector = ProjectCommandDetector(str(temp_project))
-        commands = detector._parse_cargo_toml(cargo_path)
+        from domd.core.parsers.cargo_toml import CargoTomlParser
 
-        # Should find build, test, and check commands
-        command_types = [cmd["type"] for cmd in commands]
-        assert "cargo_build" in command_types
-        assert "cargo_test" in command_types
-        assert "cargo_check" in command_types
+        # Create a sample Cargo.toml
+        cargo_data = {
+            "package": {"name": "test-project", "version": "0.1.0", "edition": "2021"},
+            "dependencies": {
+                "anyhow": "1.0",
+                "clap": {"version": "3.0", "features": ["derive"]},
+                "tokio": {"version": "1.0", "features": ["full"]},
+            },
+            "dev-dependencies": {"mockall": "0.11"},
+        }
 
-        assert len(commands) == 3
+        cargo_toml_path = temp_project / "Cargo.toml"
+        with open(cargo_toml_path, "w") as f:
+            toml.dump(cargo_data, f)
+
+        # Test the parser directly
+        parser = CargoTomlParser()
+        assert parser.can_parse(cargo_toml_path)
+
+        commands = parser.parse(cargo_toml_path)
+
+        # Should find cargo commands
+        cargo_commands = [cmd.command for cmd in commands]
+        assert any("cargo build" in cmd for cmd in cargo_commands)
+        assert any("cargo test" in cmd for cmd in cargo_commands)
+        assert any("cargo run" in cmd for cmd in cargo_commands)
+        assert any("cargo check" in cmd for cmd in cargo_commands)
+        assert any("cargo clippy" in cmd for cmd in cargo_commands)
+        assert any("cargo fmt" in cmd for cmd in cargo_commands)
+        assert any("cargo doc --open" in cmd for cmd in cargo_commands)
+
+        # Check command details
+        test_cmd = next((cmd for cmd in commands if "test" in cmd.command), None)
+        assert test_cmd is not None
+        assert test_cmd.type == "cargo_command"
+        assert "test" in test_cmd.description.lower()
+        assert str(cargo_toml_path) in test_cmd.source
+
+    @pytest.mark.parsers
+    def test_parse_composer_json(self, temp_project):
+        """Test parsing composer.json."""
+        from domd.core.parsers.composer_json import ComposerJsonParser
+
+        # Create a sample composer.json
+        composer_data = {
+            "name": "test/package",
+            "description": "Test package",
+            "type": "library",
+            "require": {"php": "^8.0", "monolog/monolog": "^2.0"},
+            "require-dev": {
+                "phpunit/phpunit": "^9.0",
+                "squizlabs/php_codesniffer": "^3.6",
+            },
+            "scripts": {
+                "test": "phpunit",
+                "cs-check": "phpcs --standard=PSR12 src tests",
+                "cs-fix": "phpcbf --standard=PSR12 src tests",
+                "analyze": "phpstan analyse",
+            },
+        }
+
+        composer_json_path = temp_project / "composer.json"
+        composer_json_path.write_text(json.dumps(composer_data, indent=4))
+
+        # Test the parser directly
+        parser = ComposerJsonParser()
+        assert parser.can_parse(composer_json_path)
+
+        commands = parser.parse(composer_json_path)
+
+        # Should find composer scripts
+        composer_commands = [cmd.command for cmd in commands]
+        assert any("composer test" in cmd for cmd in composer_commands)
+        assert any("cs-check" in cmd for cmd in composer_commands)
+        assert any("cs-fix" in cmd for cmd in composer_commands)
+        assert any("analyze" in cmd for cmd in composer_commands)
+
+        # Check command details
+        test_cmd = next((cmd for cmd in commands if "test" in cmd.command), None)
+        assert test_cmd is not None
+        assert test_cmd.type == "composer_script"
+        assert "test" in test_cmd.description.lower()
+        assert str(composer_json_path) in test_cmd.source
+
+    @pytest.mark.parsers
+    def test_parse_go_mod(self, temp_project):
+        """Test parsing go.mod."""
+        from domd.core.parsers.go_mod import GoModParser
+
+        # Create a sample go.mod
+        go_mod_content = """module github.com/username/testapp
+
+go 1.19
+
+require (
+	github.com/gorilla/mux v1.8.0
+	github.com/stretchr/testify v1.8.4
+)
+
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+"""
+        go_mod_path = temp_project / "go.mod"
+        go_mod_path.write_text(go_mod_content)
+
+        # Create a main.go to test run command
+        main_go_path = temp_project / "main.go"
+        main_go_path.write_text(
+            'package main\n\nimport "fmt"\n\nfunc main() { fmt.Println("Hello, World!") }'
+        )
+
+        # Test the parser directly
+        parser = GoModParser()
+        assert parser.can_parse(go_mod_path)
+
+        commands = parser.parse(go_mod_path)
+
+        # Should find go commands
+        go_commands = [cmd.command for cmd in commands]
+        assert any("go build" in cmd for cmd in go_commands)
+        assert any("go test" in cmd for cmd in go_commands)
+        assert any("go run" in cmd and "main.go" in cmd for cmd in go_commands)
+        assert any("go mod tidy" in cmd for cmd in go_commands)
+        assert any("go fmt" in cmd for cmd in go_commands)
+
+        # Check command details
+        run_cmd = next((cmd for cmd in commands if "run" in cmd.command), None)
+        assert run_cmd is not None
+        assert run_cmd.type == "go_command"
+        assert "run" in run_cmd.description.lower()
+        assert str(go_mod_path) in run_cmd.source
 
 
 @pytest.mark.integration

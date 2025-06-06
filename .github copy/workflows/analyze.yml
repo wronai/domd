@@ -1,0 +1,99 @@
+name: Analyze Repositories
+
+on:
+  schedule:
+    # Run every day at 4 AM UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'repo-analyzer/**'
+      - '.github/workflows/analyze.yml'
+      - 'scripts/analyze_repos.sh'
+
+# Set the permission to allow repository analysis
+permissions:
+  contents: read
+  actions: read
+  packages: read
+
+jobs:
+  analyze:
+    name: Analyze Repositories
+    runs-on: ubuntu-latest
+
+    # Skip if commit message contains [skip ci] or [ci skip]
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r repo-analyzer/requirements.txt
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and run repository analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ORG: wronai
+        run: |
+          # Build the analyzer image
+          docker build -t repo-analyzer ./repo-analyzer
+
+          # Create data directory
+          mkdir -p data
+
+          # Run analysis
+          docker run --rm \
+            -e "GITHUB_TOKEN=$GITHUB_TOKEN" \
+            -e "GITHUB_ORG=$GITHUB_ORG" \
+            -v "$(pwd)/data:/data" \
+            repo-analyzer python /app/analyze_repo.py
+
+          # Debug: List contents of data directory
+          echo "Contents of data directory after analysis:"
+          ls -la data/
+
+          # Check if analysis produced new data
+          if [ -f "data/repos_updated.json" ]; then
+            # Compare with existing repos.json
+            if [ -f "repos.json" ] && cmp -s "data/repos_updated.json" "repos.json"; then
+              echo "No changes detected in repository data"
+              exit 0
+            fi
+
+            # Update repos.json with analyzed data
+            cp data/repos_updated.json repos.json
+
+            # Configure git
+            git config --global user.name 'GitHub Actions Bot'
+            git config --global user.email 'actions@github.com'
+
+            # Add and commit changes
+            git add repos.json
+
+            # Check if there are changes to commit
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: update repository data [skip ci]"
+              git push
+              echo "Repository data updated and committed"
+            else
+              echo "No changes to commit"
+            fi
+          else
+            echo "Error: repos_updated.json not found"
+            exit 1
+          fi

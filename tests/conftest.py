@@ -6,11 +6,35 @@ import json
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Generator
+from typing import Any, Dict, Generator, List
 
 import pytest
 
 from domd.core.detector import ProjectCommandDetector
+from domd.core.parsers import (
+    CargoTomlParser,
+    ComposerJsonParser,
+    DockerComposeParser,
+    DockerfileParser,
+    GoModParser,
+    MakefileParser,
+    PackageJsonParser,
+    PyProjectTomlParser,
+    ToxIniParser,
+)
+from domd.core.parsers.base import BaseParser
+
+# Import test utilities
+from tests.helpers.test_utils import (
+    create_sample_cargo_toml,
+    create_sample_composer_json,
+    create_sample_docker_compose,
+    create_sample_dockerfile,
+    create_sample_makefile,
+    create_sample_package_json,
+    create_sample_pyproject_toml,
+    create_sample_tox_ini,
+)
 
 
 @pytest.fixture
@@ -50,228 +74,33 @@ def sample_makefile_content() -> str:
 all: build test
 
 test:
-\techo "Running tests..."
-\tpython -m pytest
+	pytest tests/
 
 build:
-\techo "Building project..."
-\tmkdir -p dist
-\tcp src/* dist/
+	echo "Building..."
 
 clean:
-\techo "Cleaning..."
-\trm -rf dist/
+	rm -rf dist/ build/ *.egg-info/
 
 install:
-\techo "Installing dependencies..."
-\tpip install -r requirements.txt
-
-deploy: build
-\techo "Deploying..."
-\t./deploy.sh
-
-# This target should be ignored
-.PHONY: help
-help:
-\techo "Available targets: all, test, build, clean, install, deploy"
-"""
-
-
-@pytest.fixture
-def sample_pyproject_toml() -> Dict[str, Any]:
-    """Sample pyproject.toml content for testing."""
-    return {
-        "tool": {
-            "poetry": {
-                "name": "test-project",
-                "version": "0.1.0",
-                "description": "Test project",
-                "scripts": {
-                    "test": "pytest",
-                    "lint": "flake8 src/",
-                    "format": "black src/",
-                    "start": "python -m test_project",
-                },
-            },
-            "pytest": {
-                "ini_options": {"testpaths": ["tests"], "python_files": ["test_*.py"]}
-            },
-            "black": {"line-length": 88, "target-version": ["py38"]},
-            "isort": {"profile": "black"},
-        }
-    }
-
-
-@pytest.fixture
-def sample_tox_ini_content() -> str:
-    """Sample tox.ini content for testing."""
-    return """[tox]
-envlist = py38,py39,py310,lint,docs
-
-[testenv]
-deps = pytest
-       pytest-cov
-commands = pytest
-
-[testenv:lint]
-deps = flake8
-       black
-       isort
-commands =
-    flake8 src/
-    black --check src/
-    isort --check-only src/
-
-[testenv:docs]
-deps = mkdocs
-       mkdocs-material
-commands = mkdocs build
-
-[testenv:py38]
-basepython = python3.8
-
-[testenv:py39]
-basepython = python3.9
-
-[testenv:py310]
-basepython = python3.10
-"""
-
-
-@pytest.fixture
-def sample_dockerfile_content() -> str:
-    """Sample Dockerfile content for testing."""
-    return """FROM python:3.9-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 8000
-
-CMD ["python", "app.py"]
-"""
-
-
-@pytest.fixture
-def sample_docker_compose_content() -> str:
-    """Sample docker-compose.yml content for testing."""
-    return """version: '3.8'
-
-services:
-  web:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - ENV=development
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-
-  db:
-    image: postgres:13
-    environment:
-      POSTGRES_DB: testdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
-"""
-
-
-@pytest.fixture
-def sample_composer_json() -> Dict[str, Any]:
-    """Sample composer.json content for testing."""
-    return {
-        "name": "test/project",
-        "description": "Test PHP project",
-        "type": "project",
-        "require": {"php": "^8.0"},
-        "require-dev": {"phpunit/phpunit": "^9.0"},
-        "scripts": {
-            "test": "phpunit",
-            "lint": "php-cs-fixer fix --dry-run",
-            "fix": "php-cs-fixer fix",
-            "static": "phpstan analyse",
-        },
-        "autoload": {"psr-4": {"Test\\": "src/"}},
-    }
-
-
-@pytest.fixture
-def sample_cargo_toml() -> str:
-    """Sample Cargo.toml content for testing."""
-    return """[package]
-name = "test-project"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-serde = { version = "1.0", features = ["derive"] }
-tokio = { version = "1.0", features = ["full"] }
-
-[dev-dependencies]
-criterion = "0.4"
-
-[[bin]]
-name = "main"
-path = "src/main.rs"
-
-[[bench]]
-name = "benchmarks"
-harness = false
+	pip install -e .
 """
 
 
 @pytest.fixture
 def populated_project(
     temp_project: Path,
-    sample_package_json: Dict[str, Any],
-    sample_makefile_content: str,
-    sample_pyproject_toml: Dict[str, Any],
 ) -> Path:
     """Create a fully populated test project with multiple config files."""
-
-    # Create package.json
-    with open(temp_project / "package.json", "w") as f:
-        json.dump(sample_package_json, f, indent=2)
-
-    # Create Makefile
-    with open(temp_project / "Makefile", "w") as f:
-        f.write(sample_makefile_content)
-
-    # Create pyproject.toml
-    import toml
-
-    with open(temp_project / "pyproject.toml", "w") as f:
-        toml.dump(sample_pyproject_toml, f)
-
-    # Create some source files
-    src_dir = temp_project / "src"
-    src_dir.mkdir()
-    (src_dir / "main.py").write_text("print('Hello, World!')")
-    (src_dir / "app.js").write_text("console.log('Hello, World!');")
-
-    # Create requirements.txt
-    (temp_project / "requirements.txt").write_text("pytest>=7.0\nblack>=22.0\n")
-
-    # Create tests directory
-    tests_dir = temp_project / "tests"
-    tests_dir.mkdir()
-    (tests_dir / "test_example.py").write_text(
-        """
-def test_example():
-    assert True
-"""
-    )
+    # Create various config files using our test utilities
+    create_sample_package_json(temp_project)
+    create_sample_makefile(temp_project)
+    create_sample_pyproject_toml(temp_project)
+    create_sample_tox_ini(temp_project)
+    create_sample_dockerfile(temp_project)
+    create_sample_docker_compose(temp_project)
+    create_sample_composer_json(temp_project)
+    create_sample_cargo_toml(temp_project)
 
     return temp_project
 
@@ -398,6 +227,49 @@ def cleanup_temp_files():
     yield
     # Cleanup code could go here if needed
     pass
+
+
+# Parser fixtures for testing
+@pytest.fixture
+def available_parsers() -> List[BaseParser]:
+    """Return a list of all available parser instances."""
+    return [
+        CargoTomlParser(),
+        ComposerJsonParser(),
+        DockerComposeParser(),
+        DockerfileParser(),
+        GoModParser(),
+        MakefileParser(),
+        PackageJsonParser(),
+        PyProjectTomlParser(),
+        ToxIniParser(),
+    ]
+
+
+@pytest.fixture
+def parser_factory():
+    """Factory fixture to create parser instances by type."""
+
+    def _create_parser(parser_type: str, **kwargs) -> Optional[BaseParser]:
+        parsers = {
+            "cargo_toml": CargoTomlParser,
+            "composer_json": ComposerJsonParser,
+            "docker_compose": DockerComposeParser,
+            "dockerfile": DockerfileParser,
+            "go_mod": GoModParser,
+            "makefile": MakefileParser,
+            "package_json": PackageJsonParser,
+            "pyproject_toml": PyProjectTomlParser,
+            "tox_ini": ToxIniParser,
+        }
+
+        parser_class = parsers.get(parser_type)
+        if not parser_class:
+            return None
+
+        return parser_class(**kwargs)
+
+    return _create_parser
 
 
 # Helper functions for tests

@@ -1,0 +1,52 @@
+site_name: DOMD Documentation
+site_description: 'Detect and Manage Project Commands'
+site_author: 'Tom Sapletta'
+
+# Documentation theme
+theme:
+  name: readthedocs
+  highlightjs: true
+  include_search_page: true
+  search_index_file: search/search_index.json
+
+# Navigation
+nav:
+  - Home: index.md
+  - User Guide:
+    - Installation: user-guide/installation.md
+    - Quickstart: user-guide/quickstart.md
+  - Features:
+    - Core Features: features/core.md
+    - Ansible Integration: features/ansible.md
+  - API Reference:
+    - Core: api/core.md
+    - Parsers: api/parsers.md
+    - Reporters: api/reporters.md
+  - Development:
+    - Testing: development/testing.md
+    - Ansible Tests: development/ansible-tests.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: true
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+# Customization
+extra_css:
+  - css/extra.css
+
+extra_javascript:
+  - js/extra.js
+
+# Build options
+strict: true
+use_directory_urls: true

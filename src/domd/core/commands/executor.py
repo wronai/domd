@@ -53,9 +53,13 @@ class CommandExecutor:
         start_time = time.time()
 
         try:
+            # Split the command into a list of arguments
+            args = shlex.split(command) if isinstance(command, str) else command
+
+            # Execute the command with a timeout
             result = subprocess.run(
-                command,
-                shell=True,
+                args,
+                shell=False,
                 cwd=str(cwd),
                 timeout=timeout,
                 capture_output=True,
@@ -68,8 +72,9 @@ class CommandExecutor:
                 success=result.returncode == 0,
                 return_code=result.returncode,
                 execution_time=execution_time,
-                output=result.stdout,
-                error=result.stderr,
+                stdout=result.stdout,
+                stderr=result.stderr,
+                command=command if isinstance(command, str) else " ".join(command),
             )
 
         except subprocess.TimeoutExpired:
@@ -77,8 +82,9 @@ class CommandExecutor:
                 success=False,
                 return_code=-1,
                 execution_time=timeout,
-                output="",
-                error=f"Command timed out after {timeout} seconds",
+                stdout="",
+                stderr=f"Command timed out after {timeout} seconds",
+                command=command if isinstance(command, str) else " ".join(command),
             )
 
         except Exception as e:

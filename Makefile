@@ -31,6 +31,24 @@ test-unit: ## Run unit tests only
 test-integration: ## Run integration tests only
 	poetry run pytest -m "integration"
 
+test-ansible: ## Run Ansible-related tests only
+	poetry run pytest tests/test_ansible_*.py -v
+
+test-playbooks: ## Run Ansible playbook tests
+	poetry run pytest tests/test_ansible_playbook.py -v
+
+test-roles: ## Run Ansible role tests
+	poetry run pytest tests/test_ansible_roles.py -v
+
+test-galaxy: ## Run Ansible Galaxy tests
+	poetry run pytest tests/test_ansible_galaxy.py -v
+
+test-vault: ## Run Ansible Vault tests
+	poetry run pytest tests/test_ansible_vault.py -v
+
+test-inventory: ## Run Ansible inventory tests
+	poetry run pytest tests/test_ansible_inventory.py -v
+
 test-cov: ## Run tests with coverage report
 	poetry run pytest --cov=domd --cov-report=html --cov-report=term
 

@@ -18,6 +18,44 @@
 - **Command Filtering**: Skip specific commands using `.doignore`
 - **Docker Integration**: Run commands in isolated Docker containers using `.dodocker`
 
+## 🔍 Supported Project Types
+
+DoMD supports a wide range of project types and build systems, including:
+
+- **JavaScript/TypeScript**: `package.json` (npm, yarn)
+- **Python**: `setup.py`, `pyproject.toml`, `requirements.txt`
+- **Make**: `Makefile`
+- **Docker**: `Dockerfile`, `docker-compose.yml`
+- **Ansible**: Playbooks, roles, inventories, and Galaxy requirements
+- **PHP**: `composer.json`
+- **Rust**: `Cargo.toml`
+- **TOML**: Generic TOML file support
+- **YAML**: Generic YAML file support
+- **INI**: Generic INI file support
+
+### 🎭 Ansible Support
+
+DoMD provides comprehensive support for Ansible projects, including:
+
+- **Playbooks**: Detection and testing of Ansible playbooks
+- **Roles**: Support for Ansible role structure and dependencies
+- **Inventories**: Static and dynamic inventory detection
+- **Vault**: Integration with Ansible Vault for encrypted content
+- **Galaxy**: Support for role dependencies and requirements
+
+Example of Ansible commands detected:
+
+```bash
+# Playbook execution
+ansible-playbook site.yml -i inventory/production
+
+# Role installation
+ansible-galaxy install -r requirements.yml
+
+# Vault operations
+ansible-vault encrypt group_vars/secrets.yml
+```
+
 ## 🔧 Command Filtering with .doignore
 
 Easily skip specific commands during testing by creating a `.doignore` file in your project root. This is perfect for excluding long-running services, deployment scripts, or commands that require special handling.

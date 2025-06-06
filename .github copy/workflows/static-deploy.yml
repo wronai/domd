@@ -1,0 +1,161 @@
+name: Deploy Static Site to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Analyze Repositories"]
+    types: [completed]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one deployment at a time for this branch
+concurrency:
+  group: "static-deploy-${{ github.ref }}"
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'  # Updated to latest LTS
+  BASE_URL: '/www'
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          set -e  # Exit on error
+
+          echo "Current working directory: $(pwd)"
+          echo "Contents of current directory:"
+          ls -la
+
+          echo "\nSetting up Node.js environment..."
+
+          # Ensure we're in the repository root
+          cd $GITHUB_WORKSPACE
+
+          echo "\nContents of repository root:"
+          ls -la
+
+          echo "\nInstalling dependencies..."
+          npm ci --no-audit
+
+      - name: Install jq for JSON processing
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Setup repository data
+        run: |
+          set -e  # Exit on error
+
+          echo "Setting up repository data..."
+
+          # Create data directory if it doesn't exist
+          mkdir -p data
+
+          # Create or update repos.json with proper permissions
+          if [ ! -f "repos.json" ]; then
+            echo '{"repositories": []}' > repos.json
+            echo "Created empty repos.json"
+          else
+            echo "Using existing repos.json"
+          fi
+
+          # Ensure the file has the right permissions
+          chmod 644 repos.json
+
+          # Verify JSON is valid
+          if ! jq empty repos.json 2>/dev/null; then
+            echo "::error::repos.json is not valid JSON"
+            echo '{"repositories": []}' > repos.json
+            echo "Reset to empty repos.json"
+          fi
+
+          # Create a backup of the original repos.json
+          cp repos.json repos.json.bak
+
+          # Verify the backup was created
+          if [ ! -f "repos.json.bak" ]; then
+            echo "::error::Failed to create repos.json backup"
+            exit 1
+          fi
+
+          echo "Repository data ready"
+
+      - name: Build site
+        run: |
+          set -e  # Exit on error
+
+          echo "Building site..."
+
+          # Ensure dist directory exists
+          mkdir -p dist
+
+          # Build the site
+          if ! npm run build; then
+            echo "::error::Build failed"
+            exit 1
+          fi
+
+          # Verify build output
+          if [ ! -f "dist/index.html" ]; then
+            echo "::error::Build failed - index.html not found"
+            exit 1
+          fi
+
+          # Create SPA 404 page with proper escaping
+          cat > dist/404.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Redirecting...</title>
+            <script>sessionStorage.redirect = location.href.replace(/\.html$/, "");</script>
+            <meta http-equiv="refresh" content="0;URL=/www/">
+          </head>
+          <body>Redirecting to <a href="/www/">home page</a>...</body>
+          </html>
+          EOF
+
+          # Verify build output
+          echo "Build output:"
+          ls -la dist/
+
+          # Check for required files
+          if [ ! -f "dist/index.html" ]; then
+            echo "::error::index.html not found in dist/ directory"
+            exit 1
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

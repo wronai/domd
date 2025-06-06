@@ -1,0 +1,135 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '.gitignore'
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Analyze Repositories"]
+    types: [completed]
+    branches: [main]
+
+# Set the permission to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one deployment at a time for this branch
+concurrency:
+  group: "deploy-${{ github.ref }}"
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  BASE_URL: '/www'
+
+jobs:
+  build-and-deploy:
+    # Skip if commit message contains [skip ci] or if the workflow run failed
+    if: >
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci skip]') &&
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install jq for JSON processing
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Setup repository data
+        run: |
+          set -e  # Exit on error
+
+          # Create necessary directories
+          mkdir -p data dist
+
+          # Create a default repos.json if it doesn't exist or is invalid
+          if [ ! -f "repos.json" ] || ! jq empty repos.json 2>/dev/null; then
+            echo '{"repositories": []}' > repos.json
+            echo "Created/Reset repos.json"
+          fi
+
+          # Validate JSON
+          if ! jq empty repos.json 2>/dev/null; then
+            echo "::error::repos.json is not valid JSON"
+            exit 1
+          fi
+
+          # Copy to dist directory for the build
+          cp repos.json dist/repos.json
+
+          echo "Repository data ready"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies and build
+        run: |
+          set -e  # Exit on error
+
+          # Install dependencies
+          echo "Installing dependencies..."
+          if ! npm ci --no-audit; then
+            echo "::error::Failed to install dependencies"
+            exit 1
+          fi
+
+          # Build the production site
+          echo "Building production site..."
+          if ! npm run build; then
+            echo "::error::Build failed"
+            exit 1
+          fi
+
+          # Create SPA 404 page
+          cat > dist/404.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Redirecting...</title>
+            <script>sessionStorage.redirect = location.href;</script>
+            <meta http-equiv="refresh" content="0;URL=/www/">
+          </head>
+          <body>Redirecting to <a href="/www/">home page</a>...</body>
+          </html>
+          EOF
+
+          # Verify build
+          if [ ! -f "dist/index.html" ]; then
+            echo "::error::Build failed - index.html not found"
+            exit 1
+          fi
+
+          echo "Build completed successfully"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

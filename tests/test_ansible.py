@@ -2,11 +2,6 @@
 Tests for Ansible-related functionality in Project Command Detector.
 """
 
-import os
-import shutil
-from pathlib import Path
-from unittest.mock import patch
-
 import pytest
 
 from domd.core.detector import ProjectCommandDetector
