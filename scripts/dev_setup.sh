@@ -1,7 +1,7 @@
 #!/bin/bash
 # Development environment setup
 
-echo "Setting up TodoMD development environment..."
+echo "Setting up DoMD development environment..."
 
 # Install dependencies
 poetry install --with dev,docs,testing,lint

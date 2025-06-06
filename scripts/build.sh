@@ -1,7 +1,7 @@
 #!/bin/bash
 # Build script
 
-echo "Building TodoMD package..."
+echo "Building DoMD package..."
 
 # Clean previous builds
 rm -rf dist/ build/ *.egg-info/

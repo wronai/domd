@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "domd"
-version = "0.1.0"
+version = "0.1.1"
 description = "Project Command Detector - Automatically detects and tests project commands, generates TODO.md for failed commands"
 authors = ["Tom Sapletta <info@softreck.dev>"]
 maintainers = ["WRONAI Team"]
@@ -239,7 +239,7 @@ known-first-party = ["domd"]
 
 # Documentation
 [tool.mkdocs]
-site_name = "TodoMD Documentation"
+site_name = "DoMD Documentation"
 site_description = "Project Command Detector - Automatically detects and tests project commands"
 site_url = "https://wronai.github.io/domd"
 repo_url = "https://github.com/wronai/domd"

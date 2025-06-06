@@ -1,5 +1,5 @@
 """
-pytest configuration and shared fixtures for TodoMD tests.
+pytest configuration and shared fixtures for DoMD tests.
 """
 
 import json
@@ -27,7 +27,7 @@ def sample_package_json() -> Dict[str, Any]:
     return {
         "name": "test-project",
         "version": "1.0.0",
-        "description": "Test project for TodoMD",
+        "description": "Test project for DoMD",
         "scripts": {
             "test": "jest",
             "build": "webpack --mode production",

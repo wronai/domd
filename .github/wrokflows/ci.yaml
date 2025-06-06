@@ -127,7 +127,7 @@ jobs:
           echo -e '\techo "Testing..."' >> test_projects/Makefile
           echo 'FROM python:3.9' > test_projects/docker/Dockerfile
 
-      - name: TodoMD Self-Test (Dogfooding)
+      - name: DoMD Self-Test (Dogfooding)
         run: |
           poetry run domd --path . --dry-run --verbose
           poetry run domd --path test_projects --verbose

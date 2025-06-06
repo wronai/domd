@@ -1,4 +1,4 @@
-site_name: TodoMD Documentation
+site_name: DoMD Documentation
 site_description: Project Command Detector - Automatically detects and tests project commands
 site_url: https://domd.readthedocs.io
 repo_url: https://github.com/yourusername/domd
@@ -6,7 +6,7 @@ repo_name: yourusername/domd
 edit_uri: edit/main/docs/
 
 # Copyright
-copyright: Copyright &copy; 2025 TodoMD Project
+copyright: Copyright &copy; 2025 DoMD Project
 
 # Navigation
 nav:

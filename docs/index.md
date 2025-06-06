@@ -1,8 +1,8 @@
-# TodoMD - Project Command Detector
+# DoMD - Project Command Detector
 
 <div align="center">
 
-![TodoMD Logo](assets/logo.png)
+![DoMD Logo](assets/logo.png)
 
 **Automatically detects and tests project commands, generates TODO.md for failed commands**
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Test runner script
 
-echo "Running TodoMD tests..."
+echo "Running DoMD tests..."
 
 # Unit tests
 echo "Running unit tests..."

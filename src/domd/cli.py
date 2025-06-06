@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Command Line Interface for TodoMD
+Command Line Interface for DoMD
 """
 
 import argparse
@@ -173,7 +173,7 @@ def main() -> int:
         )
 
         if not args.quiet:
-            print(f"TodoMD v{__version__}")
+            print(f"DoMD v{__version__}")
             print(f"Scanning project: {Path(args.path).resolve()}")
 
         # Scan project for commands

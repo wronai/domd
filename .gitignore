@@ -1,4 +1,5 @@
 .idea
+poetry.lock
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -194,7 +195,7 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# TodoMD .gitignore
+# DoMD .gitignore
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -376,7 +377,7 @@ cython_debug/
 ehthumbs.db
 Thumbs.db
 
-# TodoMD specific
+# DoMD specific
 TODO.md
 FAILED_COMMANDS.md
 *_TODO.md

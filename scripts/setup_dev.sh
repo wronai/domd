@@ -1,5 +1,5 @@
 #!/bin/bash
-# TodoMD Project Setup Script
+# DoMD Project Setup Script
 # Automatically creates the complete project structure
 
 set -e  # Exit on any error
@@ -57,7 +57,7 @@ create_file() {
 
 # Main setup function
 setup_project() {
-    log_info "Setting up TodoMD project structure..."
+    log_info "Setting up DoMD project structure..."
 
     # Create main directories
     create_directory "src/${PROJECT_NAME}"
@@ -74,7 +74,7 @@ setup_project() {
     create_directory "examples"
 
     # Create __init__.py files
-    create_file "src/${PROJECT_NAME}/__init__.py" '"""TodoMD Package"""
+    create_file "src/${PROJECT_NAME}/__init__.py" '"""DoMD Package"""
 
 __version__ = "0.1.0"
 
@@ -179,9 +179,9 @@ def test_scan_project_empty(temp_project):
     assert commands == []'
 
     # Create documentation files
-    create_file "docs/index.md" "# TodoMD Documentation
+    create_file "docs/index.md" "# DoMD Documentation
 
-Welcome to TodoMD documentation.
+Welcome to DoMD documentation.
 
 ## Quick Start
 
@@ -190,7 +190,7 @@ pip install domd
 domd
 \`\`\`"
 
-    create_file "docs/mkdocs.yml" "site_name: TodoMD Documentation
+    create_file "docs/mkdocs.yml" "site_name: DoMD Documentation
 nav:
   - Home: index.md
   - Installation: installation.md
@@ -303,7 +303,7 @@ setup_git() {
 
     # Add all files
     git add .
-    git commit -m "Initial commit: TodoMD project setup"
+    git commit -m "Initial commit: DoMD project setup"
 
     log_success "Git repository initialized with initial commit!"
 }
@@ -332,7 +332,7 @@ create_dev_scripts() {
     create_file "scripts/dev_setup.sh" '#!/bin/bash
 # Development environment setup
 
-echo "Setting up TodoMD development environment..."
+echo "Setting up DoMD development environment..."
 
 # Install dependencies
 poetry install --with dev,docs,testing,lint
@@ -351,7 +351,7 @@ echo "Run: poetry run domd --help"'
     create_file "scripts/run_tests.sh" '#!/bin/bash
 # Test runner script
 
-echo "Running TodoMD tests..."
+echo "Running DoMD tests..."
 
 # Unit tests
 echo "Running unit tests..."
@@ -371,7 +371,7 @@ echo "Tests completed!"'
     create_file "scripts/build.sh" '#!/bin/bash
 # Build script
 
-echo "Building TodoMD package..."
+echo "Building DoMD package..."
 
 # Clean previous builds
 rm -rf dist/ build/ *.egg-info/
@@ -399,7 +399,7 @@ ls -la dist/'
     create_file "scripts/build_docs.sh" '#!/bin/bash
 # Documentation build script
 
-echo "Building TodoMD documentation..."
+echo "Building DoMD documentation..."
 
 # Install docs dependencies
 poetry install --with docs
@@ -420,7 +420,7 @@ echo "Open: site/index.html"'
 show_completion_message() {
     echo
     echo "======================================"
-    log_success "TodoMD Project Setup Complete!"
+    log_success "DoMD Project Setup Complete!"
     echo "======================================"
     echo
     echo "📁 Project structure created"
@@ -454,15 +454,15 @@ show_completion_message() {
 
 # Main execution
 main() {
-    echo "🚀 TodoMD Project Setup Script"
+    echo "🚀 DoMD Project Setup Script"
     echo "==============================="
     echo
 
     # Check if we're in the right directory
     if [ -f "pyproject.toml" ] && grep -q "name = \"domd\"" pyproject.toml; then
-        log_info "Found existing TodoMD project configuration"
+        log_info "Found existing DoMD project configuration"
     else
-        log_warning "pyproject.toml not found or not a TodoMD project"
+        log_warning "pyproject.toml not found or not a DoMD project"
         log_info "Make sure you have the pyproject.toml file in the current directory"
     fi
 

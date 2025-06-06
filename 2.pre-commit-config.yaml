@@ -92,9 +92,9 @@ repos:
   # Local hooks for project-specific checks
   - repo: local
     hooks:
-      # TodoMD self-check
+      # DoMD self-check
       - id: domd-health-check
-        name: TodoMD Self Health Check
+        name: DoMD Self Health Check
         entry: poetry run domd --dry-run --quiet
         language: system
         pass_filenames: false

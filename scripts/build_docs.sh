@@ -1,7 +1,7 @@
 #!/bin/bash
 # Documentation build script
 
-echo "Building TodoMD documentation..."
+echo "Building DoMD documentation..."
 
 # Install docs dependencies
 poetry install --with docs

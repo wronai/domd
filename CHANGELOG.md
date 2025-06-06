@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-06-06
 
 ### Added
-- Initial release of TodoMD
+- Initial release of DoMD
 - Project command detection for 15+ project types
 - Support for JavaScript/Node.js projects (package.json, npm scripts)
 - Support for Python projects (pyproject.toml, setup.py, requirements.txt, tox.ini, pytest.ini)
@@ -119,7 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### From Manual Command Testing
 If you're currently manually testing project commands:
 
-1. Install TodoMD: `pip install domd`
+1. Install DoMD: `pip install domd`
 2. Run in your project: `domd`
 3. Review generated TODO.md for failed commands
 4. Fix issues using provided suggestions
@@ -139,7 +139,7 @@ Add to `.pre-commit-config.yaml`:
 - repo: local
   hooks:
     - id: domd
-      name: TodoMD Health Check
+      name: DoMD Health Check
       entry: domd
       language: system
 ```
