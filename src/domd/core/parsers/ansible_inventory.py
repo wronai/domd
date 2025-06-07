@@ -1,9 +1,8 @@
 """Parser for Ansible inventory files."""
 
 import os
-import stat
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from .base import BaseParser
 

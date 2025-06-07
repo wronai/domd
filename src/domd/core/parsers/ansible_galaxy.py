@@ -1,9 +1,7 @@
 """Parser for Ansible Galaxy requirements and metadata."""
 
-import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
-
+from typing import TYPE_CHECKING, Any, Dict, List
 import yaml
 
 from .base import BaseParser

@@ -1,7 +1,7 @@
 """Utilities for virtual environment detection and activation."""
 
 import os
-from pathlib import Path
+import sys
 from typing import Dict, Optional
 
 

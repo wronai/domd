@@ -9,14 +9,15 @@ import os
 import pkgutil
 import shlex
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type, Union
 
-from ..core.commands.executor import CommandExecutor
-from ..core.parsers.base import BaseParser
-from ..core.reporters.done_md import DoneMDReporter
-from ..core.reporters.todo_md import TodoMDReporter
-from ..utils.virtualenv import get_virtualenv_info
+from .commands.executor import CommandExecutor
+from .parsers.base import BaseParser
+from .reporters.done_md import DoneMDReporter
+from .reporters.todo_md import TodoMDReporter
+from .utils.virtualenv import get_virtualenv_info
 
 logger = logging.getLogger(__name__)
 
@@ -447,7 +448,6 @@ class ProjectCommandDetector:
         Returns:
             List of Path objects to configuration files
         """
-        config_files = set()
         logger.debug("Finding config files in: %s", self.project_path)
         logger.debug(
             "Available parsers: %s", [p.__class__.__name__ for p in self.parsers]

@@ -755,8 +755,8 @@ deploy:
         assert "make deploy" in target_commands
 
         # Should not include special targets
-        assert "make .PHONY" not in target_commands
-        assert "make PHONY" not in target_commands
+        assert ".PHONY" not in target_commands
+        assert "PHONY" not in target_commands
 
         # Check command details
         test_cmd = next((cmd for cmd in commands if "test" in cmd.command), None)
@@ -1046,19 +1046,20 @@ commands = mkdocs build --clean
         from domd.core.parsers.go_mod import GoModParser
 
         # Create a sample go.mod
-        go_mod_content = """module github.com/username/testapp
+        go_mod_content = """
+module example.com/mymodule
 
 go 1.19
 
 require (
-	github.com/gorilla/mux v1.8.0
-	github.com/stretchr/testify v1.8.4
+    github.com/gorilla/mux v1.8.0
+    github.com/stretchr/testify v1.8.4
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+    github.com/davecgh/go-spew v1.1.1 // indirect
+    github.com/pmezard/go-difflib v1.0.0 // indirect
+    gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 """
         go_mod_path = temp_project / "go.mod"

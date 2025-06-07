@@ -6,7 +6,6 @@ import sys
 import tempfile
 from pathlib import Path
 from typing import Optional
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -156,7 +155,8 @@ print(os.environ.get("CUSTOM_VAR", "NOT_FOUND"), end="")
         # Clean up the temporary file
         try:
             os.unlink(script_path)
-        except:
+        except OSError:
+            # File might have been deleted or not exist
             pass
 
 

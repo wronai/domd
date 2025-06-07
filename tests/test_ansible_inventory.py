@@ -2,9 +2,6 @@
 Tests for Ansible inventory detection.
 """
 
-import os
-from pathlib import Path
-
 import pytest
 
 from domd.core.detector import ProjectCommandDetector

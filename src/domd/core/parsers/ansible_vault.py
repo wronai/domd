@@ -1,8 +1,7 @@
 """Parser for Ansible Vault files."""
 
-import os
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from .base import BaseParser
 

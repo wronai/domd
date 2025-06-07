@@ -65,19 +65,19 @@ def create_sample_makefile(directory: Union[str, Path]) -> Path:
 all: test build
 
 test:
-	pytest tests/
+    pytest tests/
 
 build:
-	echo "Building..."
+    echo "Building..."
 
 clean:
-	rm -rf build/ dist/ *.egg-info/
+    rm -rf build/ dist/ *.egg-info/
 
 install:
-	pip install -e .
+    pip install -e .
 
 deploy:
-	scp -r * user@example.com:/var/www/app/
+    scp -r * user@example.com:/var/www/app/
 """
     return create_test_file(directory, "Makefile", content)
 

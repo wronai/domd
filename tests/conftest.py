@@ -6,7 +6,7 @@ import json
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Generator, List
+from typing import Any, Dict, Generator, List, Optional
 
 import pytest
 
@@ -74,16 +74,16 @@ def sample_makefile_content() -> str:
 all: build test
 
 test:
-	pytest tests/
+    pytest tests/
 
 build:
-	echo "Building..."
+    echo "Building..."
 
 clean:
-	rm -rf dist/ build/ *.egg-info/
+    rm -rf dist/ build/ *.egg-info/
 
 install:
-	pip install -e .
+    pip install -e .
 """
 
 
@@ -156,8 +156,6 @@ def mock_failed_command(monkeypatch):
 def mock_timeout_command(monkeypatch):
     """Mock command execution to simulate a timeout."""
     import subprocess
-
-    from domd.core.commands.executor import CommandResult
 
     def mock_execute(*args, **kwargs):
         # Create a TimeoutExpired exception with the timeout value
