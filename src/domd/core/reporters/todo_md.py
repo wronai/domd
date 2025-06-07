@@ -61,6 +61,7 @@ class TodoMDReporter(BaseReporter):
             "---",
             "",
             "**📊 Current Status:**",
+            f"- **Project Path:** `{data.get('project_path', 'Unknown')}`",
             f"- **Failed Commands:** {len(failed_commands)}",
             f"- **Working Commands:** {len(successful_commands)} (see DONE.md)",
             f"- **Last Updated:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",

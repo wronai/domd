@@ -2,7 +2,7 @@ domd/
 ├── pyproject.toml                 # Konfiguracja Poetry
 ├── README.md                      # Dokumentacja główna
 ├── CHANGELOG.md                   # Historia zmian
-├── LICENSE                        # Licencja MIT
+├── LICENSE                        # Licencja Apache 2.0
 ├── .gitignore                     # Pliki ignorowane przez Git
 ├── .pre-commit-config.yaml        # Konfiguracja pre-commit hooks
 ├── tox.ini                        # Konfiguracja testów w różnych środowiskach

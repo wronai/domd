@@ -15,7 +15,7 @@ Bazując na Twoim pliku `pyproject.toml`, została stworzona **kompletna, profes
 | `tox.ini` | Konfiguracja testów w różnych środowiskach | ✅ Kompletny |
 | `.pre-commit-config.yaml` | Pre-commit hooks dla jakości kodu | ✅ Kompletny |
 | `.gitignore` | Ignorowane pliki dla Git | ✅ Kompletny |
-| `LICENSE` | Licencja MIT | ✅ Kompletny |
+| `LICENSE` | Licencja Apache 2.0 | ✅ Kompletny |
 
 ### 🐍 **Kod Źródłowy**
 | Plik | Opis | Status |

@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/domd.svg)](https://badge.fury.io/py/domd)
 [![Python Support](https://img.shields.io/pypi/pyversions/domd.svg)](https://pypi.org/project/domd/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Tests](https://github.com/wronai/domd/workflows/Tests/badge.svg)](https://github.com/wronai/domd/actions)
 
 **DoMD** automatically detects and tests project commands from various configuration files, then generates a detailed `TODO.md` file for failed commands with error reports and suggested fixes.
@@ -37,13 +37,13 @@ DoMD supports a wide range of project types and build systems, including:
 
 DoMD provides comprehensive support for Ansible projects, including:
 
-- **Playbooks**: Detection and testing of Ansible playbooks
-- **Roles**: Support for Ansible role structure and dependencies
-- **Inventories**: Static and dynamic inventory detection
-- **Vault**: Integration with Ansible Vault for encrypted content
-- **Galaxy**: Support for role dependencies and requirements
+- **Playbooks**: Detection and testing of Ansible playbooks with support for multiple plays and variable files
+- **Roles**: Full support for Ansible role structure, dependencies, and metadata
+- **Inventories**: Both static and dynamic inventory detection with proper host and group variable resolution
+- **Vault**: Secure handling of encrypted content with vault password file support
+- **Galaxy**: Role and collection management through requirements files
 
-Example of Ansible commands detected:
+### Example Commands
 
 ```bash
 # Playbook execution
@@ -54,6 +54,36 @@ ansible-galaxy install -r requirements.yml
 
 # Vault operations
 ansible-vault encrypt group_vars/secrets.yml
+
+# Running tests
+make test-ansible        # Run all Ansible tests
+make test-playbooks      # Test playbook functionality
+make test-roles          # Test role functionality
+make test-galaxy         # Test Galaxy integration
+make test-vault          # Test Vault operations
+make test-inventory      # Test inventory handling
+```
+
+### Testing Strategy
+
+Our Ansible integration includes comprehensive test coverage with:
+
+- Unit tests for individual components
+- Integration tests for playbook and role execution
+- Mocked tests for external dependencies
+- Fixtures for common Ansible structures
+
+To run the full test suite:
+
+```bash
+# Install development dependencies
+make dev-install
+
+# Run all tests
+make test
+
+# Run Ansible-specific tests
+make test-ansible
 ```
 
 ## 🔧 Command Filtering with .doignore
@@ -386,7 +416,7 @@ class NewProjectParser(BaseParser):
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 

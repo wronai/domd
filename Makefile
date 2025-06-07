@@ -23,31 +23,68 @@ install-all: ## Install with all optional dependencies
 
 # Testing targets
 test: ## Run all tests
+	@echo "Running all tests..."
 	poetry run pytest
 
+# Unit and integration tests
 test-unit: ## Run unit tests only
+	@echo "Running unit tests..."
 	poetry run pytest -m "unit"
 
 test-integration: ## Run integration tests only
+	@echo "Running integration tests..."
 	poetry run pytest -m "integration"
 
-test-ansible: ## Run Ansible-related tests only
+# Ansible test targets
+test-ansible: ## Run all Ansible-related tests
+	@echo "Running all Ansible tests..."
 	poetry run pytest tests/test_ansible_*.py -v
 
-test-playbooks: ## Run Ansible playbook tests
+test-ansible-unit: ## Run Ansible unit tests only
+	@echo "Running Ansible unit tests..."
+	poetry run pytest tests/test_ansible_*.py -m "unit" -v
+
+test-ansible-integration: ## Run Ansible integration tests
+	@echo "Running Ansible integration tests..."
+	poetry run pytest tests/test_ansible_*.py -m "integration" -v
+
+# Specific Ansible component tests
+test-playbooks: ## Test Ansible playbook functionality
+	@echo "Testing Ansible playbooks..."
 	poetry run pytest tests/test_ansible_playbook.py -v
 
-test-roles: ## Run Ansible role tests
+test-roles: ## Test Ansible role functionality
+	@echo "Testing Ansible roles..."
 	poetry run pytest tests/test_ansible_roles.py -v
 
-test-galaxy: ## Run Ansible Galaxy tests
+test-galaxy: ## Test Ansible Galaxy integration
+	@echo "Testing Ansible Galaxy..."
 	poetry run pytest tests/test_ansible_galaxy.py -v
 
-test-vault: ## Run Ansible Vault tests
+test-vault: ## Test Ansible Vault operations
+	@echo "Testing Ansible Vault..."
 	poetry run pytest tests/test_ansible_vault.py -v
 
-test-inventory: ## Run Ansible inventory tests
+test-inventory: ## Test Ansible inventory handling
+	@echo "Testing Ansible inventory..."
 	poetry run pytest tests/test_ansible_inventory.py -v
+
+# Test coverage
+coverage: ## Generate test coverage report
+	@echo "Generating test coverage report..."
+	poetry run pytest --cov=domd --cov-report=term-missing --cov-report=html
+
+# Linting and code quality
+lint: ## Run linting and code quality checks
+	@echo "Running linting and code quality checks..."
+	poetry run flake8 src/domd/
+	poetry run black --check src/ tests/
+	poetry run isort --check-only src/ tests/
+
+format: ## Format code automatically
+	@echo "Formatting code..."
+	poetry run black src/ tests/
+	poetry run isort src/ tests/
 
 test-cov: ## Run tests with coverage report
 	poetry run pytest --cov=domd --cov-report=html --cov-report=term

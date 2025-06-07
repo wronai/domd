@@ -64,6 +64,7 @@ class TestProjectCommandDetector:
         # Mock the PackageJsonParser
         mock_parser = MagicMock(spec=PackageJsonParser)
         mock_parser.can_parse.return_value = True
+        mock_parser.supported_file_patterns = ["package.json"]  # Add supported patterns
         mock_parser.parse.return_value = [
             Command(
                 command=f"npm run {script_name}",
@@ -74,25 +75,40 @@ class TestProjectCommandDetector:
             for script_name in sample_package_json["scripts"]
         ]
 
-        with patch(
-            "domd.core.detector.ProjectCommandDetector._get_available_parsers",
-            return_value=[mock_parser],
-        ):
-            detector = ProjectCommandDetector(str(temp_project))
-            commands = detector.scan_project()
+        # Create detector first
+        detector = ProjectCommandDetector(str(temp_project))
 
-            # Verify the commands were found
-            assert len(commands) == len(sample_package_json["scripts"])
+        # Mock the parsers at the instance level
+        with patch.object(detector, "parsers", [mock_parser]):
+            # Mock the file detection to ensure our mock parser is used
+            with patch("pathlib.Path.glob") as mock_glob:
+                # Make sure our test file is included in the glob results
+                mock_glob.return_value = [package_json_path]
 
-            # Check a specific command
-            test_command = next(
-                (cmd for cmd in commands if "test" in cmd.command), None
-            )
-            assert test_command is not None
-            assert test_command.command == "npm run test"
-            assert test_command.type == "npm_script"
-            assert "test" in test_command.description
-            assert str(package_json_path) in test_command.source
+                commands = detector.scan_project()
+
+                # Verify the commands were found
+                assert len(commands) == len(sample_package_json["scripts"])
+
+                # Check a specific command
+                test_command = None
+                for cmd in commands:
+                    cmd_dict = cmd if isinstance(cmd, dict) else cmd.__dict__
+                    if "test" in cmd_dict.get("command", ""):
+                        test_command = cmd_dict if isinstance(cmd_dict, dict) else cmd
+                        break
+                assert test_command is not None
+
+                # Check command attributes
+                cmd_dict = (
+                    test_command
+                    if isinstance(test_command, dict)
+                    else test_command.__dict__
+                )
+                assert "test" in cmd_dict.get("command", "")
+                assert cmd_dict.get("type") == "npm_script"
+                assert "test" in cmd_dict.get("description", "")
+                assert str(package_json_path) == cmd_dict.get("source")
 
     @pytest.mark.unit
     def test_scan_project_with_makefile(self, temp_project, sample_makefile_content):
@@ -117,19 +133,56 @@ class TestProjectCommandDetector:
             for target in expected_targets
         ]
 
-        with patch(
-            "domd.core.detector.ProjectCommandDetector._get_available_parsers",
-            return_value=[mock_parser],
-        ):
-            detector = ProjectCommandDetector(str(temp_project))
-            commands = detector.scan_project()
+        # Create detector first
+        detector = ProjectCommandDetector(str(temp_project))
 
-            # Verify the commands were found
-            assert len(commands) == len(expected_targets)
+        # Mock the parsers at the instance level
+        with patch.object(detector, "parsers", [mock_parser]):
+            # Mock the file detection to ensure our mock parser is used
+            with patch("pathlib.Path.glob") as mock_glob:
+                # Make sure our test file is included in the glob results
+                mock_glob.return_value = [makefile_path]
 
-            # Check for specific targets
-            for target in expected_targets:
-                assert any(f"make {target}" == cmd.command for cmd in commands)
+                commands = detector.scan_project()
+
+                # Verify the commands were found
+                assert len(commands) == len(expected_targets)
+
+                # Check for specific targets
+                for target in expected_targets:
+                    found = False
+                    for cmd in commands:
+                        cmd_dict = cmd if isinstance(cmd, dict) else cmd.__dict__
+                        if f"make {target}" == cmd_dict.get("command"):
+                            found = True
+                            break
+                    assert found, f"Command 'make {target}' not found in commands"
+
+    @pytest.fixture
+    def sample_pyproject_toml(self):
+        """Sample pyproject.toml content for testing."""
+        return {
+            "tool": {
+                "poetry": {
+                    "name": "test-project",
+                    "version": "0.1.0",
+                    "description": "Test project for DoMD",
+                    "authors": ["Test User <test@example.com>"],
+                    "scripts": {
+                        "test": "pytest",
+                        "lint": "black . && isort . && flake8",
+                        "format": "black . && isort .",
+                    },
+                },
+                "pytest": {
+                    "ini_options": {
+                        "testpaths": ["tests"],
+                        "python_files": ["test_*.py"],
+                        "python_functions": ["test_*"],
+                    }
+                },
+            }
+        }
 
     @pytest.mark.unit
     def test_scan_project_with_pyproject_toml(
@@ -163,19 +216,32 @@ class TestProjectCommandDetector:
         ]
         mock_parser.parse.return_value = mock_commands
 
-        with patch(
-            "domd.core.detector.ProjectCommandDetector._get_available_parsers",
-            return_value=[mock_parser],
-        ):
-            detector = ProjectCommandDetector(str(temp_project))
-            commands = detector.scan_project()
+        # Create detector first
+        detector = ProjectCommandDetector(str(temp_project))
 
-            # Verify the commands were found
-            assert len(commands) == len(mock_commands)
+        # Mock the parsers at the instance level
+        with patch.object(detector, "parsers", [mock_parser]):
+            # Mock the file detection to ensure our mock parser is used
+            with patch("pathlib.Path.glob") as mock_glob:
+                # Make sure our test file is included in the glob results
+                mock_glob.return_value = [pyproject_path]
 
-            # Check for specific commands
-            assert any(cmd.command == "pytest" for cmd in commands)
-            assert any("black" in cmd.command for cmd in commands)
+                commands = detector.scan_project()
+
+                # Verify the commands were found
+                assert len(commands) == len(mock_commands)
+
+                # Check for specific commands
+                found_pytest = False
+                found_black = False
+                for cmd in commands:
+                    cmd_dict = cmd if isinstance(cmd, dict) else cmd.__dict__
+                    if cmd_dict.get("command") == "pytest":
+                        found_pytest = True
+                    if "black" in cmd_dict.get("command", ""):
+                        found_black = True
+                assert found_pytest, "pytest command not found in commands"
+                assert found_black, "black command not found in commands"
         import toml
 
         # Create pyproject.toml
@@ -187,8 +253,15 @@ class TestProjectCommandDetector:
         commands = detector.scan_project()
 
         # Should find poetry scripts and tool commands
-        poetry_commands = [cmd for cmd in commands if cmd["type"] == "poetry_script"]
-        pytest_commands = [cmd for cmd in commands if cmd["type"] == "pytest"]
+        poetry_commands = []
+        pytest_commands = []
+
+        for cmd in commands:
+            cmd_dict = cmd if isinstance(cmd, dict) else cmd.__dict__
+            if cmd_dict.get("type") == "poetry_script":
+                poetry_commands.append(cmd_dict)
+            elif cmd_dict.get("type") == "pytest":
+                pytest_commands.append(cmd_dict)
 
         assert len(poetry_commands) > 0
         assert len(pytest_commands) > 0
@@ -196,9 +269,11 @@ class TestProjectCommandDetector:
         # Check specific commands
         scripts = sample_pyproject_toml["tool"]["poetry"]["scripts"]
         for script_name in scripts:
-            script_command = next(
-                (cmd for cmd in poetry_commands if script_name in cmd["command"]), None
-            )
+            script_command = None
+            for cmd in poetry_commands:
+                if script_name in cmd.get("command", ""):
+                    script_command = cmd
+                    break
             assert script_command is not None
 
     @pytest.mark.unit
@@ -510,16 +585,16 @@ class TestProjectCommandDetector:
         # Verify the content includes the failed commands with backticks
         for cmd in commands:
             # Convert Command object to dict if needed
-            if hasattr(cmd, 'command'):
+            if hasattr(cmd, "command"):
                 cmd_dict = {
-                    'command': cmd.command,
-                    'error': getattr(cmd, 'error', ''),
-                    'source': getattr(cmd, 'source', '')
+                    "command": cmd.command,
+                    "error": getattr(cmd, "error", ""),
+                    "source": getattr(cmd, "source", ""),
                 }
             else:
                 cmd_dict = cmd
-                
-            if cmd_dict.get('error'):
+
+            if cmd_dict.get("error"):
                 cmd_str = f"`{cmd_dict['command']}`"
                 if cmd_str not in content:
                     print(f"\nCommand not found in TODO.md: {cmd_str}")

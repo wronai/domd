@@ -145,7 +145,7 @@ galaxy_info:
   author: Test Author
   description: Test role
   company: Test Company
-  license: MIT
+  license: Apache-2.0
   min_ansible_version: 2.9
   platforms:
     - name: EL
