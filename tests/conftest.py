@@ -118,45 +118,56 @@ def detector_instance(temp_project: Path) -> ProjectCommandDetector:
 
 @pytest.fixture
 def mock_successful_command(monkeypatch):
-    """Mock subprocess.run to return successful command execution."""
-    import subprocess
-    from unittest.mock import Mock
+    """Mock command execution to return successful CommandResult."""
+    from domd.core.commands.executor import CommandResult
 
-    def mock_run(*args, **kwargs):
-        result = Mock()
-        result.returncode = 0
-        result.stdout = "Command executed successfully"
-        result.stderr = ""
-        return result
+    def mock_execute(*args, **kwargs):
+        return CommandResult(
+            success=True,
+            return_code=0,
+            execution_time=0.01,
+            output="Command executed successfully",
+            error=None,
+        )
 
-    monkeypatch.setattr(subprocess, "run", mock_run)
+    # Patch the CommandExecutor.execute method
+    monkeypatch.setattr("domd.core.detector.CommandExecutor.execute", mock_execute)
 
 
 @pytest.fixture
 def mock_failed_command(monkeypatch):
-    """Mock subprocess.run to return failed command execution."""
-    import subprocess
-    from unittest.mock import Mock
+    """Mock command execution to return failed CommandResult."""
+    from domd.core.commands.executor import CommandResult
 
-    def mock_run(*args, **kwargs):
-        result = Mock()
-        result.returncode = 1
-        result.stdout = ""
-        result.stderr = "Command failed with error"
-        return result
+    def mock_execute(*args, **kwargs):
+        return CommandResult(
+            success=False,
+            return_code=1,
+            execution_time=0.01,
+            output="",
+            error="Command failed",
+        )
 
-    monkeypatch.setattr(subprocess, "run", mock_run)
+    # Patch the CommandExecutor.execute method
+    monkeypatch.setattr("domd.core.detector.CommandExecutor.execute", mock_execute)
 
 
 @pytest.fixture
 def mock_timeout_command(monkeypatch):
-    """Mock subprocess.run to raise TimeoutExpired."""
-    import subprocess
+    """Mock command execution to simulate a timeout."""
+    from domd.core.commands.executor import CommandResult
 
-    def mock_run(*args, **kwargs):
-        raise subprocess.TimeoutExpired("test_command", 5)
+    def mock_execute(*args, **kwargs):
+        return CommandResult(
+            success=False,
+            return_code=-1,  # Typically timeout would be -1 or similar
+            execution_time=kwargs.get("timeout", 1) + 1,  # Exceeded timeout
+            output="",
+            error="Command timed out",
+        )
 
-    monkeypatch.setattr(subprocess, "run", mock_run)
+    # Patch the CommandExecutor.execute method
+    monkeypatch.setattr("domd.core.detector.CommandExecutor.execute", mock_execute)
 
 
 @pytest.fixture

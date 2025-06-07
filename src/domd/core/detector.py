@@ -1,5 +1,6 @@
 """Core functionality for detecting and managing project commands."""
 
+import datetime
 import importlib
 import inspect
 import logging
@@ -92,6 +93,41 @@ class ProjectCommandDetector:
         self.failed_commands: List[Dict] = []
         self.successful_commands: List[Dict] = []
         self.ignored_commands: List[Dict] = []
+
+    def create_llm_optimized_todo_md(self) -> None:
+        """Generate a TODO.md file with failed commands and fix suggestions.
+
+        This method creates a markdown file with detailed information about
+        failed commands to help with debugging and fixing issues.
+        """
+
+        def command_to_dict(cmd):
+            if hasattr(cmd, "command"):  # It's a Command object
+                return {
+                    "command": cmd.command,
+                    "source": getattr(cmd, "source", ""),
+                    "description": getattr(cmd, "description", ""),
+                    "error": getattr(cmd, "error", "Unknown error"),
+                    "return_code": getattr(cmd, "return_code", -1),
+                    "execution_time": getattr(cmd, "execution_time", 0),
+                    "metadata": getattr(cmd, "metadata", {}),
+                }
+            return cmd  # Already a dictionary
+
+        # Convert Command objects to dictionaries for the reporter
+        failed_cmds = [command_to_dict(cmd) for cmd in self.failed_commands]
+        successful_cmds = [command_to_dict(cmd) for cmd in self.successful_commands]
+
+        # Generate the report
+        report_data = {
+            "failed_commands": failed_cmds,
+            "successful_commands": successful_cmds,
+            "project_path": str(self.project_path),
+            "timestamp": datetime.datetime.now().isoformat(),
+        }
+
+        # Write the report
+        self.todo_reporter.write_report(report_data)
 
     def _initialize_parsers(self) -> List[Type[BaseParser]]:
         """Get all available parser classes.
@@ -235,38 +271,47 @@ class ProjectCommandDetector:
             logger.warning("Error matching pattern '%s': %s", pattern, e)
             return False
 
-    def test_commands(self, commands: List[Dict]) -> None:
+    def test_commands(self, commands: List) -> None:
         """Test a list of commands and update internal state.
 
         Args:
-            commands: List of command dictionaries to test
+            commands: List of Command objects or command dictionaries to test
         """
         self.failed_commands = []
         self.successful_commands = []
+        self.ignored_commands = []
 
         for cmd in commands:
             if self._should_ignore_command(cmd):
                 self.ignored_commands.append(cmd)
                 continue
 
-            result = self._execute_command(cmd)
+            # Make a copy of the command to avoid modifying the original
+            if hasattr(cmd, "command"):  # It's a Command object
+                # Create a dictionary representation
+                cmd_dict = {
+                    "command": cmd.command,
+                    "type": getattr(cmd, "type", ""),
+                    "description": getattr(cmd, "description", ""),
+                    "source": getattr(cmd, "source", ""),
+                    "metadata": getattr(cmd, "metadata", {}),
+                }
+            else:  # It's a dictionary
+                cmd_dict = cmd.copy()
 
-            if result.success:
-                self.successful_commands.append(
-                    {
-                        **cmd,
-                        "execution_time": result.execution_time,
-                    }
-                )
+            # Execute the command
+            is_success = self._execute_command(cmd_dict)
+
+            # Add to appropriate list based on execution result
+            if is_success:
+                self.successful_commands.append(cmd_dict)
             else:
-                self.failed_commands.append(
-                    {
-                        **cmd,
-                        "execution_time": result.execution_time,
-                        "return_code": result.return_code,
-                        "error": result.error,
-                    }
-                )
+                # Ensure these fields exist in the dict
+                if "return_code" not in cmd_dict:
+                    cmd_dict["return_code"] = -1
+                if "error" not in cmd_dict:
+                    cmd_dict["error"] = "Unknown error"
+                self.failed_commands.append(cmd_dict)
 
     def generate_reports(self) -> None:
         """Generate TODO.md and DONE.md reports."""
@@ -289,30 +334,66 @@ class ProjectCommandDetector:
                 }
             )
 
-    def _execute_command(self, cmd_info: Dict) -> CommandResult:
-        """Execute a single command and return the result.
+    def _execute_command(self, cmd_info) -> bool:
+        """Execute a single command and update the command info with results.
 
         Args:
-            cmd_info: Command information dictionary
+            cmd_info: Either a Command object or a dictionary containing command information
 
         Returns:
-            CommandResult with execution details
+            bool: True if command executed successfully, False otherwise
         """
-        command = cmd_info.get("command", "")
-        cwd = cmd_info.get("cwd", self.project_path)
-        timeout = cmd_info.get("timeout", self.timeout)
+        if hasattr(cmd_info, "command"):  # It's a Command object
+            command = cmd_info.command
+            cwd = getattr(cmd_info, "cwd", self.project_path)
+            timeout = getattr(cmd_info, "timeout", self.timeout)
+        else:  # It's a dictionary
+            command = cmd_info.get("command", "")
+            cwd = cmd_info.get("cwd", self.project_path)
+            timeout = cmd_info.get("timeout", self.timeout)
 
         logger.info("Executing command: %s", command)
-        return self.command_executor.execute(command, timeout=timeout, cwd=cwd)
 
-    def _should_ignore_command(self, cmd: Dict) -> bool:
+        try:
+            result = self.command_executor.execute(command, timeout=timeout, cwd=cwd)
+
+            # Update command info with results
+            if hasattr(cmd_info, "command"):  # Command object
+                setattr(cmd_info, "execution_time", result.execution_time)
+                if not result.success:
+                    setattr(cmd_info, "error", result.error)
+                    setattr(cmd_info, "return_code", result.return_code)
+            else:  # Dictionary
+                cmd_info["execution_time"] = result.execution_time
+                if not result.success:
+                    cmd_info["error"] = result.error
+                    cmd_info["return_code"] = result.return_code
+
+            return result.success
+
+        except Exception as e:
+            logger.error("Error executing command '%s': %s", command, str(e))
+            if hasattr(cmd_info, "command"):  # Command object
+                setattr(cmd_info, "error", str(e))
+            else:  # Dictionary
+                cmd_info["error"] = str(e)
+            return False
+
+    def _should_ignore_command(self, cmd) -> bool:
         """Check if a command should be ignored based on ignore rules.
 
         Args:
-            cmd: Command dictionary
+            cmd: Either a Command object or a dictionary containing command information
 
         Returns:
             bool: True if command should be ignored
         """
-        # TODO: Implement ignore rules logic
-        return False
+        # Get command string from either Command object or dictionary
+        if hasattr(cmd, "command"):  # It's a Command object
+            command_str = cmd.command
+        else:  # It's a dictionary
+            command_str = cmd.get("command", "")
+
+        # TODO: Implement more sophisticated ignore rules logic
+        # For now, just ignore empty commands
+        return not bool(command_str.strip())

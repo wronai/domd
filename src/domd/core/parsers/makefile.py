@@ -3,6 +3,7 @@
 import re
 from typing import Dict, List
 
+from ..commands import Command
 from .base import BaseParser
 
 
@@ -14,11 +15,11 @@ class MakefileParser(BaseParser):
         """Return supported file patterns for Makefiles."""
         return ["Makefile", "makefile", "GNUmakefile"]
 
-    def parse(self) -> List[Dict]:
+    def parse(self) -> "List[Command]":
         """Parse Makefile and extract targets as commands.
 
         Returns:
-            List of command dictionaries
+            List of Command objects
         """
         if not self.file_path.exists():
             return []
@@ -40,18 +41,16 @@ class MakefileParser(BaseParser):
             if not target or target.startswith("."):
                 continue
 
-            # Skip common non-target patterns
-            if target in ("clean", "install", "uninstall", "test", "check", "all"):
-                continue
-
             command = f"make {target}"
             description = f"Make target: {target}"
 
             self._commands.append(
-                self._create_command_dict(
+                Command(
                     command=command,
                     description=description,
-                    command_type="make_target",
+                    type="make_target",
+                    source=str(self.file_path),
+                    metadata={"target": target, "original_command": command},
                 )
             )
 

@@ -2,8 +2,6 @@
 Tests for Ansible roles detection and functionality.
 """
 
-from pathlib import Path
-
 from domd.core.detector import ProjectCommandDetector
 
 
