@@ -1,8 +1,10 @@
-# To-DoMD - Project Command Detector
+# DoMD - Project Command Detector
 
-[![PyPI version](https://badge.fury.io/py/domd.svg)](https://badge.fury.io/py/domd)
-[![Python Support](https://img.shields.io/pypi/pyversions/domd.svg)](https://pypi.org/project/domd/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+A powerful tool for detecting and managing project commands with built-in support for virtual environments, Ansible, and more.
 [![Tests](https://github.com/wronai/domd/workflows/Tests/badge.svg)](https://github.com/wronai/domd/actions)
 
 **DoMD** automatically detects and tests project commands from various configuration files, then generates a detailed `TODO.md` file for failed commands with error reports and suggested fixes.
@@ -32,6 +34,28 @@ DoMD supports a wide range of project types and build systems, including:
 - **TOML**: Generic TOML file support
 - **YAML**: Generic YAML file support
 - **INI**: Generic INI file support
+
+### 🐍 Virtual Environment Support
+
+DoMD offers seamless integration with Python virtual environments, making it easy to work with project-specific dependencies:
+
+- **Automatic Detection**: Automatically finds and activates virtual environments in common locations (`.venv`, `venv`, `env`)
+- **Custom Paths**: Specify a custom virtual environment path with the `--venv` option
+- **Environment Variables**: Properly sets up `PATH` and `VIRTUAL_ENV` for command execution
+- **Python Interpreter**: Uses the virtual environment's Python interpreter for Python commands
+- **Cross-Platform**: Works on Windows, macOS, and Linux
+
+Example usage:
+```bash
+# Auto-detect and use virtual environment
+domd
+
+# Specify custom virtual environment path
+domd --venv /path/to/venv
+
+# Run a specific command in the virtual environment
+domd run-in-venv python -m pytest
+```
 
 ### 🎭 Ansible Support
 

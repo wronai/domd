@@ -111,19 +111,35 @@ class TestProjectCommandDetector:
                 assert str(package_json_path) == cmd_dict.get("source")
 
     @pytest.mark.unit
-    def test_scan_project_with_makefile(self, temp_project, sample_makefile_content):
+    def test_scan_project_with_makefile(
+        self, temp_project, sample_makefile_content, caplog
+    ):
         """Test scanning a project with Makefile."""
+        import logging
+
+        caplog.set_level(logging.DEBUG)
+
+        print("\n" + "=" * 80)
+        print("STARTING TEST: test_scan_project_with_makefile")
+        print("=" * 80)
+
         # Create Makefile
         makefile_path = temp_project / "Makefile"
         makefile_path.write_text(sample_makefile_content)
+        print(f"Created Makefile at: {makefile_path}")
 
         # Expected targets from the sample makefile
         expected_targets = ["test", "build", "clean", "install", "deploy"]
+        print(f"Expected targets: {expected_targets}")
 
         # Mock the MakefileParser
         mock_parser = MagicMock(spec=MakefileParser)
         mock_parser.can_parse.return_value = True
-        mock_parser.parse.return_value = [
+
+        # Set up the supported_file_patterns property
+        mock_parser.supported_file_patterns = ["Makefile", "makefile", "GNUmakefile"]
+
+        mock_commands = [
             Command(
                 command=f"make {target}",
                 type="make_target",
@@ -132,21 +148,46 @@ class TestProjectCommandDetector:
             )
             for target in expected_targets
         ]
+        mock_parser.parse.return_value = mock_commands
+
+        print(f"Created mock parser: {mock_parser}")
+        print(f"Mock parser can_parse: {mock_parser.can_parse}")
+        print(f"Mock parser parse: {mock_parser.parse}")
+        print(f"Mock parser parse return value: {mock_commands}")
 
         # Create detector first
         detector = ProjectCommandDetector(str(temp_project))
+        print(f"Created detector with project path: {temp_project}")
+        print(f"Detector parsers before mock: {detector.parsers}")
 
         # Mock the parsers at the instance level
         with patch.object(detector, "parsers", [mock_parser]):
+            print(f"Detector parsers after mock: {detector.parsers}")
+
             # Mock the file detection to ensure our mock parser is used
             with patch("pathlib.Path.glob") as mock_glob:
                 # Make sure our test file is included in the glob results
                 mock_glob.return_value = [makefile_path]
+                print(f"Mocked glob to return: {mock_glob.return_value}")
 
+                print("\nCalling detector.scan_project()...")
                 commands = detector.scan_project()
+                print(f"Scan completed. Commands found: {len(commands)}")
+
+                # Print all log messages
+                print("\n=== LOG MESSAGES ===")
+                for record in caplog.records:
+                    print(f"{record.levelname}: {record.message}")
+                print("===================\n")
 
                 # Verify the commands were found
-                assert len(commands) == len(expected_targets)
+                print(
+                    f"Found {len(commands)} commands, expected {len(expected_targets)}"
+                )
+                print(f"Commands found: {commands}")
+                assert len(commands) == len(
+                    expected_targets
+                ), f"Expected {len(expected_targets)} commands, got {len(commands)}"
 
                 # Check for specific targets
                 for target in expected_targets:
@@ -157,6 +198,10 @@ class TestProjectCommandDetector:
                             found = True
                             break
                     assert found, f"Command 'make {target}' not found in commands"
+
+        print("\n" + "=" * 80)
+        print("TEST COMPLETED")
+        print("=" * 80 + "\n")
 
     @pytest.fixture
     def sample_pyproject_toml(self):
@@ -198,6 +243,9 @@ class TestProjectCommandDetector:
         # Mock the PyProjectTomlParser
         mock_parser = MagicMock(spec=PyProjectTomlParser)
         mock_parser.can_parse.return_value = True
+
+        # Set up the supported_file_patterns property
+        mock_parser.supported_file_patterns = ["pyproject.toml"]
 
         # Mock the parse method to return sample commands
         mock_commands = [
@@ -348,7 +396,8 @@ class TestProjectCommandDetector:
         assert "error" in cmd_info
         assert "return_code" in cmd_info
         assert cmd_info["return_code"] == -1
-        assert "timed out" in cmd_info["error"]
+        # Check for the specific error message format we use
+        assert "Command timed out after" in cmd_info["error"]
 
     @pytest.mark.unit
     def test_test_commands(self, temp_project, mock_successful_command):

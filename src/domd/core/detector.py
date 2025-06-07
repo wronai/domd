@@ -14,14 +14,14 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Type, Union
-from unittest.mock import MagicMock
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
-from domd.core.commands.command import Command
-from domd.core.commands.executor import CommandExecutor
-from domd.core.parsers.base import BaseParser
-from domd.core.reporters.done_md import DoneMDReporter
-from domd.core.reporters.todo_md import TodoMDReporter
+from ..core.commands import Command, CommandResult
+from ..core.commands.executor import CommandExecutor
+from ..core.parsers.base import BaseParser
+from ..core.reporters.done_md import DoneMDReporter
+from ..core.reporters.todo_md import TodoMDReporter
+from ..utils.virtualenv import get_virtualenv_info
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +74,7 @@ class ProjectCommandDetector:
         done_file: Union[str, Path] = "DONE.md",
         script_file: Union[str, Path] = "todo.sh",
         ignore_file: str = ".doignore",
+        venv_path: Optional[str] = None,
     ):
         """Initialize the ProjectCommandDetector.
 
@@ -86,6 +87,7 @@ class ProjectCommandDetector:
             done_file: Path to the DONE.md file
             script_file: Path to the todo.sh script
             ignore_file: Name of the ignore file
+            venv_path: Optional path to virtual environment (auto-detected if None)
         """
         self.project_path = Path(project_path).resolve()
         self.timeout = timeout
@@ -98,8 +100,14 @@ class ProjectCommandDetector:
         self.script_file = self.project_path / script_file
         self.ignore_file = self.project_path / ignore_file
 
-        # Initialize components
-        self.command_executor = CommandExecutor(timeout=timeout, cwd=self.project_path)
+        # Initialize virtual environment
+        self.venv_info = self._setup_virtualenv(venv_path)
+
+        # Initialize components with virtualenv support
+        self.command_executor = CommandExecutor(
+            timeout=timeout, cwd=self.project_path, env=self._get_environment()
+        )
+
         self.todo_reporter = TodoMDReporter(self.todo_file)
         self.done_reporter = DoneMDReporter(self.done_file)
         self.parsers = self._initialize_parsers()
@@ -109,6 +117,218 @@ class ProjectCommandDetector:
         self.failed_commands: List[Dict] = []
         self.successful_commands: List[Dict] = []
         self.ignored_commands: List[Dict] = []
+
+    def _setup_virtualenv(self, venv_path: Optional[str] = None) -> Dict[str, Any]:
+        """Set up virtual environment for command execution.
+
+        Args:
+            venv_path: Optional path to virtual environment
+
+        Returns:
+            Dictionary with virtual environment information with the following keys:
+                - exists: bool - Whether the virtual environment exists
+                - path: Optional[str] - Path to the virtual environment
+                - activate_command: Optional[str] - Command to activate the virtual environment
+                - python_path: Optional[str] - Path to the Python interpreter in the virtual environment
+        """
+        try:
+            if venv_path:
+                # Use explicitly provided virtualenv path
+                logger.debug(f"Using provided virtualenv path: {venv_path}")
+                venv_info = get_virtualenv_info(venv_path)
+            else:
+                # Try to auto-detect virtualenv in project directory
+                logger.debug(f"Auto-detecting virtualenv in: {self.project_path}")
+                venv_info = get_virtualenv_info(str(self.project_path))
+
+            if venv_info["exists"]:
+                logger.info(f"Using virtual environment at: {venv_info['path']}")
+                if venv_info.get("activate_command"):
+                    logger.debug(f"Activation command: {venv_info['activate_command']}")
+                if venv_info.get("python_path"):
+                    logger.debug(f"Python interpreter: {venv_info['python_path']}")
+            else:
+                logger.debug("No virtual environment detected")
+
+            return venv_info
+
+        except Exception as e:
+            logger.warning(f"Error detecting virtual environment: {e}", exc_info=True)
+            return {
+                "exists": False,
+                "path": None,
+                "activate_command": None,
+                "python_path": None,
+            }
+
+    def _get_environment(self) -> Dict[str, str]:
+        """Get environment variables for command execution.
+
+        Returns:
+            Dictionary with environment variables with virtualenv paths included
+
+        This method ensures that the virtual environment's bin/Scripts directory
+        is included in the PATH, allowing commands to find executables installed
+        in the virtual environment.
+        """
+        env = os.environ.copy()
+
+        # Add virtual environment's bin/scripts to PATH if available
+        if self.venv_info.get("path"):
+            venv_path = self.venv_info["path"]
+            if sys.platform == "win32":
+                bin_path = os.path.join(venv_path, "Scripts")
+            else:
+                bin_path = os.path.join(venv_path, "bin")
+
+            if os.path.exists(bin_path):
+                # Add to the beginning of PATH to ensure virtualenv binaries take precedence
+                env["PATH"] = f"{bin_path}{os.pathsep}{env.get('PATH', '')}"
+
+                # Set VIRTUAL_ENV for Python tools that check this
+                env["VIRTUAL_ENV"] = venv_path
+
+                # On Windows, we also need to set PYTHONHOME to None to avoid conflicts
+                if sys.platform == "win32" and "PYTHONHOME" in env:
+                    del env["PYTHONHOME"]
+
+        return env
+
+    def execute_command(
+        self,
+        command: Union[str, List[str]],
+        timeout: Optional[int] = None,
+        cwd: Optional[Union[str, Path]] = None,
+        env: Optional[Dict[str, str]] = None,
+        check: bool = False,
+    ) -> Dict[str, Any]:
+        """Execute a command with proper environment setup.
+
+        Args:
+            command: Command to execute (string or list of args)
+            timeout: Optional timeout in seconds
+            cwd: Working directory for the command
+            env: Additional environment variables to include
+            check: If True, raises an exception on non-zero exit code
+
+        Returns:
+            Dictionary with command execution results
+
+        The returned dictionary contains:
+            - success: bool - Whether the command succeeded
+            - return_code: int - The exit code of the command
+            - execution_time: float - Time taken in seconds
+            - output: str - Combined stdout and stderr
+            - stdout: str - Standard output
+            - stderr: str - Standard error
+            - command: str - The executed command
+        """
+        # Ensure command is a string for logging
+        command_str = command if isinstance(command, str) else " ".join(command)
+        logger.info(f"Executing command: {command_str}")
+
+        # Prepare the environment
+        exec_env = self._get_environment()
+        if env:
+            # Update with custom environment variables, ensuring all values are strings
+            for key, value in (env or {}).items():
+                if value is not None:
+                    exec_env[str(key)] = str(value)
+                elif key in exec_env:
+                    del exec_env[key]
+
+        # Execute the command
+        try:
+            result = self.command_executor.execute(
+                command=command,
+                timeout=timeout or self.timeout,
+                cwd=cwd or self.project_path,
+                env=exec_env,
+                check=check,
+            )
+
+            # Convert result to dictionary for backward compatibility
+            result_dict = {
+                "success": result.success,
+                "return_code": result.return_code,
+                "execution_time": result.execution_time,
+                "output": (result.stdout or "") + "\n" + (result.stderr or ""),
+                "stdout": result.stdout or "",
+                "stderr": result.stderr or "",
+                "command": command_str,
+            }
+
+            # Log the result
+            if result.success:
+                logger.info(f"Command succeeded in {result.execution_time:.2f}s")
+                self.successful_commands.append(result_dict)
+            else:
+                logger.error(f"Command failed with code {result.return_code}")
+                if result.stderr:
+                    logger.error(
+                        f"Error output: {result.stderr[:500]}{'...' if len(result.stderr) > 500 else ''}"
+                    )
+                self.failed_commands.append(result_dict)
+
+            return result_dict
+
+        except Exception as e:
+            # Handle any exceptions and return a consistent result dictionary
+            error_msg = str(e)
+            logger.error(f"Error executing command: {error_msg}")
+
+            result_dict = {
+                "success": False,
+                "return_code": -1,
+                "execution_time": 0.0,
+                "output": error_msg,
+                "stdout": "",
+                "stderr": error_msg,
+                "command": command_str,
+            }
+
+            self.failed_commands.append(result_dict)
+            return result_dict
+
+    def run_in_venv(self, command: Union[str, List[str]], **kwargs) -> Dict[str, Any]:
+        """Run a command in the virtual environment.
+
+        This is a convenience method that ensures the command runs with the
+        virtual environment's Python interpreter if available.
+
+        Args:
+            command: Command to execute (string or list of arguments)
+            **kwargs: Additional arguments to pass to execute_command
+
+        Returns:
+            Dictionary with command execution results containing:
+                - success: bool - Whether the command succeeded
+                - return_code: int - The exit code of the command
+                - execution_time: float - Time taken in seconds
+                - output: str - Combined stdout and stderr
+                - stdout: str - Standard output
+                - stderr: str - Standard error
+                - command: str - The executed command
+        """
+        # Ensure command is a list for easier manipulation
+        cmd_list = command if isinstance(command, list) else shlex.split(str(command))
+
+        # If we have a virtual environment and the command starts with 'python',
+        # use the virtual environment's Python interpreter
+        if self.venv_info.get("exists") and self.venv_info.get("python_path"):
+            if cmd_list and cmd_list[0] in ("python", "python3"):
+                cmd_list[0] = self.venv_info["python_path"]
+
+        # Execute the command with the environment setup
+        result = self.execute_command(command=cmd_list, **kwargs)
+
+        # Ensure the result has all expected fields
+        if "output" not in result and "stdout" in result and "stderr" in result:
+            result["output"] = (
+                result.get("stdout", "") + "\n" + result.get("stderr", "")
+            ).strip()
+
+        return result
 
     def create_llm_optimized_todo_md(self) -> None:
         """Generate a TODO.md file with failed commands and fix suggestions.
@@ -180,30 +400,50 @@ class ProjectCommandDetector:
             "Available parsers: %s", [p.__class__.__name__ for p in self.parsers]
         )
 
-        # Process files using the appropriate parsers
+        # Find all configuration files
         config_files = self._find_config_files()
-        logger.debug("Found config files: %s", config_files)
+        logger.debug("Found %d config files: %s", len(config_files), config_files)
 
+        # Process each file with appropriate parser
         for file_path in config_files:
             try:
                 logger.debug("Processing file: %s", file_path)
                 parser = self._get_parser_for_file(file_path)
-                logger.debug(
-                    "Selected parser for %s: %s",
-                    file_path,
-                    parser.__class__.__name__ if parser else None,
-                )
-                if parser:
-                    file_commands = parser.parse()
-                    logger.debug(
-                        "Parsed %d commands from %s", len(file_commands), file_path
-                    )
-                    commands.extend(file_commands)
-            except Exception as e:
-                logger.error(
-                    "Error processing file %s: %s", file_path, e, exc_info=True
-                )
+                logger.debug("Found parser for %s: %s", file_path, parser)
+                if parser and hasattr(parser, "parse"):
+                    logger.debug("Parser has parse method")
+                    # Check if parse method accepts a file_path parameter
+                    parse_method = parser.parse
+                    import inspect
 
+                    sig = inspect.signature(parse_method)
+
+                    try:
+                        # Try calling with file_path if the method accepts it
+                        if "file_path" in sig.parameters:
+                            logger.debug("Calling parse with file_path parameter")
+                            file_commands = parser.parse(file_path=file_path)
+                        else:
+                            logger.debug("Calling parse without parameters")
+                            file_commands = parser.parse()
+
+                        if file_commands:
+                            logger.debug(
+                                "Found %d commands in %s", len(file_commands), file_path
+                            )
+                            commands.extend(file_commands)
+                        else:
+                            logger.debug("No commands found in %s", file_path)
+                    except Exception as e:
+                        logger.error("Error calling parse method: %s", e, exc_info=True)
+                        raise
+                else:
+                    logger.debug("No suitable parser found for %s", file_path)
+            except Exception as e:
+                logger.error("Error parsing %s: %s", file_path, e, exc_info=True)
+                continue
+
+        logger.debug("Total commands found: %d", len(commands))
         return commands
 
     def _find_config_files(self) -> List[Path]:
@@ -282,6 +522,9 @@ class ProjectCommandDetector:
             Parser instance or None if no suitable parser found
         """
         logger.debug("Finding parser for file: %s", file_path)
+        logger.debug(
+            "Available parsers: %s", [p.__class__.__name__ for p in self.parsers]
+        )
 
         for parser in self.parsers:
             try:
@@ -295,18 +538,44 @@ class ProjectCommandDetector:
                 )
 
                 if can_parse:
-                    # For mock parsers, we can return them directly
-                    if hasattr(parser, "_is_mock") or hasattr(
+                    # For mock parsers or already initialized parsers, return them directly
+                    is_mock = hasattr(parser, "_is_mock") or hasattr(
                         parser, "_mock_return_value"
-                    ):
-                        logger.debug("Using mock parser: %s", parser)
-                        # Set the file path on the mock parser
+                    )
+                    has_file_path = hasattr(parser, "file_path")
+
+                    logger.debug(
+                        "  is_mock: %s, has_file_path: %s", is_mock, has_file_path
+                    )
+
+                    if is_mock or has_file_path:
+                        logger.debug(
+                            "Using existing parser: %s (is_mock=%s, has_file_path=%s)",
+                            parser,
+                            is_mock,
+                            has_file_path,
+                        )
+                        # Update the file path on the parser
                         parser.file_path = file_path
-                        parser.project_path = self.project_path
+                        if (
+                            not hasattr(parser, "project_path")
+                            or parser.project_path is None
+                        ):
+                            parser.project_path = self.project_path
                         return parser
-                    # For real parsers, create a new instance
+                    # For real parsers that haven't been initialized yet, create a new instance with the file path
                     logger.debug("Creating new parser instance for: %s", file_path)
-                    return parser.__class__(file_path, self.project_path)
+                    # Try both initialization styles for compatibility
+                    try:
+                        return parser.__class__(
+                            file_path=file_path, project_path=self.project_path
+                        )
+                    except Exception as e:
+                        logger.debug(
+                            "Failed to initialize with kwargs, trying positional args: %s",
+                            e,
+                        )
+                        return parser.__class__(file_path, self.project_path)
 
             except Exception as e:
                 logger.warning(
@@ -452,30 +721,57 @@ class ProjectCommandDetector:
             timeout = getattr(cmd_info, "timeout", self.timeout)
         else:  # It's a dictionary
             command = cmd_info.get("command", "")
-            cwd = cmd_info.get("cwd", self.project_path)
+            cwd = str(cmd_info.get("cwd", self.project_path))
             timeout = cmd_info.get("timeout", self.timeout)
 
         logger.info("Executing command: %s", command)
 
         try:
-            result = self.command_executor.execute(command, timeout=timeout, cwd=cwd)
+            # Execute the command through the command executor
+            result = self.command_executor.execute(
+                command=command, timeout=timeout, cwd=cwd, env=cmd_info.get("env")
+            )
 
             # Update command info with results
             if hasattr(cmd_info, "command"):  # Command object
                 setattr(cmd_info, "execution_time", result.execution_time)
+                setattr(cmd_info, "stdout", result.stdout)
+                setattr(cmd_info, "stderr", result.stderr)
+                setattr(cmd_info, "return_code", result.return_code)
                 if not result.success:
-                    setattr(cmd_info, "error", result.error)
-                    setattr(cmd_info, "return_code", result.return_code)
+                    setattr(cmd_info, "error", result.stderr or "Command failed")
             else:  # Dictionary
-                cmd_info["execution_time"] = result.execution_time
+                cmd_info.update(
+                    {
+                        "execution_time": result.execution_time,
+                        "stdout": result.stdout,
+                        "stderr": result.stderr,
+                        "return_code": result.return_code,
+                        "success": result.success,
+                    }
+                )
                 if not result.success:
-                    cmd_info["error"] = result.error
-                    cmd_info["return_code"] = result.return_code
+                    cmd_info["error"] = result.stderr or "Command failed"
 
             return result.success
 
+        except subprocess.TimeoutExpired as e:
+            error_msg = f"Command timed out after {e.timeout} seconds"
+            logger.error(error_msg)
+
+            if hasattr(cmd_info, "command"):  # Command object
+                setattr(cmd_info, "error", error_msg)
+                setattr(cmd_info, "return_code", -1)
+            else:  # Dictionary
+                cmd_info.update(
+                    {"error": error_msg, "return_code": -1, "success": False}
+                )
+            return False
+
         except Exception as e:
-            logger.error("Error executing command '%s': %s", command, str(e))
+            error_msg = str(e)
+            logger.error("Error executing command '%s': %s", command, error_msg)
+
             if hasattr(cmd_info, "command"):  # Command object
                 setattr(cmd_info, "error", str(e))
             else:  # Dictionary
@@ -505,38 +801,4 @@ class ProjectCommandDetector:
 
         return False
 
-    def execute_command(self, command: str) -> dict:
-        """Execute a command and return detailed execution results.
-
-        This is a public wrapper around _execute_command that accepts a command string.
-
-        Args:
-            command: The command string to execute
-
-        Returns:
-            dict: Dictionary containing execution results with keys:
-                - success: bool indicating if command succeeded
-                - return_code: int exit code of the command
-                - output: str command output (stdout + stderr)
-                - command: str the executed command
-        """
-        # Create a Command object from the string
-        from domd.core.commands.command import Command
-
-        cmd_obj = Command(
-            command=command,
-            type="manual",
-            description=f"Manually executed command: {command}",
-            source="manual_execution",
-        )
-
-        # Execute the command
-        success = self._execute_command(cmd_obj)
-
-        # Return a result dictionary that matches test expectations
-        return {
-            "success": success,
-            "return_code": 0 if success else 1,
-            "output": "Command executed successfully" if success else "Command failed",
-            "command": command,
-        }
+    # The execute_command method is defined above with full functionality

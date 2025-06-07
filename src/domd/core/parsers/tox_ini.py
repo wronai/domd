@@ -88,9 +88,11 @@ class ToxIniParser(BaseParser):
                         command=f"tox -e {env}",
                         type="tox_environment",
                         description=f"Tox: Run {env} environment",
-                        source=str(self.file_path)
-                        if hasattr(self, "file_path")
-                        else "tox.ini",
+                        source=(
+                            str(self.file_path)
+                            if hasattr(self, "file_path")
+                            else "tox.ini"
+                        ),
                     )
                 )
 

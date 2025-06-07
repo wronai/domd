@@ -155,16 +155,15 @@ def mock_failed_command(monkeypatch):
 @pytest.fixture
 def mock_timeout_command(monkeypatch):
     """Mock command execution to simulate a timeout."""
+    import subprocess
+
     from domd.core.commands.executor import CommandResult
 
     def mock_execute(*args, **kwargs):
-        return CommandResult(
-            success=False,
-            return_code=-1,  # Typically timeout would be -1 or similar
-            execution_time=kwargs.get("timeout", 1) + 1,  # Exceeded timeout
-            output="",
-            error="Command timed out",
-        )
+        # Create a TimeoutExpired exception with the timeout value
+        timeout = kwargs.get("timeout", 1)
+        cmd = args[0] if args else ""
+        raise subprocess.TimeoutExpired(cmd=cmd, timeout=timeout)
 
     # Patch the CommandExecutor.execute method
     monkeypatch.setattr("domd.core.detector.CommandExecutor.execute", mock_execute)
