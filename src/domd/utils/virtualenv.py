@@ -1,9 +1,8 @@
 """Utilities for virtual environment detection and activation."""
 
 import os
-import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 
 def find_virtualenv(project_path: str) -> Optional[str]:
