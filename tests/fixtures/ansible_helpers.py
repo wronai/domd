@@ -140,7 +140,7 @@ def create_ansible_role(roles_dir: Union[str, Path], role_name: str) -> Dict[str
     )
 
     meta_main = role_path / "meta" / "main.yml"
-    meta_content = f"""---
+    meta_content = """---
 galaxy_info:
   author: Test Author
   description: Test role
@@ -163,7 +163,7 @@ dependencies: []
 
     # Create a sample file
     sample_file = role_path / "files" / "sample.txt"
-    sample_file.write_text("Sample file for {}\n".format(role_name))
+    sample_file.write_text(f"Sample file for {role_name}\n")
 
     return {
         "role_path": role_path,

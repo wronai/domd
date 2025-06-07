@@ -1,5 +1,6 @@
 """Command execution functionality for domd."""
 
+import shlex
 import subprocess
 import time
 from dataclasses import dataclass

@@ -1,6 +1,8 @@
 """Parser for pyproject.toml files."""
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
+
+from domd.core.commands import Command
 
 # Try to import tomli (Python 3.11+) or toml (older Python)
 try:
@@ -26,20 +28,34 @@ class PyProjectTomlParser(BaseParser):
         """Return supported file patterns for pyproject.toml."""
         return ["pyproject.toml"]
 
-    def parse(self) -> List[Dict]:
+    def parse(self) -> List[Command]:
         """Parse pyproject.toml and extract project commands.
 
         Returns:
-            List of command dictionaries
+            List of Command objects
         """
-        if not TOML_AVAILABLE or not self.file_path.exists():
+        if not TOML_AVAILABLE or not self.file_path or not self.file_path.exists():
             return []
 
-        self._commands = []
+        from domd.core.commands import Command
+
+        self._commands: List[Command] = []
 
         try:
-            with open(self.file_path, "rb") as f:
-                data = toml.load(f)
+            # Read the file as text first
+            content = self.file_path.read_text(encoding="utf-8")
+
+            # Try to load with the available TOML library
+            if "tomli" in globals():
+                import tomli as toml_lib
+            else:
+                import toml as toml_lib
+
+            if hasattr(toml_lib, "loads"):
+                data = toml_lib.loads(content)
+            else:
+                # Fallback for older versions of toml
+                data = toml_lib.loads(content)
 
             # Extract Poetry scripts
             self._extract_poetry_scripts(data)
@@ -49,15 +65,19 @@ class PyProjectTomlParser(BaseParser):
 
             # Extract build commands
             self._extract_build_commands(data)
-
         except Exception as e:
             print(f"Error parsing {self.file_path}: {e}")
+            import traceback
+
+            traceback.print_exc()
             return []
 
         return self._commands
 
     def _extract_poetry_scripts(self, data: Dict[str, Any]) -> None:
         """Extract Poetry scripts section."""
+        from domd.core.commands import Command
+
         try:
             scripts = data.get("tool", {}).get("poetry", {}).get("scripts", {})
             for script_name, script_target in scripts.items():
@@ -68,17 +88,26 @@ class PyProjectTomlParser(BaseParser):
                 description = f"Poetry script: {script_name}"
 
                 self._commands.append(
-                    self._create_command_dict(
+                    Command(
                         command=command,
                         description=description,
-                        command_type="poetry_script",
+                        type="poetry_script",
+                        source=str(self.file_path),
+                        metadata={
+                            "script_name": script_name,
+                            "script_target": script_target,
+                            "original_command": script_target,
+                        },
                     )
                 )
-        except (AttributeError, KeyError):
+        except (AttributeError, KeyError) as e:
+            print(f"Error extracting poetry scripts: {e}")
             pass
 
     def _extract_test_commands(self, data: Dict[str, Any]) -> None:
         """Extract test commands from pyproject.toml."""
+        from domd.core.commands import Command
+
         try:
             # Check for pytest configuration
             if "pytest" in data.get("tool", {}):
@@ -86,10 +115,11 @@ class PyProjectTomlParser(BaseParser):
                 description = "Run pytest"
 
                 self._commands.append(
-                    self._create_command_dict(
+                    Command(
                         command=command,
                         description=description,
-                        command_type="pytest",
+                        type="pytest",
+                        source=str(self.file_path),
                     )
                 )
 
@@ -99,17 +129,21 @@ class PyProjectTomlParser(BaseParser):
                 description = "Run tox"
 
                 self._commands.append(
-                    self._create_command_dict(
+                    Command(
                         command=command,
                         description=description,
-                        command_type="tox",
+                        type="tox",
+                        source=str(self.file_path),
                     )
                 )
-        except (AttributeError, KeyError):
+        except (AttributeError, KeyError) as e:
+            print(f"Error extracting test commands: {e}")
             pass
 
     def _extract_build_commands(self, data: Dict[str, Any]) -> None:
         """Extract build-related commands."""
+        from domd.core.commands import Command
+
         try:
             # Check for build system requirements
             build_backend = data.get("build-system", {}).get("build-backend", "")
@@ -119,11 +153,13 @@ class PyProjectTomlParser(BaseParser):
                 description = "Build the package"
 
                 self._commands.append(
-                    self._create_command_dict(
+                    Command(
                         command=command,
                         description=description,
-                        command_type="build",
+                        type="build",
+                        source=str(self.file_path),
                     )
                 )
-        except (AttributeError, KeyError):
+        except (AttributeError, KeyError) as e:
+            print(f"Error extracting build commands: {e}")
             pass

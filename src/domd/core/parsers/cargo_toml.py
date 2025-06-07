@@ -26,20 +26,29 @@ class CargoTomlParser(BaseParser):
         """Return supported file patterns for Cargo.toml."""
         return ["Cargo.toml"]
 
-    def parse(self) -> List[Dict]:
+    def parse(self, file_path=None) -> List[Dict]:
         """Parse Cargo.toml and extract Rust project commands.
+
+        Args:
+            file_path: Optional path to the Cargo.toml file
 
         Returns:
             List of command dictionaries
         """
-        if not TOML_AVAILABLE or not self.file_path.exists():
+        if file_path is None:
+            file_path = self.file_path
+
+        if not TOML_AVAILABLE or not file_path.exists():
             return []
 
         self._commands = []
+        self.file_path = file_path  # Update the instance file_path
 
         try:
-            with open(self.file_path, "rb") as f:
-                data = toml.load(f)
+            # Read as text first to handle encoding
+            content = file_path.read_text()
+            # Parse with toml
+            data = toml.loads(content)
 
             # Always include basic cargo commands
             self._add_basic_commands()
@@ -56,25 +65,32 @@ class CargoTomlParser(BaseParser):
 
     def _add_basic_commands(self) -> None:
         """Add basic cargo commands."""
+        from domd.core.commands import Command
+
         basic_commands = [
             ("cargo check", "Check Rust code"),
             ("cargo build", "Build Rust project"),
+            ("cargo run", "Run the Rust project"),
             ("cargo test", "Run Rust tests"),
             ("cargo clippy", "Lint Rust code"),
             ("cargo fmt", "Format Rust code"),
+            ("cargo doc --open", "Build and open documentation"),
         ]
 
         for cmd, desc in basic_commands:
             self._commands.append(
-                self._create_command_dict(
+                Command(
                     command=cmd,
                     description=desc,
-                    command_type="cargo",
+                    type="cargo_command",
+                    source=str(self.file_path),
                 )
             )
 
     def _extract_workspace_commands(self, data: Dict[str, Any]) -> None:
         """Extract commands from workspace members."""
+        from domd.core.commands import Command
+
         try:
             workspace = data.get("workspace", {})
             members = workspace.get("members", [])
@@ -82,10 +98,11 @@ class CargoTomlParser(BaseParser):
             for member in members:
                 # Add commands for each workspace member
                 self._commands.append(
-                    self._create_command_dict(
+                    Command(
                         command=f"cargo build -p {member}",
                         description=f"Build workspace member: {member}",
-                        command_type="cargo_workspace",
+                        type="cargo_workspace",
+                        source=str(self.file_path),
                     )
                 )
         except (AttributeError, KeyError):
@@ -93,6 +110,8 @@ class CargoTomlParser(BaseParser):
 
     def _extract_package_commands(self, data: Dict[str, Any]) -> None:
         """Extract commands from package metadata."""
+        from domd.core.commands import Command
+
         try:
             package = data.get("package", {})
             name = package.get("name", "")
@@ -100,10 +119,11 @@ class CargoTomlParser(BaseParser):
             if name:
                 # Add package-specific commands
                 self._commands.append(
-                    self._create_command_dict(
+                    Command(
                         command=f"cargo build -p {name}",
                         description=f"Build package: {name}",
-                        command_type="cargo_package",
+                        type="cargo_package",
+                        source=str(self.file_path),
                     )
                 )
         except (AttributeError, KeyError):

@@ -2,8 +2,6 @@
 Tests for Ansible inventory file detection and processing.
 """
 
-from pathlib import Path
-
 from domd.core.detector import ProjectCommandDetector
 
 

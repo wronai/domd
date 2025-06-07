@@ -2,7 +2,7 @@
 Tests for Ansible Galaxy integration and requirements handling.
 """
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from domd.core.detector import ProjectCommandDetector
 

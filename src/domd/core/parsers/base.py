@@ -2,21 +2,29 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Type, TypeVar
+
+T = TypeVar("T", bound="BaseParser")
 
 
 class BaseParser(ABC):
     """Abstract base class for all configuration file parsers."""
 
-    def __init__(self, file_path: Path, project_root: Optional[Path] = None):
+    def __init__(
+        self, file_path: Optional[Path] = None, project_root: Optional[Path] = None
+    ):
         """Initialize the parser.
 
         Args:
-            file_path: Path to the configuration file
-            project_root: Optional project root path (defaults to file's parent)
+            file_path: Optional path to the configuration file
+            project_root: Optional project root path (defaults to file's parent if file_path is provided)
         """
-        self.file_path = file_path.resolve()
-        self.project_root = project_root or self.file_path.parent
+        self.file_path = file_path.resolve() if file_path else None
+        self.project_root = (
+            project_root.resolve()
+            if project_root
+            else (self.file_path.parent if self.file_path else Path.cwd())
+        )
         self._commands: List[Dict] = []
 
     @property
@@ -30,7 +38,7 @@ class BaseParser(ABC):
         pass
 
     @classmethod
-    def can_parse(cls, file_path: Path) -> bool:
+    def can_parse(cls: Type[T], file_path: Path) -> bool:
         """Check if this parser can handle the given file.
 
         Args:
@@ -41,9 +49,8 @@ class BaseParser(ABC):
         """
         # Create a temporary instance to access the property
         try:
-            # Pass a dummy project root that exists to avoid errors
-            dummy_root = file_path.parent
-            parser = cls(file_path, dummy_root)
+            # Create an instance without file_path to access supported_file_patterns
+            parser = cls()
             patterns = parser.supported_file_patterns
             return any(
                 file_path.name == pattern or file_path.match(pattern)
