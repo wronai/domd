@@ -57,47 +57,126 @@ domd --venv /path/to/venv
 domd run-in-venv python -m pytest
 ```
 
-### 🎭 Ansible Support
+### 🎭 Ansible Integration
 
-DoMD provides comprehensive support for Ansible projects, including:
+DoMD provides comprehensive support for Ansible projects, making it easy to test and validate your infrastructure code.
 
-- **Playbooks**: Detection and testing of Ansible playbooks with support for multiple plays and variable files
-- **Roles**: Full support for Ansible role structure, dependencies, and metadata
-- **Inventories**: Both static and dynamic inventory detection with proper host and group variable resolution
-- **Vault**: Secure handling of encrypted content with vault password file support
-- **Galaxy**: Role and collection management through requirements files
+#### Features
 
-### Example Commands
+- **Playbook Testing**: Automatically detect and test Ansible playbooks with support for multiple plays and variable files
+- **Role Validation**: Full support for Ansible role structure, dependencies, and metadata verification
+- **Inventory Management**: Support for both static and dynamic inventories with proper host and group variable resolution
+- **Vault Security**: Secure handling of encrypted content with vault password file support
+- **Galaxy Integration**: Manage roles and collections through requirements files
+
+#### Directory Structure
+
+```
+ansible/
+├── site.yml              # Main playbook
+├── inventory/
+│   └── production        # Production inventory
+├── group_vars/           # Group variables
+├── host_vars/            # Host-specific variables
+├── roles/                # Custom roles
+└── requirements.yml      # Galaxy requirements
+```
+
+#### Quick Start
+
+1. **Install Ansible and dependencies**:
+   ```bash
+   # Install Ansible
+   python3 -m pip install --user ansible
+
+   # Install required collections
+   ansible-galaxy install -r ansible/requirements.yml
+   ```
+
+2. **Run the playbook**:
+   ```bash
+   # Dry run (check mode)
+   ansible-playbook -i ansible/inventory/production ansible/site.yml --check
+
+   # Full run
+   ansible-playbook -i ansible/inventory/production ansible/site.yml
+   ```
+
+3. **Using Vault**:
+   ```bash
+   # Create/edit encrypted file
+   ansible-vault edit ansible/group_vars/secrets.yml
+
+   # Run playbook with vault
+   ansible-playbook -i ansible/inventory/production ansible/site.yml --ask-vault-pass
+   ```
+
+#### Development Tools
 
 ```bash
-# Playbook execution
-ansible-playbook site.yml -i inventory/production
+# Run all Ansible tests
+make test-ansible
 
-# Role installation
-ansible-galaxy install -r requirements.yml
-
-# Vault operations
-ansible-vault encrypt group_vars/secrets.yml
-
-# Running tests
-make test-ansible        # Run all Ansible tests
+# Specific test targets
 make test-playbooks      # Test playbook functionality
 make test-roles          # Test role functionality
 make test-galaxy         # Test Galaxy integration
 make test-vault          # Test Vault operations
 make test-inventory      # Test inventory handling
+
+# Lint Ansible files
+make ansible-lint
 ```
 
-### Testing Strategy
+#### Testing Strategy
 
-Our Ansible integration includes comprehensive test coverage with:
+Our Ansible integration includes comprehensive test coverage:
 
-- Unit tests for individual components
-- Integration tests for playbook and role execution
-- Mocked tests for external dependencies
-- Fixtures for common Ansible structures
+- **Unit Tests**: Test individual components in isolation
+- **Integration Tests**: Verify playbook and role execution
+- **Mocked Tests**: Test external dependencies without actual infrastructure
+- **Fixtures**: Common Ansible structures for consistent testing
 
-To run the full test suite:
+#### Best Practices
+
+1. Always use `ansible-lint` to check your playbooks
+2. Encrypt sensitive data with `ansible-vault`
+3. Use `check` mode for dry runs
+4. Test with `--diff` to see changes
+5. Keep your collections updated with `ansible-galaxy collection install -r requirements.yml`
+
+#### Example Playbook
+
+```yaml
+---
+- name: Deploy DoMD
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Install system dependencies
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - python3
+        - python3-pip
+        - python3-venv
+
+    - name: Set up virtual environment
+      command: python3 -m venv /opt/domd/venv
+      args:
+        creates: /opt/domd/venv/bin/activate
+
+    - name: Install DoMD
+      pip:
+        name: .
+        virtualenv: /opt/domd/venv
+        virtualenv_command: python3 -m venv
+        state: present
+        editable: yes
+```
 
 ```bash
 # Install development dependencies

@@ -1,0 +1,16 @@
+---
+# Ansible Galaxy requirements for DoMD
+
+# Collections
+collections:
+  - name: community.general
+    version: 6.6.0
+  - name: ansible.posix
+    version: 1.5.4
+  - name: community.docker
+    version: 3.8.1
+
+# Roles
+# roles:
+#   - src: username.role_name
+#     version: v1.2.3

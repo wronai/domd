@@ -1,0 +1,40 @@
+---
+# Main playbook for the DoMD project
+- name: Configure and test DoMD
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Ensure required packages are installed
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - python3
+        - python3-pip
+        - python3-venv
+
+    - name: Create virtual environment
+      ansible.builtin.command: python3 -m venv /opt/domd/venv
+      args:
+        creates: /opt/domd/venv/bin/activate
+
+    - name: Install DoMD in development mode
+      pip:
+        name: .
+        virtualenv: /opt/domd/venv
+        virtualenv_command: python3 -m venv
+        state: present
+        editable: yes
+
+    - name: Run tests
+      command: /opt/domd/venv/bin/pytest -v
+      args:
+        chdir: /opt/domd
+      register: test_result
+      changed_when: false
+
+    - name: Show test results
+      debug:
+        var: test_result.stdout_lines

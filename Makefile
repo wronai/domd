@@ -40,34 +40,54 @@ test-ansible: ## Run all Ansible-related tests
 	@echo "Running all Ansible tests..."
 	poetry run pytest tests/test_ansible_*.py -v
 
+ansible-lint: ## Run ansible-lint on playbooks and roles
+	@echo "Running ansible-lint..."
+	if ! command -v ansible-lint >/dev/null; then \
+		echo "Installing ansible-lint..."; \
+		pip install --user ansible-lint; \
+	fi
+	ansible-lint -x role-name ansible/
+
+ansible-check: ## Check Ansible playbook syntax
+	@echo "Checking Ansible playbook syntax..."
+	ansible-playbook ansible/site.yml --syntax-check -i ansible/inventory/production
+
+ansible-dry-run: ## Run Ansible playbook in check mode (dry run)
+	@echo "Running Ansible in check mode..."
+	ansible-playbook ansible/site.yml --check --diff -i ansible/inventory/production
+
+ansible-install: ## Install Ansible Galaxy requirements
+	@echo "Installing Ansible Galaxy requirements..."
+	ansible-galaxy install -r ansible/requirements.yml
+
 test-ansible-unit: ## Run Ansible unit tests only
 	@echo "Running Ansible unit tests..."
 	poetry run pytest tests/test_ansible_*.py -m "unit" -v
 
 test-ansible-integration: ## Run Ansible integration tests
 	@echo "Running Ansible integration tests..."
-	poetry run pytest tests/test_ansible_*.py -m "integration" -v
+	ANSIBLE_CONFIG=ansible/ansible.cfg poetry run pytest tests/test_ansible_*.py -m "integration" -v
 
 # Specific Ansible component tests
 test-playbooks: ## Test Ansible playbook functionality
 	@echo "Testing Ansible playbooks..."
-	poetry run pytest tests/test_ansible_playbook.py -v
+	ANSIBLE_CONFIG=ansible/ansible.cfg poetry run pytest tests/test_ansible_playbook.py -v
 
 test-roles: ## Test Ansible role functionality
 	@echo "Testing Ansible roles..."
-	poetry run pytest tests/test_ansible_roles.py -v
+	ANSIBLE_CONFIG=ansible/ansible.cfg poetry run pytest tests/test_ansible_roles.py -v
 
 test-galaxy: ## Test Ansible Galaxy integration
 	@echo "Testing Ansible Galaxy..."
-	poetry run pytest tests/test_ansible_galaxy.py -v
+	ANSIBLE_CONFIG=ansible/ansible.cfg poetry run pytest tests/test_ansible_galaxy.py -v
 
 test-vault: ## Test Ansible Vault operations
 	@echo "Testing Ansible Vault..."
-	poetry run pytest tests/test_ansible_vault.py -v
+	ANSIBLE_CONFIG=ansible/ansible.cfg poetry run pytest tests/test_ansible_vault.py -v
 
 test-inventory: ## Test Ansible inventory handling
 	@echo "Testing Ansible inventory..."
-	poetry run pytest tests/test_ansible_inventory.py -v
+	ANSIBLE_CONFIG=ansible/ansible.cfg poetry run pytest tests/test_ansible_inventory.py -v
 
 # Test coverage
 coverage: ## Generate test coverage report
