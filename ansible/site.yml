@@ -2,11 +2,56 @@
 # Main playbook for the DoMD project
 - name: Configure and test DoMD
   hosts: all
-  become: true
-  gather_facts: true
+  gather_facts: false  # Skip gathering facts initially to avoid sudo prompt
+  vars:
+    project_root: "{{ lookup('env', 'PWD') | default(playbook_dir, true) }}"
+    home_dir: "{{ lookup('env', 'HOME') }}"
+    venv_path: "{{ home_dir }}/.local/venv/domd"
+    local_bin: "{{ home_dir }}/.local/bin"
+    ansible_become_pass: "{{ lookup('env', 'ANSIBLE_BECOME_PASS', default='') }}"
+
+  pre_tasks:
+    - name: Debug environment
+      debug:
+        msg: |
+          Project Root: {{ project_root }}
+          Home Directory: {{ home_dir }}
+          Venv Path: {{ venv_path }}
+          Local Bin: {{ local_bin }}
+          User: {{ ansible_user | default('not set') }}
+
+    - name: Ensure local bin directory exists
+      file:
+        path: "{{ local_bin }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      connection: local
+
+    - name: Add local bin to PATH if not already present
+      lineinfile:
+        path: "{{ home_dir }}/.bashrc"
+        line: 'export PATH="$HOME/.local/bin:$PATH"'
+        regexp: '^export PATH=.*\.local\/bin:.*$'
+        insertafter: EOF
+        create: yes
+        state: present
+      delegate_to: localhost
+      connection: local
 
   tasks:
-    - name: Ensure required packages are installed
+    - name: Check if running as root
+      command: whoami
+      register: whoami_result
+      changed_when: false
+      check_mode: no
+
+    - name: Set fact for is_root
+      set_fact:
+        is_root: "{{ whoami_result.stdout == 'root' }}"
+
+    - name: Install system dependencies (requires sudo)
+      become: true
       package:
         name: "{{ item }}"
         state: present
@@ -14,27 +59,60 @@
         - python3
         - python3-pip
         - python3-venv
+        - git
+        - make
+        - gcc
+        - python3-dev
+        - libffi-dev
+        - libssl-dev
+      when:
+        - ansible_os_family == 'Debian'
+        - not is_root | bool
 
     - name: Create virtual environment
-      ansible.builtin.command: python3 -m venv /opt/domd/venv
+      ansible.builtin.command: "python3 -m venv {{ venv_path }}"
       args:
-        creates: /opt/domd/venv/bin/activate
+        creates: "{{ venv_path }}/bin/activate"
+      register: venv_created
 
-    - name: Install DoMD in development mode
+    - name: Ensure pip is up to date
       pip:
-        name: .
-        virtualenv: /opt/domd/venv
-        virtualenv_command: python3 -m venv
+        name: pip
+        state: latest
+        virtualenv: "{{ venv_path }}"
+        virtualenv_python: python3
+      when: venv_created.changed
+
+    - name: Install project in development mode
+      pip:
+        name: "{{ project_root }}"
         state: present
+        virtualenv: "{{ venv_path }}"
+        virtualenv_python: python3
         editable: yes
 
+    - name: Install development dependencies
+      pip:
+        requirements: "{{ project_root }}/requirements-dev.txt"
+        virtualenv: "{{ venv_path }}"
+        virtualenv_python: python3
+      when: lookup('file', 'requirements-dev.txt') | bool
+
     - name: Run tests
-      command: /opt/domd/venv/bin/pytest -v
+      command: "{{ venv_path }}/bin/pytest -v"
       args:
-        chdir: /opt/domd
+        chdir: "{{ project_root }}"
       register: test_result
       changed_when: false
 
     - name: Show test results
       debug:
         var: test_result.stdout_lines
+
+    - name: Create symlink to virtual environment
+      file:
+        src: "{{ venv_path }}/bin/domd"
+        dest: "{{ ansible_user_dir }}/.local/bin/domd"
+        state: link
+        force: yes
+        mode: '0755'

@@ -1,5 +1,37 @@
+# Inventory for production environment
 [all:vars]
+# Python interpreter
 ansible_python_interpreter=/usr/bin/python3
 
+# Connection settings
+ansible_connection=local
+ansible_host=localhost
+
+# User settings
+ansible_user={{ lookup('env', 'USER') }}
+ansible_become=true
+ansible_become_method=sudo
+ansible_become_user=root
+
+# Project settings
+project_dir={{ lookup('env', 'PWD') }}
+venv_path={{ lookup('env', 'HOME') }}/.local/venv/domd
+
+# Local development group
 [local]
 localhost ansible_connection=local
+
+# Development servers
+[dev]
+# Add development servers here
+# dev1.example.com
+
+# Production servers
+[prod]
+# Add production servers here
+# prod1.example.com
+
+# Group of groups
+[all_servers:children]
+dev
+prod

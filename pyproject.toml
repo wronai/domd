@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "domd"
-version = "1.0.10"
+version = "1.0.12"
 description = "Project Command Detector - Automatically detects and tests project commands, generates TODO.md for failed commands"
 authors = ["Tom Sapletta <info@softreck.dev>"]
 maintainers = ["WRONAI Team"]
@@ -23,6 +23,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
     "Environment :: Console",
     "Natural Language :: English",
@@ -35,7 +37,7 @@ classifiers = [
 "Documentation" = "https://wronai.github.io/domd"
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<3.14"
+python = ">=3.8.1,<4.0"
 pyyaml = "^6.0"
 toml = "^0.10.2"
 configparser = "^5.3.0"

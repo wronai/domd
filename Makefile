@@ -95,45 +95,40 @@ coverage: ## Generate test coverage report
 	poetry run pytest --cov=domd --cov-report=term-missing --cov-report=html
 
 # Linting and code quality
-lint: ## Run linting and code quality checks
+lint: ## Run all linting and code quality checks
 	@echo "Running linting and code quality checks..."
-	poetry run flake8 src/domd/
-	poetry run black --check src/ tests/
-	poetry run isort --check-only src/ tests/
-
-format: ## Format code automatically
-	@echo "Formatting code..."
-	poetry run black src/ tests/
-	poetry run isort src/ tests/
-
-test-cov: ## Run tests with coverage report
-	poetry run pytest --cov=domd --cov-report=html --cov-report=term
-
-test-verbose: ## Run tests with verbose output
-	poetry run pytest -v
-
-# Code quality targets
-lint: ## Run all linting tools
 	poetry run black --check src/ tests/
 	poetry run isort --check-only src/ tests/
 	poetry run flake8 src/ tests/
 	poetry run mypy src/
 
 format: ## Format code with black and isort
+	@echo "Formatting code..."
 	poetry run black src/ tests/
 	poetry run isort src/ tests/
 
 format-check: ## Check if code is properly formatted
+	@echo "Checking code formatting..."
 	poetry run black --check src/ tests/
 	poetry run isort --check-only src/ tests/
 
+test-cov: ## Run tests with coverage report
+	@echo "Running tests with coverage..."
+	poetry run pytest --cov=domd --cov-report=html --cov-report=term
+
+test-verbose: ## Run tests with verbose output
+	@echo "Running tests with verbose output..."
+	poetry run pytest -v
+
 mypy: ## Run type checking
+	@echo "Running type checking with mypy..."
 	poetry run mypy src/
 
 flake8: ## Run flake8 linter
+	@echo "Running flake8 linting..."
 	poetry run flake8 src/ tests/
-
 pylint: ## Run pylint
+	@echo "Running pylint..."
 	poetry run pylint src/domd/
 
 # Documentation targets
