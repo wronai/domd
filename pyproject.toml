@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "domd"
-version = "1.0.16"
+version = "1.0.17"
 description = "Project Command Detector - Automatically detects and tests project commands, generates TODO.md for failed commands"
 authors = ["Tom Sapletta <info@softreck.dev>"]
 maintainers = ["WRONAI Team"]
