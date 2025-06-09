@@ -18,7 +18,7 @@ PARSER_MODULES = [
     "domd.parsers.build_systems",
     "domd.parsers.ci_cd",
     "domd.parsers.docker",
-    "domd.parsers.javascript",
+    "domd.parsers.javascript",  # This now includes package.json parser
     "domd.parsers.python",
 ]
 

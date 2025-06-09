@@ -1,7 +1,9 @@
 """Parser for package.json files."""
 
 import json
-from typing import TYPE_CHECKING, List
+import logging
+from pathlib import Path
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from .base import BaseParser
 
@@ -17,22 +19,49 @@ class PackageJsonParser(BaseParser):
         """Return supported file patterns for package.json."""
         return ["package.json"]
 
-    def parse(self) -> "List[Command]":
-        """Parse package.json and extract npm scripts as commands.
+    def parse(self, file_path=None, content=None) -> "List[Command]":
+        """Parse package.json and extract npm scripts.
+
+        Args:
+            file_path: Path to the package.json file (mutually exclusive with content)
+            content: Content of the package.json file (mutually exclusive with file_path)
 
         Returns:
             List of Command objects
         """
+        import logging
+
         from domd.core.commands import Command
 
-        if not self.file_path.exists():
-            return []
-
+        logger = logging.getLogger(__name__)
         self._commands: List[Command] = []
 
         try:
-            with open(self.file_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            # If content is provided, parse it directly
+            if content is not None:
+                data = json.loads(content)
+                source = "in-memory"
+            # Otherwise, read from file
+            elif file_path is not None:
+                file_path = Path(file_path)
+                if not file_path.exists():
+                    logger.warning(f"File not found: {file_path}")
+                    return []
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                source = str(file_path)
+            # Fallback to instance file_path if available
+            elif (
+                hasattr(self, "file_path")
+                and self.file_path
+                and self.file_path.exists()
+            ):
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                source = str(self.file_path)
+            else:
+                logger.warning("No valid file path or content provided")
+                return []
 
             # Extract scripts
             scripts = data.get("scripts", {})
@@ -48,7 +77,7 @@ class PackageJsonParser(BaseParser):
                         command=command,
                         description=description,
                         type="npm_script",
-                        source=str(self.file_path),
+                        source=source,
                         metadata={
                             "script_name": script_name,
                             "script_command": script_command,
@@ -57,8 +86,16 @@ class PackageJsonParser(BaseParser):
                     )
                 )
 
-        except (json.JSONDecodeError, KeyError) as e:
-            print(f"Error parsing {self.file_path}: {e}")
+        except json.JSONDecodeError as e:
+            logger.error(
+                f"Invalid JSON in {source if 'source' in locals() else 'content'}: {e}"
+            )
+            return []
+        except KeyError as e:
+            logger.error(f"Missing expected key in package.json: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Error parsing package.json: {e}", exc_info=True)
             return []
 
         return self._commands
