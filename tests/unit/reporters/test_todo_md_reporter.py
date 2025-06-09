@@ -35,18 +35,22 @@ class TestTodoMdReporter:
         """Sample command results for testing."""
         return [
             CommandResult(
-                command=Command("test", "test", "Run tests", "test.py"),
-                returncode=0,
+                success=True,
+                return_code=0,
+                execution_time=1.23,
                 stdout="Tests passed",
                 stderr="",
-                duration=1.23,
+                command="test",
+                environment={},
             ),
             CommandResult(
-                command=Command("build", "build", "Build project", "build.py"),
-                returncode=1,
+                success=False,
+                return_code=1,
+                execution_time=2.34,
                 stdout="Build failed",
                 stderr="Error: Build failed",
-                duration=2.34,
+                command="build",
+                environment={},
             ),
         ]
 
