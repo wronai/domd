@@ -609,7 +609,7 @@ class ProjectCommandDetector:
                         f.write("- **Fix Suggestion**: \n\n")  # noqa: E231
                         f.write(
                             "  ```bash\n  # Suggested fix\n  # Replace with the correct command\n  ```\n\n"
-                        )
+                        )  # noqa: E201, E202, E221, E231
                 else:
                     f.write("No failed commands found. 🎉\n\n")
 

@@ -4,8 +4,6 @@ Tests for configuration file parsers.
 
 import json
 
-from domd.core.parsers.base import BaseParser
-
 
 def test_pyproject_toml_parser(temp_project):
     """Test parsing pyproject.toml files."""

@@ -12,6 +12,7 @@ import toml
 from domd.core.commands import Command
 from domd.core.detector import ProjectCommandDetector
 from domd.core.parsers import MakefileParser, PackageJsonParser
+from domd.core.parsing.file_processor import FileProcessor
 
 
 class TestProjectCommandDetector:
