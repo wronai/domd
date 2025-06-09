@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from domd.command_execution import CommandExecutor, CommandRunner
+from domd.core.commands import Command
 from domd.core.project_detection.command_handling import CommandHandler
 from domd.core.project_detection.config_files import ConfigFileHandler
 from domd.core.project_detection.virtualenv import (
@@ -191,11 +192,11 @@ class ProjectCommandDetector:
         """
         return get_virtualenv_environment(self.venv_info)
 
-    def scan_project(self) -> List[Dict[str, Any]]:
+    def scan_project(self) -> List[Command]:
         """Scan the project for commands in configuration files.
 
         Returns:
-            List of command dictionaries
+            List of Command objects
         """
         logger.info(f"Scanning project: {self.project_path}")
 
@@ -270,7 +271,25 @@ class ProjectCommandDetector:
                 continue
 
         logger.info(f"Found {len(all_commands)} commands in total")
-        return all_commands
+
+        # Konwertuj wszystkie słowniki na obiekty Command
+        result_commands = []
+        for cmd in all_commands:
+            if isinstance(cmd, dict):
+                command = Command(
+                    command=cmd.get("command", ""),
+                    type=cmd.get("type", ""),
+                    description=cmd.get("description", ""),
+                    source=cmd.get("source", ""),
+                    file=cmd.get("file", ""),
+                    metadata=cmd.get("metadata", {}),
+                )
+                result_commands.append(command)
+            else:
+                # Już jest obiektem Command lub podobnym
+                result_commands.append(cmd)
+
+        return result_commands
 
     def _get_parser_for_file(self, file_path: Path) -> Optional[BaseParser]:
         """Get a parser for a specific file (legacy method).

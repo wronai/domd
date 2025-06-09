@@ -4,19 +4,21 @@ from typing import List
 
 import yaml
 
-from ..commands import Command
-from .base import BaseParser
+from domd.core.commands import Command
+from domd.core.parsing.base import BaseParser
 
 
 class DockerComposeParser(BaseParser):
     """Parser for docker-compose.yml files."""
 
-    @property
-    def supported_file_patterns(self) -> List[str]:
-        return ["docker-compose.yml", "docker-compose.yaml"]
+    # Class variable for supported file patterns
+    supported_file_patterns = ["docker-compose.yml", "docker-compose.yaml"]
 
-    def parse(self) -> List[Command]:
-        """Parse a docker-compose.yml file and return a list of commands.
+    def _parse_commands(self, content: str) -> List[Command]:
+        """Parse docker-compose.yml content and extract commands.
+
+        Args:
+            content: Content of the docker-compose.yml file.
 
         Returns:
             List of Command objects.
@@ -26,8 +28,7 @@ class DockerComposeParser(BaseParser):
             return commands
 
         try:
-            with open(self.file_path, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f) or {}
+            data = yaml.safe_load(content) or {}
 
             # Add basic docker-compose commands
             base_commands = [
@@ -44,7 +45,7 @@ class DockerComposeParser(BaseParser):
                 commands.append(
                     Command(
                         command=f"docker-compose {cmd}",
-                        type=cmd_type,  # Using consistent type for all docker-compose commands
+                        type=cmd_type,
                         description=f"Docker Compose: {description}",
                         source=str(self.file_path),
                     )
@@ -70,8 +71,34 @@ class DockerComposeParser(BaseParser):
                     )
                 )
 
-        except (yaml.YAMLError, OSError):
-            # Log error or handle as needed
-            pass
+        except yaml.YAMLError as e:
+            logger.error(f"Error parsing docker-compose.yml {self.file_path}: {e}")
 
         return commands
+
+    def parse(self, content: str = None) -> List[Command]:
+        """Parse a docker-compose.yml file and return a list of commands.
+
+        Args:
+            content: Optional content to parse. If not provided, reads from file_path.
+
+        Returns:
+            List of Command objects.
+        """
+        if content is None:
+            if not self.file_path or not self.file_path.exists():
+                return []
+            try:
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except OSError as e:
+                logger.error(f"Error reading docker-compose.yml {self.file_path}: {e}")
+                return []
+
+        try:
+            return self._parse_commands(content)
+        except Exception as e:
+            logger.error(
+                f"Error parsing docker-compose.yml {self.file_path or 'content'}: {e}"
+            )
+            return []

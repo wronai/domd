@@ -14,8 +14,6 @@ from domd.core.detector import ProjectCommandDetector
 from domd.core.parsers import (
     CargoTomlParser,
     ComposerJsonParser,
-    DockerComposeParser,
-    DockerfileParser,
     GoModParser,
     MakefileParser,
     PackageJsonParser,
@@ -23,6 +21,7 @@ from domd.core.parsers import (
     ToxIniParser,
 )
 from domd.core.parsers.base import BaseParser
+from domd.parsers.docker import DockerComposeParser, DockerfileParser
 
 # Import test utilities
 from tests.helpers.test_utils import (

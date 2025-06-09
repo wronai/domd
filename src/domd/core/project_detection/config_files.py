@@ -107,8 +107,10 @@ class ConfigFileHandler:
 
         for parser in parsers:
             try:
-                if hasattr(parser, "can_parse"):
-                    can_parse = parser.can_parse(file_path)
+                # Wywołaj can_parse jako metodę klasową, a nie instancji
+                parser_class = parser.__class__
+                if hasattr(parser_class, "can_parse"):
+                    can_parse = parser_class.can_parse(file_path)
                     if can_parse:
                         return True
             except Exception as e:

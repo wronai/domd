@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "domd"
-version = "1.0.52"
+version = "1.0.57"
 description = "Project Command Detector - Automatically detects and tests project commands, generates TODO.md for failed commands"
 authors = ["Tom Sapletta <info@softreck.dev>"]
 maintainers = ["WRONAI Team"]
@@ -47,6 +47,7 @@ pathlib = { version = "*", python = ">=3.4" }
 colorama = { version = "^0.4.6", optional = true }
 rich = { version = "^13.0.0", optional = true }
 click = { version = "^8.1.0", optional = true }
+flask = { version = "^2.0.0", optional = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -54,6 +55,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 domd = "domd.cli:main"
+domd-api = "domd.api:main"
 project-detector = "domd.cli:main"
 cmd-detector = "domd.cli:main"
 
@@ -104,9 +106,10 @@ click = "^8.1.0"
 
 # Optional extras
 [tool.poetry.extras]
-colors = ["colorama", "rich"]
+ui = ["colorama", "rich"]
 cli = ["click"]
-all = ["colorama", "rich", "click"]
+api = ["flask"]
+all = ["colorama", "rich", "click", "flask"]
 
 # Development tools configuration
 [tool.black]

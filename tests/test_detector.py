@@ -926,7 +926,7 @@ commands = mkdocs build --clean
         """Test parsing docker-compose.yml."""
         import yaml
 
-        from domd.core.parsers.docker_compose import DockerComposeParser
+        from domd.parsers.docker.docker_compose import DockerComposeParser
 
         # Create a sample docker-compose.yml
         docker_compose_data = {

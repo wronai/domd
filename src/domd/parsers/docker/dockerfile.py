@@ -4,16 +4,20 @@ import re
 from pathlib import Path
 from typing import List
 
-from ..commands import Command
-from .base import BaseParser
+from domd.core.commands import Command
+from domd.core.parsing.base import BaseParser
 
 
 class DockerfileParser(BaseParser):
     """Parser for Dockerfile files."""
 
-    @property
-    def supported_file_patterns(self) -> List[str]:
-        return ["Dockerfile", "Dockerfile.*", "**/Dockerfile", "**/Dockerfile.*"]
+    # Class variable for supported file patterns
+    supported_file_patterns = [
+        "Dockerfile",
+        "Dockerfile.*",
+        "**/Dockerfile",
+        "**/Dockerfile.*",
+    ]
 
     def _extract_image_name(self, file_path: Path) -> str:
         """Extract a default image name from the Dockerfile path.
@@ -60,8 +64,11 @@ class DockerfileParser(BaseParser):
 
         return ports
 
-    def parse(self) -> List[Command]:
-        """Parse a Dockerfile and return a list of commands.
+    def _parse_commands(self, content: str) -> List[Command]:
+        """Parse Dockerfile content and extract commands.
+
+        Args:
+            content: Content of the Dockerfile.
 
         Returns:
             List of Command objects.
@@ -70,35 +77,68 @@ class DockerfileParser(BaseParser):
             return []
 
         commands = []
+        image_name = self._extract_image_name(self.file_path)
+        exposed_ports = self._extract_exposed_ports(content)
+
+        # Default port mapping if no ports are exposed
+        port_mapping = "-p 80:80"
+        if exposed_ports:
+            # Use the first exposed port for the default mapping
+            port = exposed_ports[0]
+            port_mapping = f"-p {port}:{port}"
+
+            # If port 80 is exposed, prefer it for the default mapping
+            if "80" in exposed_ports:
+                port_mapping = "-p 80:80"
+
+        # Add build command
+        build_cmd = f"docker build -t {image_name} ."
+        commands.append(
+            Command(
+                command=build_cmd,
+                type="docker_build",
+                description=f"Docker: Build {image_name} image",
+                source=str(self.file_path),
+            )
+        )
+
+        # Add run command if we have exposed ports
+        run_cmd = f"docker run {port_mapping} {image_name}"
+        commands.append(
+            Command(
+                command=run_cmd,
+                type="docker_run",
+                description=f"Docker: Run {image_name} container",
+                source=str(self.file_path),
+            )
+        )
+
+        return commands
+
+    def parse(self, content: str = None) -> List[Command]:
+        """Parse a Dockerfile and return a list of commands.
+
+        Args:
+            content: Optional content to parse. If not provided, reads from file_path.
+
+        Returns:
+            List of Command objects.
+        """
+        if content is None:
+            if not self.file_path or not self.file_path.exists():
+                return []
+            try:
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except Exception as e:
+                logger.error(f"Error reading Dockerfile {self.file_path}: {e}")
+                return []
 
         try:
-            with open(self.file_path, "r", encoding="utf-8") as f:
-                content = f.read()
-
-            image_name = self._extract_image_name(self.file_path)
-            exposed_ports = self._extract_exposed_ports(content)
-
-            # Default port mapping if no ports are exposed
-            port_mapping = "-p 80:80"
-            if exposed_ports:
-                # Use the first exposed port for the default mapping
-                port = exposed_ports[0]
-                port_mapping = f"-p {port}:{port}"
-
-                # If port 80 is exposed, prefer it for the default mapping
-                if "80" in exposed_ports:
-                    port_mapping = "-p 80:80"
-
-            # Add build command
-            build_cmd = f"docker build -t {image_name} ."
-            commands.append(
-                Command(
-                    command=build_cmd,
-                    type="docker_build",
-                    description=f"Docker: Build {image_name} image",
-                    source=str(self.file_path),
-                )
-            )
+            return self._parse_commands(content)
+        except Exception as e:
+            logger.error(f"Error parsing Dockerfile {self.file_path or 'content'}: {e}")
+            return []
 
             # Add run command with port mapping
             run_cmd = f"docker run --rm {port_mapping} {image_name}"

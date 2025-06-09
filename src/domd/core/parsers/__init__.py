@@ -8,8 +8,8 @@ from .ansible_vault import AnsibleVaultParser
 from .base import BaseParser
 from .cargo_toml import CargoTomlParser
 from .composer_json import ComposerJsonParser
-from .docker_compose import DockerComposeParser
-from .dockerfile import DockerfileParser
+
+# Docker parsers are now in the domd.parsers.docker module
 from .go_mod import GoModParser
 from .makefile import MakefileParser
 from .package_json import PackageJsonParser
@@ -25,8 +25,7 @@ __all__ = [
     "BaseParser",
     "CargoTomlParser",
     "ComposerJsonParser",
-    "DockerComposeParser",
-    "DockerfileParser",
+    # Docker-related parsers are now in domd.parsers.docker
     "GoModParser",
     "MakefileParser",
     "PackageJsonParser",

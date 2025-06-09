@@ -1,16 +1,29 @@
 #!/usr/bin/env python3
 """
-Enhanced CLI with .doignore support
+Enhanced CLI with clean architecture support
 """
 
 import argparse
+import logging
 import signal
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from . import __version__
+from .adapters.cli.command_presenter import CommandPresenter
+from .application.factory import ApplicationFactory
+
+# Tymczasowy import dla kompatybilności wstecznej
 from .core.detector import ProjectCommandDetector
+from .core.domain.command import Command
+from .core.ports.command_executor import CommandExecutor
+from .core.ports.command_repository import CommandRepository
+from .core.ports.report_formatter import ReportFormatter
+from .core.services.command_service import CommandService
+from .core.services.report_service import ReportService
+
+logger = logging.getLogger(__name__)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -49,115 +62,102 @@ Workflow:
     parser.add_argument(
         "--path",
         "-p",
-        type=str,
         default=".",
         help="Path to project directory (default: current directory)",
     )
 
     parser.add_argument(
-        "--dry-run",
-        "-d",
-        action="store_true",
-        help="Only detect commands without creating files or executing",
-    )
-
-    parser.add_argument(
-        "--init-only",
-        action="store_true",
-        help="Only create TODO.md, todo.sh, and .doignore template (no testing)",
-    )
-
-    parser.add_argument(
-        "--generate-ignore",
-        action="store_true",
-        help="Generate .doignore template file and exit",
-    )
-
-    parser.add_argument(
-        "--show-ignored",
-        action="store_true",
-        help="Show which commands would be ignored and exit",
-    )
-
-    parser.add_argument(
-        "--ignore-file",
-        type=str,
-        default=".doignore",
-        help="Custom ignore file path (default: .doignore)",
-    )
-
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        help="Enable verbose output with detailed logging",
-    )
-
-    parser.add_argument(
-        "--quiet", "-q", action="store_true", help="Suppress all output except errors"
-    )
-
-    parser.add_argument(
         "--todo-file",
-        type=str,
         default="TODO.md",
-        help="TODO markdown file path (default: TODO.md)",
+        help="Output file for failed commands (default: TODO.md)",
     )
 
     parser.add_argument(
         "--script-file",
-        type=str,
         default="todo.sh",
-        help="Executable script file path (default: todo.sh)",
+        help="Output script file (default: todo.sh)",
+    )
+
+    parser.add_argument(
+        "--ignore-file",
+        default=".domdignore",
+        help="Ignore file (default: .domdignore)",
     )
 
     parser.add_argument(
         "--timeout",
         type=int,
         default=60,
-        help="Command timeout in seconds (default: 60)",
+        help="Command execution timeout in seconds (default: 60)",
     )
 
     parser.add_argument(
         "--exclude",
+        "-e",
         action="append",
-        help="Exclude specific file patterns (can be used multiple times)",
+        help="Exclude files/dirs (can be used multiple times)",
     )
 
     parser.add_argument(
         "--include-only",
+        "-i",
         action="append",
-        help="Include only specific file patterns (can be used multiple times)",
+        help="Include only specific files/dirs (can be used multiple times)",
+    )
+
+    parser.add_argument(
+        "--dry-run",
+        "-d",
+        action="store_true",
+        help="Show commands without executing them",
+    )
+
+    parser.add_argument(
+        "--init-only",
+        action="store_true",
+        help="Only create TODO.md and todo.sh without testing commands",
+    )
+
+    parser.add_argument(
+        "--generate-ignore",
+        action="store_true",
+        help="Generate .domdignore template file",
+    )
+
+    parser.add_argument(
+        "--show-ignored",
+        action="store_true",
+        help="Show what commands would be ignored via .domdignore",
+    )
+
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
+    )
+
+    parser.add_argument(
+        "--quiet", "-q", action="store_true", help="Suppress all output except errors"
     )
 
     return parser
 
 
-def setup_signal_handlers(detector: ProjectCommandDetector):
+def setup_signal_handlers(command_service: CommandService) -> None:
     """Setup signal handlers for graceful interruption."""
 
-    def signal_handler(signum, frame):
-        """Handle interruption signals gracefully."""
-        print("\n🛑 Execution interrupted by user")
-        print("💾 Saving current progress...")
-
-        if hasattr(detector, "failed_commands") and hasattr(
-            detector, "successful_commands"
-        ):
-            all_commands = detector.failed_commands + detector.successful_commands
-            if all_commands:
-                detector._finalize_todo_md(all_commands)
-                print(f"📝 Progress saved to {detector.todo_file}")
-
-        sys.exit(130)
+    def signal_handler(sig, frame):
+        print("\n⚠️  Interrupted by user. Cleaning up...")
+        # Tutaj można dodać kod do czyszczenia
+        sys.exit(1)
 
     signal.signal(signal.SIGINT, signal_handler)
-    if hasattr(signal, "SIGTERM"):
-        signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
 
 def validate_args(args: argparse.Namespace) -> Optional[str]:
     """Validate command line arguments."""
+    if args.quiet and args.verbose:
+        return "Cannot use --quiet and --verbose together"
+
     project_path = Path(args.path)
     if not project_path.exists():
         return f"Project path does not exist: {project_path}"
@@ -165,170 +165,93 @@ def validate_args(args: argparse.Namespace) -> Optional[str]:
     if not project_path.is_dir():
         return f"Project path is not a directory: {project_path}"
 
-    if args.timeout <= 0:
-        return "Timeout must be a positive integer"
-
-    if args.verbose and args.quiet:
-        return "Cannot specify both --verbose and --quiet"
-
     return None
 
 
 def setup_logging(verbose: bool, quiet: bool) -> None:
-    """Setup logging based on verbosity level.
+    """
+    Setup logging based on verbosity level.
 
     Args:
         verbose: Enable verbose logging (DEBUG level)
         quiet: Enable quiet mode (ERROR level only)
     """
-    import logging
+    log_level = logging.INFO
+    if verbose:
+        log_level = logging.DEBUG
+    elif quiet:
+        log_level = logging.ERROR
 
-    from domd.core.utils.logging_utils import setup_logging as setup_logging_util
-
-    if quiet:
-        level = logging.ERROR
-    elif verbose:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-
-    # Use the utility function from logging_utils
-    setup_logging_util(level=level)
-
-
-def handle_generate_ignore(detector: ProjectCommandDetector) -> int:
-    """Handle --generate-ignore option."""
-    print("📝 Generating .doignore template...")
-    detector.generate_doignore_template()
-
-    ignore_file_path = (
-        detector.project_path / detector.ignore_parser.ignore_file_path.name
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
-    if ignore_file_path.exists():
-        print(f"✅ Created .doignore template at {ignore_file_path}")
-        print("💡 Edit this file to customize which commands to skip")
-        print("📖 See examples and patterns in the template")
+
+
+def handle_generate_ignore(project_path: Path, ignore_file: str) -> int:
+    """Handle --generate-ignore option."""
+    try:
+        # Tymczasowo używamy starego kodu
+        detector = ProjectCommandDetector(
+            project_path=project_path,
+            ignore_file=ignore_file,
+        )
+        detector.generate_domdignore_template()
+        print(f"✅ Generated {ignore_file} template file")
+        print(f"💡 Edit {ignore_file} to customize ignored commands")
         return 0
-    else:
-        print("❌ Failed to create .doignore template")
+    except Exception as e:
+        print(f"❌ Error generating ignore file: {e}", file=sys.stderr)
         return 1
 
 
-def handle_show_ignored(detector: ProjectCommandDetector) -> int:
+def handle_show_ignored(
+    command_service: CommandService,
+    repository: CommandRepository,
+    presenter: CommandPresenter,
+    project_path: Path,
+    ignore_file: str,
+) -> int:
     """Handle --show-ignored option."""
-    print("🔍 Scanning commands and showing ignore status...")
-
-    # Scan all commands
-    all_commands = detector.scan_project()
-
-    if not all_commands:
-        print("❌ No commands found to analyze")
-        return 0
-
-    # Separate ignored and testable commands
-    ignored_commands = []
-    testable_commands = []
-
-    for cmd in all_commands:
-        if detector.ignore_parser.should_ignore_command(cmd["command"]):
-            reason = detector.ignore_parser.get_ignore_reason(cmd["command"])
-            cmd["ignore_reason"] = reason
-            ignored_commands.append(cmd)
-        else:
-            testable_commands.append(cmd)
-
-    # Report results
-    total = len(all_commands)
-    ignored_count = len(ignored_commands)
-    testable_count = len(testable_commands)
-
-    print("\n📊 Command Analysis Results:")
-    print(f"   Total commands found: {total}")
-    print(f"   🧪 Commands to test: {testable_count}")
-    print(f"   🚫 Commands to ignore: {ignored_count}")
-
-    if ignored_commands:
-        print("\n🚫 Commands that will be IGNORED:")
-        print("   (based on .domdignore rules)")
-        print()
-
-        # Group by ignore reason
-        by_reason = {}
-        for cmd in ignored_commands:
-            reason = cmd.get("ignore_reason", "unknown")
-            if reason not in by_reason:
-                by_reason[reason] = []
-            by_reason[reason].append(cmd)
-
-        for reason, commands in by_reason.items():
-            print(f"   📋 {reason}:")  # noqa: E231
-            for cmd in commands:
-                print(f"      🚫 {cmd['command']} ({cmd['source']})")  # noqa: E231
-            print()
-
-    if testable_commands:
-        print("🧪 Commands that will be TESTED:")
-        print()
-        for i, cmd in enumerate(testable_commands, 1):
-            print(f"   {i:3d}. {cmd['command']}")
-            print(f"        Source: {cmd['source']}")
-            print(f"        Description: {cmd['description']}")
-            print()
-
-    if ignored_count > 0:
-        print(
-            f"💡 To modify ignore rules, edit: {detector.ignore_parser.ignore_file_path}"
+    try:
+        # Tymczasowo używamy starego kodu
+        detector = ProjectCommandDetector(
+            project_path=project_path,
+            ignore_file=ignore_file,
         )
 
-    return 0
+        # Skanuj projekt i załaduj wzorce ignorowania
+        commands = detector.scan_project()
+        detector._load_ignore_patterns()
 
+        # Testuj komendy (tylko sprawdzanie ignorowania)
+        for cmd in commands:
+            # Konwertuj słownik na obiekt Command
+            command = Command(
+                command=cmd.get("command", ""),
+                type=cmd.get("type", ""),
+                description=cmd.get("description", ""),
+                source=cmd.get("source", ""),
+                metadata=cmd.get("metadata", {}),
+            )
 
-def print_summary(detector: ProjectCommandDetector, total_commands: int) -> None:
-    """Print execution summary with ignore statistics."""
-    # Poprawne zliczanie komend niezależnie od ich typu (obiekt Command lub słownik)
-    successful = len(detector.successful_commands)
-    failed = len(detector.failed_commands)
-    ignored = len(detector.ignored_commands)
+            # Sprawdź, czy komenda powinna być ignorowana
+            if command_service.should_ignore_command(command):
+                repository.mark_as_ignored(command)
+            else:
+                repository.add_command(command)
 
-    # Upewnij się, że statystyki są aktualne
-    total_tested = successful + failed
-
-    print("\n" + "=" * 60)
-    print("EXECUTION SUMMARY")
-    print("=" * 60)
-    print("📊 Results:")
-    print(f"   Total commands found: {total_tested + ignored}")
-    print(f"   Commands tested:  {total_tested}")
-    print(f"   Commands ignored:  {ignored} (via .domdignore)")
-    print(f"   ✅ Successful:  {successful}")
-    print(f"   ❌ Failed:  {failed}")
-
-    if total_commands > 0:
-        success_rate = (successful / total_commands) * 100
-        print(f"   📈 Success rate: {success_rate:.1f}%")
-
-    print("📝 Files:")
-    print(f"   📋 TODO file: {detector.todo_file}")
-    print(f"   🔧 Script file: {detector.script_file}")
-    print(f"   🚫 Ignore file: {detector.ignore_parser.ignore_file_path}")  # noqa: E231
-
-    if failed > 0:
-        print("\n🔧 Next steps:")
-        print(f"   1. Review failed commands in {detector.todo_file}")
-        print("   2. Add problematic commands to .doignore")
-        print(f"   3. Edit {detector.script_file} if needed")
-        print("   4. Re-run: domd")
-    else:
-        print("\n🎉 All testable commands executed successfully!")
-
-    if ignored > 0:
-        print("\n🚫 Ignored commands:")
-        print(f"   {ignored} commands were skipped via .doignore")
-        print("   Use --show-ignored to see which commands are ignored")
+        # Wyświetl ignorowane komendy
+        presenter.print_dry_run(show_ignored=True)
+        return 0
+    except Exception as e:
+        print(f"❌ Error showing ignored commands: {e}", file=sys.stderr)
+        return 1
 
 
 def main() -> int:
-    """Enhanced main entry point with .doignore support."""
+    """Enhanced main entry point with clean architecture support."""
     parser = create_parser()
     args = parser.parse_args()
 
@@ -342,9 +265,64 @@ def main() -> int:
     setup_logging(args.verbose, args.quiet)
 
     try:
-        # Initialize enhanced detector with ignore support
+        # Inicjalizacja ścieżek
+        project_path = Path(args.path).resolve()
+
+        # Inicjalizacja komponentów aplikacji
+        repository = ApplicationFactory.create_command_repository()
+        executor = ApplicationFactory.create_command_executor(max_retries=1)
+        formatter = ApplicationFactory.create_report_formatter()
+
+        # Załaduj wzorce ignorowania
+        ignore_patterns = []
+        ignore_file_path = project_path / args.ignore_file
+        if ignore_file_path.exists():
+            with open(ignore_file_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        ignore_patterns.append(line)
+
+        # Inicjalizacja usług
+        command_service = ApplicationFactory.create_command_service(
+            repository=repository,
+            executor=executor,
+            timeout=args.timeout,
+            ignore_patterns=ignore_patterns,
+        )
+
+        report_service = ApplicationFactory.create_report_service(
+            repository=repository,
+            project_path=project_path,
+            todo_file=args.todo_file,
+            done_file="DONE.md",
+        )
+
+        # Inicjalizacja prezentera
+        presenter = ApplicationFactory.create_command_presenter(repository)
+
+        if not args.quiet:
+            print(f"TodoMD v{__version__} - Project Command Detector with .domdignore")
+            print(f"🔍 Project: {project_path}")
+            print(f"📝 TODO file: {args.todo_file}")
+            print(f"🔧 Script file: {args.script_file}")
+            print(f"🚫 Ignore file: {args.ignore_file}")
+
+        # Handle special modes
+        if args.generate_ignore:
+            return handle_generate_ignore(project_path, args.ignore_file)
+
+        if args.show_ignored:
+            return handle_show_ignored(
+                command_service, repository, presenter, project_path, args.ignore_file
+            )
+
+        # Setup signal handlers
+        setup_signal_handlers(command_service)
+
+        # Tymczasowo używamy starego kodu do skanowania projektu
         detector = ProjectCommandDetector(
-            project_path=args.path,
+            project_path=project_path,
             timeout=args.timeout,
             exclude_patterns=args.exclude or [],
             include_patterns=args.include_only or [],
@@ -353,121 +331,62 @@ def main() -> int:
             ignore_file=args.ignore_file,
         )
 
-        if not args.quiet:
-            print(f"TodoMD v{__version__} - Project Command Detector with .domdignore")
-            print(f"🔍 Project: {Path(args.path).resolve()}")
-            print(f"📝 TODO file: {args.todo_file}")
-            print(f"🔧 Script file: {args.script_file}")
-            print(f"🚫 Ignore file: {args.ignore_file}")
+        # Skanuj projekt
+        commands = detector.scan_project()
 
-        # Handle special modes
-        if args.generate_ignore:
-            return handle_generate_ignore(detector)
+        # Dodaj komendy do repozytorium
+        for command in commands:
+            repository.add_command(command)
 
-        if args.show_ignored:
-            return handle_show_ignored(detector)
-
-        # Setup signal handlers
-        setup_signal_handlers(detector)
-
-        # Scan and filter commands
-        commands = detector.scan_and_initialize()
         if not commands:
             return 0
 
         # Handle dry-run mode
         if args.dry_run:
             if not args.quiet:
-                print("\n🔍 DRY RUN MODE - Filtered commands:")
-                for i, cmd in enumerate(commands, 1):
-                    # Obsługa zarówno obiektów Command jak i słowników
-                    if (
-                        hasattr(cmd, "description")
-                        and hasattr(cmd, "command")
-                        and hasattr(cmd, "source")
-                    ):
-                        # To jest obiekt Command
-                        description = cmd.description
-                        command = cmd.command
-                        source = cmd.source
-                    elif isinstance(cmd, dict):
-                        # To jest słownik
-                        description = cmd.get("description", "No description")
-                        command = cmd.get("command", "No command")
-                        source = cmd.get("source", "Unknown source")
-                    else:
-                        # Nieznany typ, pokaż co mamy
-                        description = str(cmd)
-                        command = str(cmd)
-                        source = type(cmd).__name__
-
-                    print(f"{i:3d}. {description}")
-                    print(f"     Command:  {command}")
-                    print(f"     Source:   {source}")
-                    print()
-
-                if detector.ignored_commands:
-                    print(
-                        f"🚫 Would ignore {len(detector.ignored_commands)} commands via .domdignore"
-                    )
+                presenter.print_dry_run(show_ignored=False)
             return 0
 
         # Handle init-only mode
         if args.init_only:
             # Also generate .domdignore template if it doesn't exist
-            if not (detector.project_path / args.ignore_file).exists():
+            if not ignore_file_path.exists():
                 detector.generate_domdignore_template()
 
             if not args.quiet:
-                print("\n✅ Initialization complete!")
-                print(
-                    f"📋 Created {args.todo_file} with {len(commands)} testable commands"
+                presenter.print_init_only(
+                    todo_file=args.todo_file,
+                    script_file=args.script_file,
+                    ignore_file=args.ignore_file,
                 )
-                print(f"🔧 Created executable {args.script_file}")
-                if detector.ignored_commands:
-                    print(
-                        f"🚫 Ignored {len(detector.ignored_commands)} commands via .domdignore"
-                    )
-                print("\n💡 Next steps:")
-                print(
-                    f"   • Review and edit {args.ignore_file} to adjust ignored commands"
-                )
-                print(f"   • Run: ./{args.script_file} to execute commands manually")
-                print("   • Or run: domd to test with TodoMD")
-                print("   • Use: domd --show-ignored to see ignored commands")
             return 0
 
         # Test commands with real-time updates
         if not args.quiet:
             print(f"\n🧪 Testing {len(commands)} commands...")
-            if detector.ignored_commands:
-                print(
-                    f"🚫 Ignoring {len(detector.ignored_commands)} commands via .domdignore"
-                )
             print(f"📊 Progress will be updated in {args.todo_file}")
 
-        detector.test_commands(commands)
+        # Testuj komendy
+        command_service.test_commands(commands)
+
+        # Generuj raporty
+        todo_path, done_path = report_service.generate_reports(formatter)
 
         # Print summary
         if not args.quiet:
-            # Używamy rzeczywistej liczby przetestowanych komend, a nie początkowej listy
-            total_tested = len(detector.successful_commands) + len(
-                detector.failed_commands
+            presenter.print_summary(
+                todo_file=str(todo_path),
+                done_file=str(done_path),
+                script_file=args.script_file,
+                ignore_file=args.ignore_file,
             )
-            print_summary(detector, total_tested)
 
         # Return exit code based on results
-        return 1 if detector.failed_commands else 0
+        return 1 if repository.get_failed_commands() else 0
 
-    except KeyboardInterrupt:
-        print("\n⚠️  Operation cancelled by user", file=sys.stderr)
-        return 130
     except Exception as e:
-        print(f"💥 Unexpected error: {e}", file=sys.stderr)
-        if args.verbose:
-            import traceback
-
-            traceback.print_exc()
+        logger.error(f"Error: {e}", exc_info=True)
+        print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
 
