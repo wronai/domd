@@ -36,8 +36,8 @@ class CommandHandler:
         self.ignore_patterns = ignore_patterns or []
         self.pattern_matcher = PatternMatcher()
 
-        # Wczytaj komendy, które powinny być wykonywane w kontenerze Docker
-        self.docker_commands = []
+        # Load commands that should be executed in Docker container
+        self.docker_commands = {}
         docker_file_path = self.project_path / ".dodocker"
         if docker_file_path.exists():
             try:
@@ -45,12 +45,22 @@ class CommandHandler:
                     for line in f:
                         line = line.strip()
                         if line and not line.startswith("#"):
-                            self.docker_commands.append(line)
+                            # Check if line starts with 'docker:'
+                            if line.startswith("docker:"):
+                                # Extract the actual command after 'docker:'
+                                command = line[7:].strip()
+                                self.docker_commands[command] = True
+                            else:
+                                # Regular command, store with False to indicate it shouldn't run in Docker
+                                self.docker_commands[line] = False
+
+                docker_count = sum(1 for v in self.docker_commands.values() if v)
                 logger.info(
-                    f"Loaded {len(self.docker_commands)} Docker commands from {docker_file_path}"
+                    f"Loaded {len(self.docker_commands)} commands from {docker_file_path} "
+                    f"({docker_count} to run in Docker)"
                 )
             except Exception as e:
-                logger.error(f"Error loading Docker commands: {e}")
+                logger.error(f"Error loading .dodocker commands: {e}")
 
         # Command storage - może zawierać zarówno obiekty Command jak i słowniki
         self.failed_commands: List[Union[Command, Dict[str, Any]]] = []
@@ -234,12 +244,15 @@ class CommandHandler:
         if not self.docker_commands:
             return False
 
-        # Sprawdź dokładne dopasowanie
+        # Check for exact match first
         if command in self.docker_commands:
-            return True
+            return self.docker_commands[command]
 
-        # Sprawdź dopasowanie wzorców
-        return self.pattern_matcher.match_command(command, self.docker_commands)
+        # Check for pattern match only for commands explicitly marked with docker:
+        docker_patterns = [
+            cmd for cmd, use_docker in self.docker_commands.items() if use_docker
+        ]
+        return self.pattern_matcher.match_command(command, docker_patterns)
 
     def execute_single_command(self, cmd_info) -> bool:
         """Execute a single command and update the command info with results.

@@ -456,6 +456,77 @@ make: *** No rule to make target 'src/main.c', needed by 'build'. Stop.
 | `--timeout` | Command timeout in seconds | `60` |
 | `--exclude` | Exclude file patterns | `None` |
 | `--include-only` | Include only specific patterns | `None` |
+| `--ignore-file` | Path to custom ignore file | `.doignore` |
+
+### 🔒 Ignoring Commands with `.doignore`
+
+DoMD allows you to specify commands that should be ignored during execution using a `.doignore` file. This is useful for skipping known problematic or interactive commands.
+
+#### `.doignore` File Format
+
+```
+# Ignore specific commands (exact match)
+npm run dev
+python manage.py runserver
+
+# Ignore using patterns (supports glob patterns)
+*serve*
+*test*
+*debug*
+
+# Comments start with #
+# This line is ignored
+```
+
+#### How It Works
+- Each line in the file represents a pattern to match against commands
+- Lines starting with `#` are treated as comments
+- Blank lines are ignored
+- Patterns support glob-style wildcards (`*` matches any sequence of characters)
+- Matches are case-insensitive
+
+### 🐳 Running Commands in Docker with `.dodocker`
+
+For better isolation and consistency, you can specify commands that should be executed inside a Docker container using a `.dodocker` file.
+
+#### `.dodocker` File Format
+
+```
+# Commands to run in Docker container
+pytest
+black --check .
+flake8
+mypy .
+```
+
+#### How It Works
+- Each line specifies a command that should be run in a Docker container
+- Commands are executed in the `python:3.9` container by default
+- The project directory is mounted to `/app` in the container
+- The working directory is set to `/app`
+- The container is automatically removed after execution
+
+#### Customizing Docker Configuration
+
+You can customize the Docker configuration by creating a `Dockerfile` in your project root. For example:
+
+```dockerfile
+FROM python:3.9
+
+# Install additional dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY pyproject.toml poetry.lock ./
+RUN pip install poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi
+```
+
+DoMD will automatically detect and use this `Dockerfile` when running commands in a container.
 
 ## 🤖 Programmatic Usage
 

@@ -56,7 +56,7 @@ class CommandPresenter:
         print("📊 Results:")
         print(f"   Total commands found: {total_commands}")
         print(f"   Commands tested:  {total_tested}")
-        print(f"   Commands ignored:  {ignored} (via .domdignore)")
+        print(f"   Commands ignored:  {ignored} (via .doignore)")
         print(f"   ✅ Successful:  {successful}")
         print(f"   ❌ Failed:  {failed}")
 
@@ -103,7 +103,7 @@ class CommandPresenter:
             print()
 
         if ignored_commands and not show_ignored:
-            print(f"🚫 Would ignore {len(ignored_commands)} commands via .domdignore")
+            print(f"🚫 Would ignore {len(ignored_commands)} commands via .doignore")
 
     def print_init_only(
         self, todo_file: str, script_file: str, ignore_file: str
@@ -124,7 +124,7 @@ class CommandPresenter:
         print(f"🔧 Created executable {script_file}")
 
         if ignored_commands:
-            print(f"🚫 Ignored {len(ignored_commands)} commands via .domdignore")
+            print(f"🚫 Ignored {len(ignored_commands)} commands via .doignore")
 
         print("\n💡 Next steps:")
         print(f"   • Review and edit {ignore_file} to adjust ignored commands")

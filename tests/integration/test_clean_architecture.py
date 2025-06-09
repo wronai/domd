@@ -173,9 +173,9 @@ class CleanArchitectureIntegrationTest(unittest.TestCase):
             f.write(
                 """
             # Test Project
-            
+
             Run the following commands:
-            
+
             ```bash
             npm run build
             npm run test

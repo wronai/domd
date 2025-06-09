@@ -6,7 +6,7 @@
 #   - Pattern match: *recursive*
 #   - Comment with #
 #   - Empty lines ignored
-
+make help
 # === RECURSIVE/SELF-REFERENTIAL COMMANDS ===
 # Prevent infinite loops
 poetry run domd

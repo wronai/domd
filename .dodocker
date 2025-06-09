@@ -1,19 +1,22 @@
-# Commands to be executed in Docker container during testing
-# Each line represents a command that should be run in the container
-# These commands will be executed by taskguard in the Docker environment
+# Commands to be executed during testing
+# Lines starting with 'docker:' will be executed in a Docker container
+# All other commands will be executed in the local shell
 
-# Install dependencies
+# Install dependencies (runs in local shell)
 pip install -e .
 
-# Run tests
+# Run tests (runs in local shell)
 pytest -v
 
-# Run linters
+# Run linters (runs in local shell)
 black --check .
 isort --check-only .
 flake8
 mypy .
 
-# Test the CLI
+# Test the CLI (runs in local shell)
 python -m domd --help
 python -m domd --version
+
+# Example of a command that should run in Docker
+# docker: some-command-that-needs-docker
