@@ -36,10 +36,10 @@ class CommandHandler:
         self.ignore_patterns = ignore_patterns or []
         self.pattern_matcher = PatternMatcher()
 
-        # Command storage
-        self.failed_commands: List[Dict[str, Any]] = []
-        self.successful_commands: List[Dict[str, Any]] = []
-        self.ignored_commands: List[Dict[str, Any]] = []
+        # Command storage - może zawierać zarówno obiekty Command jak i słowniki
+        self.failed_commands: List[Union[Command, Dict[str, Any]]] = []
+        self.successful_commands: List[Union[Command, Dict[str, Any]]] = []
+        self.ignored_commands: List[Union[Command, Dict[str, Any]]] = []
 
     def execute_command(
         self,

@@ -376,24 +376,115 @@ class ProjectCommandDetector:
         """
         logger.info("Generating reports")
 
-        # Use the Reporter to generate reports
-        todo_path = self.reporter.generate_report(
-            data=self.failed_commands, formatter_name="todo", output_file=self.todo_file
-        )
+        # Konwertuj obiekty Command na słowniki
+        failed_commands_dicts = []
+        for cmd in self.failed_commands:
+            if hasattr(cmd, 'to_dict'):
+                # Jeśli to obiekt Command, użyj metody to_dict
+                cmd_dict = cmd.to_dict()
+                # Dodaj dodatkowe pola wymagane przez formater bezpośrednio z atrybutów
+                if hasattr(cmd, 'return_code'):
+                    cmd_dict['return_code'] = getattr(cmd, 'return_code')
+                elif hasattr(cmd, 'metadata') and isinstance(cmd.metadata, dict):
+                    cmd_dict['return_code'] = cmd.metadata.get('return_code', -1)
+                else:
+                    cmd_dict['return_code'] = -1
+                    
+                if hasattr(cmd, 'error'):
+                    cmd_dict['error'] = getattr(cmd, 'error')
+                elif hasattr(cmd, 'metadata') and isinstance(cmd.metadata, dict):
+                    cmd_dict['error'] = cmd.metadata.get('error', '')
+                else:
+                    cmd_dict['error'] = ''
+                    
+                if hasattr(cmd, 'execution_time'):
+                    cmd_dict['execution_time'] = getattr(cmd, 'execution_time')
+                elif hasattr(cmd, 'metadata') and isinstance(cmd.metadata, dict):
+                    cmd_dict['execution_time'] = cmd.metadata.get('execution_time', 0)
+                else:
+                    cmd_dict['execution_time'] = 0
+                    
+                if hasattr(cmd, 'success'):
+                    cmd_dict['success'] = getattr(cmd, 'success')
+                    
+                if hasattr(cmd, 'stdout'):
+                    cmd_dict['stdout'] = getattr(cmd, 'stdout')
+                    
+                if hasattr(cmd, 'stderr'):
+                    cmd_dict['stderr'] = getattr(cmd, 'stderr')
+                    
+                failed_commands_dicts.append(cmd_dict)
+            elif isinstance(cmd, dict):
+                # Jeśli to już słownik, użyj go bezpośrednio
+                failed_commands_dicts.append(cmd)
 
-        done_path = self.reporter.generate_report(
-            data=self.successful_commands,
-            formatter_name="done",
-            output_file=self.done_file,
-        )
+        successful_commands_dicts = []
+        for cmd in self.successful_commands:
+            if hasattr(cmd, 'to_dict'):
+                cmd_dict = cmd.to_dict()
+                # Dodaj dodatkowe pola wymagane przez formater bezpośrednio z atrybutów
+                if hasattr(cmd, 'execution_time'):
+                    cmd_dict['execution_time'] = getattr(cmd, 'execution_time')
+                elif hasattr(cmd, 'metadata') and isinstance(cmd.metadata, dict):
+                    cmd_dict['execution_time'] = cmd.metadata.get('execution_time', 0)
+                else:
+                    cmd_dict['execution_time'] = 0
+                    
+                if hasattr(cmd, 'success'):
+                    cmd_dict['success'] = getattr(cmd, 'success')
+                    
+                if hasattr(cmd, 'stdout'):
+                    cmd_dict['stdout'] = getattr(cmd, 'stdout')
+                    
+                successful_commands_dicts.append(cmd_dict)
+            elif isinstance(cmd, dict):
+                # Jeśli to już słownik, użyj go bezpośrednio
+                successful_commands_dicts.append(cmd)
+
+        # Przygotuj dane dla raportów
+        failed_data = {
+            "commands": failed_commands_dicts,
+            "failed_commands": failed_commands_dicts,
+            "successful_commands": [],
+            "ignored_commands": []
+        }
+        
+        successful_data = {
+            "commands": successful_commands_dicts,
+            "failed_commands": [],
+            "successful_commands": successful_commands_dicts,
+            "ignored_commands": []
+        }
+
+        # Użyj formatera bezpośrednio
+        todo_formatter = self.reporter._formatter_instances.get("todo")
+        if not todo_formatter:
+            # Jeśli nie ma instancji formatera, utwórz nową
+            todo_formatter = MarkdownFormatter(title="TODO Commands")
+            
+        # Sformatuj dane i zapisz do pliku
+        todo_content = todo_formatter.format_report(failed_data)
+        self.todo_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.todo_file, "w", encoding="utf-8") as f:
+            f.write(todo_content)
+        
+        # To samo dla raportu DONE
+        done_formatter = self.reporter._formatter_instances.get("done")
+        if not done_formatter:
+            done_formatter = MarkdownFormatter(title="DONE Commands")
+            
+        done_content = done_formatter.format_report(successful_data)
+        self.done_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.done_file, "w", encoding="utf-8") as f:
+            f.write(done_content)
 
         # Generate shell script if needed
         if self.script_file:
             self._generate_shell_script()
 
         return {
-            "todo": todo_path,
-            "done": done_path,
+            "todo": self.todo_file,
+            "done": self.done_file,
             "script": self.script_file if self.script_file else None,
         }
 

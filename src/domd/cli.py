@@ -285,16 +285,20 @@ def handle_show_ignored(detector: ProjectCommandDetector) -> int:
 
 def print_summary(detector: ProjectCommandDetector, total_commands: int) -> None:
     """Print execution summary with ignore statistics."""
+    # Poprawne zliczanie komend niezależnie od ich typu (obiekt Command lub słownik)
     successful = len(detector.successful_commands)
     failed = len(detector.failed_commands)
     ignored = len(detector.ignored_commands)
-
+    
+    # Upewnij się, że statystyki są aktualne
+    total_tested = successful + failed
+    
     print("\n" + "=" * 60)
     print("EXECUTION SUMMARY")
     print("=" * 60)
     print("📊 Results:")
-    print(f"   Total commands found: {total_commands + ignored}")
-    print(f"   Commands tested:  {total_commands}")
+    print(f"   Total commands found: {total_tested + ignored}")
+    print(f"   Commands tested:  {total_tested}")
     print(f"   Commands ignored:  {ignored} (via .domdignore)")
     print(f"   ✅ Successful:  {successful}")
     print(f"   ❌ Failed:  {failed}")
@@ -376,9 +380,26 @@ def main() -> int:
             if not args.quiet:
                 print("\n🔍 DRY RUN MODE - Filtered commands:")
                 for i, cmd in enumerate(commands, 1):
-                    print(f"{i:3d}. {cmd['description']}")
-                    print(f"     Command:  {cmd['command']}")
-                    print(f"     Source:   {cmd['source']}")
+                    # Obsługa zarówno obiektów Command jak i słowników
+                    if hasattr(cmd, 'description') and hasattr(cmd, 'command') and hasattr(cmd, 'source'):
+                        # To jest obiekt Command
+                        description = cmd.description
+                        command = cmd.command
+                        source = cmd.source
+                    elif isinstance(cmd, dict):
+                        # To jest słownik
+                        description = cmd.get('description', 'No description')
+                        command = cmd.get('command', 'No command')
+                        source = cmd.get('source', 'Unknown source')
+                    else:
+                        # Nieznany typ, pokaż co mamy
+                        description = str(cmd)
+                        command = str(cmd)
+                        source = type(cmd).__name__
+                        
+                    print(f"{i:3d}. {description}")
+                    print(f"     Command:  {command}")
+                    print(f"     Source:   {source}")
                     print()
 
                 if detector.ignored_commands:
@@ -425,7 +446,9 @@ def main() -> int:
 
         # Print summary
         if not args.quiet:
-            print_summary(detector, len(commands))
+            # Używamy rzeczywistej liczby przetestowanych komend, a nie początkowej listy
+            total_tested = len(detector.successful_commands) + len(detector.failed_commands)
+            print_summary(detector, total_tested)
 
         # Return exit code based on results
         return 1 if detector.failed_commands else 0

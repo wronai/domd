@@ -127,7 +127,7 @@ class TestParserIntegration:
             assert (
                 commands[0]["command"] == "custom_parser_command"
             ), "Custom parser was not used"
-            assert detector._command_handler is not None
+            assert detector.command_handler is not None
 
     def test_parser_error_handling(self, temp_project, caplog):
         """Test that parser errors are handled gracefully."""
