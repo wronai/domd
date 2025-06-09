@@ -5,19 +5,19 @@
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Tests](https://github.com/wronai/domd/workflows/Tests/badge.svg)](https://github.com/wronai/domd/actions)
 
-**DoMD** (DoM Detector) to narzędzie do automatycznego wykrywania i wykonywania komend w projektach programistycznych. Automatycznie wykrywa dostępne komendy z plików konfiguracyjnych (np. `package.json`, `Makefile`, `pyproject.toml`) i wykonuje je, generując szczegółowe raporty.
+**DoMD** (DoM Detector) is a tool for automatically detecting and executing commands in development projects. It automatically detects available commands from configuration files (e.g., `package.json`, `Makefile`, `pyproject.toml`) and executes them, generating detailed reports.
 
-## 📦 Instalacja
+## 📦 Installation
 
 ```bash
-# Instalacja przez pip
+# Install via pip
 pip install domd
 
-# Lub z repozytorium
+# Or from the repository
 pip install git+https://github.com/wronai/domd.git
 ```
 
-## 🚀 Szybki start
+## 🚀 Quick Start
 
 ```bash
 # Przejdź do katalogu projektu

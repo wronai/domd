@@ -32,7 +32,7 @@ class TestDodockerHandling:
                     return_code=0,
                     execution_time=0.1,
                     stdout="Command executed successfully",
-                    stderr=""
+                    stderr="",
                 )
 
             def execute_in_directory(self, command, directory, timeout=None, env=None):
@@ -44,7 +44,7 @@ class TestDodockerHandling:
                     return_code=0,
                     execution_time=0.1,
                     stdout="Command executed successfully",
-                    stderr=""
+                    stderr="",
                 )
 
         return MockCommandHandler()
