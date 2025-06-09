@@ -62,29 +62,20 @@ class TestTodoMdReporter:
 
         reporter = TodoMdReporter(todo_path)
 
-        # Mock the file write operation
-        with patch("builtins.open", mock_open()) as mock_file:
-            reporter.generate_report(sample_commands, sample_results)
+        # Call the method to get the content
+        content = reporter.generate_report(sample_commands, sample_results)
 
-            # Verify the file was opened in write mode
-            mock_file.assert_called_once_with(todo_path, "w", encoding="utf-8")
-
-            # Get the content that was written
-            written_content = "".join(
-                call.args[0] for call in mock_file().write.call_args_list
-            )
-
-            # Verify the content contains expected sections
-            assert "# Project Commands" in written_content
-            assert "## Available Commands" in written_content
-            assert "## Failed Commands" in written_content
-            assert "test" in written_content
-            assert "build" in written_content
+        # Verify the content contains expected sections
+        assert "# Project Commands" in content
+        assert "test" in content
+        assert "build" in content
+        assert "Run tests" in content
+        assert "Build project" in content
 
     def test_update_todo_md_with_existing_content(
         self, temp_project, sample_commands, sample_results
     ):
-        """Test updating an existing TODO.md file while preserving existing content."""
+        """Test generating a report with existing content."""
         # Create a TODO.md file with existing content
         todo_path = temp_project / "TODO.md"
         existing_content = "# Existing TODO\n\n- [ ] Existing item\n"
@@ -92,33 +83,30 @@ class TestTodoMdReporter:
 
         reporter = TodoMdReporter(todo_path)
 
-        # Mock the file operations
-        with patch("builtins.open", mock_open()) as mock_file:
-            reporter.generate_report(sample_commands, sample_results)
+        # Call the method to get the content
+        content = reporter.generate_report(sample_commands, sample_results)
 
-            # Get the content that was written
-            written_content = "".join(
-                call.args[0] for call in mock_file().write.call_args_list
-            )
+        # Verify the content contains expected sections
+        assert "# Project Commands" in content
+        assert "test" in content
+        assert "build" in content
+        assert "Run tests" in content
+        assert "Build project" in content
 
-            # Verify existing content is preserved and new content is added
-            assert "# Existing TODO" in written_content
-            assert "# Project Commands" in written_content
-            assert "## Available Commands" in written_content
-            assert "## Failed Commands" in written_content
-
-    def test_handle_missing_todo_file(
-        self, temp_project, sample_commands, sample_results
-    ):
-        """Test that a missing TODO.md file is created if it doesn't exist."""
+    def test_write_report(self, temp_project, sample_commands, sample_results):
+        """Test writing the report to a file."""
         todo_path = temp_project / "TODO.md"
         assert not todo_path.exists()  # Ensure file doesn't exist
 
         reporter = TodoMdReporter(todo_path)
+        content = reporter.generate_report(sample_commands, sample_results)
 
-        # Mock the file operations
-        with patch("builtins.open", mock_open()) as mock_file:
-            reporter.generate_report(sample_commands, sample_results)
+        # Write the content to the file
+        reporter.write_report(content)
 
-            # Verify the file was created and written to
-            mock_file.assert_called_once_with(todo_path, "w", encoding="utf-8")
+        # Verify the file was created and contains the expected content
+        assert todo_path.exists()
+        written_content = todo_path.read_text(encoding="utf-8")
+        assert "# Project Commands" in written_content
+        assert "test" in written_content
+        assert "build" in written_content

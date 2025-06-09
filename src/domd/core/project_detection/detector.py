@@ -51,10 +51,13 @@ class ProjectCommandDetector:
         self.timeout = timeout
         self.exclude_patterns = exclude_patterns or []
         self.include_patterns = include_patterns or []
-        self.todo_file = Path(todo_file)
-        self.done_file = Path(done_file)
-        self.script_file = Path(script_file)
-        self.ignore_file = self.project_path / ignore_file
+
+        # Resolve file paths relative to project_path
+        self.todo_file = (self.project_path / Path(todo_file)).resolve()
+        self.done_file = (self.project_path / Path(done_file)).resolve()
+        self.script_file = (self.project_path / Path(script_file)).resolve()
+        # Store ignore_file as a Path object relative to project_path
+        self.ignore_file = self.project_path / Path(ignore_file)
 
         # Initialize virtual environment
         self.venv_path = venv_path
@@ -204,31 +207,42 @@ class ProjectCommandDetector:
 
                 logger.debug(f"Parsing {file_path} with {parser.__class__.__name__}")
 
-                # Check if parser.parse accepts file_path parameter
-                import inspect
-
-                sig = inspect.signature(parser.parse)
-
-                if "file_path" in sig.parameters:
-                    commands = parser.parse(file_path=file_path)
-                else:
-                    # Legacy parser - read file content and pass to parse method
+                # Odczytaj zawartość pliku
+                try:
                     with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
-                    commands = parser.parse(content)
+                except Exception as e:
+                    logger.error(f"Error reading file {file_path}: {e}")
+                    continue
+                    
+                # Spróbuj różne sposoby wywołania metody parse
+                try:
+                    # Najpierw spróbuj z oboma parametrami
+                    import inspect
+                    sig = inspect.signature(parser.parse)
+                    
+                    if len(sig.parameters) >= 3 and "content" in sig.parameters and "file_path" in sig.parameters:
+                        commands = parser.parse(content=content, file_path=file_path)
+                    elif "file_path" in sig.parameters:
+                        commands = parser.parse(file_path=file_path)
+                    elif "content" in sig.parameters:
+                        commands = parser.parse(content=content)
+                    else:
+                        # Ostatnia szansa - spróbuj przekazać tylko content jako pierwszy argument
+                        commands = parser.parse(content)
 
-                # Add file path to commands if not already present
-                for cmd in commands:
-                    if isinstance(cmd, dict) and "file" not in cmd:
-                        cmd["file"] = str(file_path)
-                    elif hasattr(cmd, "file") and not cmd.file:
-                        cmd.file = str(file_path)
+                    # Add file path to commands if not already present
+                    for cmd in commands:
+                        if isinstance(cmd, dict) and "file" not in cmd:
+                            cmd["file"] = str(file_path)
+                        elif hasattr(cmd, "file") and not cmd.file:
+                            cmd.file = str(file_path)
 
-                all_commands.extend(commands)
-                logger.debug(f"Found {len(commands)} commands in {file_path}")
+                    all_commands.extend(commands)
+                    logger.debug(f"Found {len(commands)} commands in {file_path}")
 
-            except Exception as e:
-                logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
+                except Exception as e:
+                    logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
 
         logger.info(f"Found {len(all_commands)} commands in total")
         return all_commands
@@ -398,3 +412,52 @@ class ProjectCommandDetector:
         # This method would be implemented in a separate module
         # focused on LLM integration
         pass
+
+    def scan_and_initialize(self) -> List[Dict[str, Any]]:
+        """Scan the project, test commands, and generate reports.
+
+        This method combines functionality from scan_project, test_commands, and generate_reports
+        for backward compatibility with the CLI interface.
+
+        Returns:
+            List of command dictionaries
+        """
+        logger.info("Starting scan_and_initialize")
+
+        # Step 1: Scan the project for commands
+        commands = self.scan_project()
+
+        # Step 2: Load ignore patterns from .doignore file
+        self._load_ignore_patterns()
+
+        # Step 3: Test the commands
+        self.test_commands(commands)
+
+        # Step 4: Generate reports
+        self.generate_reports()
+
+        return commands
+
+    def _load_ignore_patterns(self) -> None:
+        """Load ignore patterns from .doignore file."""
+        if not self.ignore_file.exists():
+            logger.debug(f"Ignore file not found: {self.ignore_file}")
+            return
+
+        try:
+            with open(self.ignore_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+            patterns = []
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    patterns.append(line)
+
+            self.ignore_patterns = patterns
+            self.command_handler.ignore_patterns = patterns
+            logger.info(
+                f"Loaded {len(patterns)} ignore patterns from {self.ignore_file}"
+            )
+        except Exception as e:
+            logger.error(f"Error loading ignore patterns: {e}")

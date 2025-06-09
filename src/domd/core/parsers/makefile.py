@@ -24,17 +24,34 @@ class MakefileParser(BaseParser):
             or file_path.name == "Makefile"
         )
 
-    def parse(self) -> "List[Command]":
+    def parse(self, content=None, file_path=None) -> "List[Command]":
         """Parse Makefile and extract targets as commands.
+
+        Args:
+            content: Optional content of the file to parse
+            file_path: Optional path to the file
 
         Returns:
             List of Command objects
         """
-        if not self.file_path.exists():
-            return []
-
         self._commands = []
-        content = self.file_path.read_text(encoding="utf-8")
+
+        # Obsługa zarówno bezpośredniego wywołania, jak i wywołania z zawartością pliku
+        if content is None:
+            if not hasattr(self, "file_path") or self.file_path is None:
+                if file_path:
+                    self.file_path = (
+                        Path(file_path)
+                        if not isinstance(file_path, Path)
+                        else file_path
+                    )
+                else:
+                    return []
+
+            if not self.file_path.exists():
+                return []
+
+            content = self.file_path.read_text(encoding="utf-8")
 
         # Pattern to match Makefile targets
         # This matches targets that:

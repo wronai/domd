@@ -53,20 +53,21 @@ class TodoMdReporter:
         for source, cmds in commands_by_source.items():
             sections.append(f"## {source}\n")
 
-            for cmd in sorted(cmds, key=lambda c: c.name):
-                # Find the corresponding result
-                result = next((r for r in results if r.command == cmd), None)
+            for cmd in sorted(cmds, key=lambda c: c.command):
+                # Find the corresponding result by matching command strings
+                result = next((r for r in results if r.command == cmd.command), None)
 
                 # Determine status
                 if cmd in failed_commands:
                     status = "❌ Failed to execute"
-                elif result and result.returncode != 0:
-                    status = f"❌ Failed (exit code: {result.returncode})"
+                elif result and not result.success:
+                    status = f"❌ Failed (exit code: {result.return_code})"
                 else:
                     status = "✅ Success"
 
                 # Add command info
-                sections.append(f"### {cmd.name}\n")
+                sections.append(f"### {cmd.command}\n")
+                sections.append(f"- **Type:** {cmd.type}")
                 sections.append(
                     f"- **Description:** {cmd.description or 'No description'}"
                 )
@@ -78,8 +79,11 @@ class TodoMdReporter:
                         sections.append(f"- **Output:**\n```\n{result.stdout}\n```")
                     if result.stderr:
                         sections.append(f"- **Errors:**\n```\n{result.stderr}\n```")
-                    if result.duration is not None:
-                        sections.append(f"- **Duration:** {result.duration:.2f}s")
+                    if (
+                        hasattr(result, "execution_time")
+                        and result.execution_time is not None
+                    ):
+                        sections.append(f"- **Duration:** {result.execution_time:.2f}s")
                 else:
                     sections.append("- **Status:** Not executed")
 

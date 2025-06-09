@@ -34,7 +34,7 @@ class TestProjectCommandDetector:
         assert detector.todo_file == temp_project / "CUSTOM_TODO.md"
         assert detector.done_file == temp_project / "CUSTOM_DONE.md"
         assert detector.script_file == temp_project / "custom_todo.sh"
-        assert detector.ignore_file == ".customignore"
+        assert detector.ignore_file == temp_project / ".customignore"
 
     @pytest.mark.unit
     def test_detector_default_initialization(self):
@@ -48,7 +48,7 @@ class TestProjectCommandDetector:
         assert detector.todo_file == Path("TODO.md").resolve()
         assert detector.done_file == Path("DONE.md").resolve()
         assert detector.script_file == Path("todo.sh").resolve()
-        assert detector.ignore_file == ".doignore"
+        assert detector.ignore_file == Path(".").resolve() / ".doignore"
 
     @pytest.mark.unit
     def test_scan_project_with_config_files(self, temp_project):
