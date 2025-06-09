@@ -121,7 +121,7 @@ class CommandHandler:
                 logger.error(f"Command failed with code {result.return_code}")
                 if result.stderr:
                     logger.error(
-                        f"Error output: {result.stderr[:500]}{'...' if len(result.stderr) > 500 else ''}"
+                        f"Error output: {result.stderr[:500]}{'...' if len(result.stderr) > 500 else ''}"  # noqa: E231
                     )
                 self.failed_commands.append(result_dict)
 
@@ -280,7 +280,7 @@ class CommandHandler:
         if use_docker:
             logger.info(f"Executing command in Docker: {command}")
             # Przygotuj komendę do wykonania w kontenerze Docker
-            docker_command = f'docker run --rm -v {self.project_path}:/app -w /app python:3.9 sh -c "{command}"'
+            docker_command = f'docker run --rm -v {self.project_path}:/app -w /app python:3.9 sh -c "{command}"'  # noqa: E231
             command = docker_command
 
         logger.info("Executing command: %s", command)
@@ -288,7 +288,10 @@ class CommandHandler:
         try:
             # Execute the command through the command runner
             result = self.command_runner.run(
-                command=command, timeout=timeout, cwd=cwd, env=env
+                command=command,  # noqa: E221
+                timeout=timeout,  # noqa: E221
+                cwd=cwd,  # noqa: E221
+                env=env,
             )
 
             # Update command info with results

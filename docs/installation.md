@@ -96,24 +96,10 @@ pip install --upgrade pip setuptools wheel
 pip install --no-cache-dir domd
 ```
 
-## Następne kroki
-
-- [Przejdź do przewodnika użytkownika](usage.md) aby dowiedzieć się, jak korzystać z DoMD
-- [Zapoznaj się z funkcjami](features/) aby poznać wszystkie możliwości narzędzia
-
-# Dostęp do nieudanych komend
-for cmd in detector.failed_commands:
-    print(f"Failed: {cmd['description']}")
-    print(f"Error: {cmd.get('error', 'N/A')}")
-    print(f"Source: {cmd['source']}")
-    print("---")
-```
-
-## 🐛 Rozwiązywanie problemów
-
 ### Częste problemy
 
-**1. Błąd: "Command not found"**
+#### 1. Błąd: "Command not found"
+
 ```bash
 # Sprawdź czy narzędzie jest zainstalowane
 which npm  # lub yarn, make, docker, itp.
@@ -123,7 +109,8 @@ sudo apt install make  # Ubuntu/Debian
 brew install make      # macOS
 ```
 
-**2. Błąd: "Permission denied"**
+#### 2. Błąd: "Permission denied"
+
 ```bash
 # Sprawdź uprawnienia
 ls -la Makefile
@@ -132,60 +119,32 @@ chmod +x scripts/build.sh
 # Może wymagane sudo dla niektórych komend
 ```
 
-**3. Timeout errors**
+#### 3. Błędy timeout
+
 ```bash
 # Zwiększ timeout dla wolnych komend
 domd --timeout 300  # 5 minut
 ```
 
-**4. Problemy z encoding**
+#### 4. Problemy z kodowaniem
+
 ```bash
 # Ustaw poprawne kodowanie
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
+export LANG=pl_PL.UTF-8
+export LC_ALL=pl_PL.UTF-8
 ```
 
-### Debug mode
+### Tryb debugowania
 
 ```bash
-# Maksymalnie szczegółowe informacje
-domd --verbose --dry-run
+# Szczegółowe informacje o wykonaniu
+domd --verbose
 
-# Python debug
-PYTHONPATH=src python -m domd.detector --verbose --path .
+# Tylko podgląd bez wykonywania komend
+domd --dry-run
 ```
 
-### Logi
-
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
-from domd import ProjectCommandDetector
-detector = ProjectCommandDetector(".")
-# Teraz zobaczysz wszystkie debug informacje
-```
-
-## 📈 Wydajność i optymalizacja
-
-### Dla dużych projektów
-
-```bash
-# Wykluczenie ciężkich folderów
-domd --exclude "node_modules/*" --exclude ".git/*" --exclude "build/*"
-
-# Tylko najważniejsze pliki
-domd --include-only "Makefile" --include-only "package.json" --include-only "pyproject.toml"
-
-# Krótszy timeout dla szybszego skanowania
-domd --timeout 30 --quiet
-```
-
-### Równoległe uruchamianie
-
-DoMD obecnie uruchamia komendy sekwencyjnie dla bezpieczeństwa. W przyszłych wersjach planowane jest równoległe wykonywanie.
-
-## 🔄 Aktualizacje
+## Aktualizacja do nowszej wersji
 
 ### Sprawdzanie wersji
 
@@ -198,31 +157,26 @@ pip show domd     # jeśli zainstalowane przez pip
 ### Aktualizacja
 
 ```bash
-# Pip
+# Aktualizacja przez pip
 pip install --upgrade domd
 
-# Poetry
-poetry update domd
-
-# Development version
-git pull
-poetry install
+# Aktualizacja z repozytorium (dla instalacji deweloperskiej)
+git pull origin main
+pip install -e .
 ```
 
 ## 📞 Wsparcie
 
 - **Dokumentacja**: https://domd.readthedocs.io
-- **Issues**: https://github.com/wronai/domd/issues
-- **Discussions**: https://github.com/wronai/domd/discussions
+- **Zgłoszenia błędów**: https://github.com/wronai/domd/issues
+- **Dyskusje**: https://github.com/wronai/domd/discussions
 
 ## 🎯 Następne kroki
 
 Po zainstalowaniu:
 
-1. **Uruchom na swoim projekcie**: `domd --dry-run`
-2. **Sprawdź co znaleziono**: przejrzyj listę wykrytych komend
-3. **Przetestuj**: `domd --verbose`
-4. **Napraw błędy**: użyj wygenerowanego TODO.md
-5. **Zintegruj z workflow**: dodaj do CI/CD, pre-commit, Makefile
+1. [Przejdź do przewodnika użytkownika](usage.md) aby poznać możliwości DoMD
+2. Sprawdź [dokumentację funkcji](features/) aby poznać wszystkie opcje
+3. Dołącz do społeczności na [GitHub Discussions](https://github.com/wronai/domd/discussions)
 
 **Gotowe do użycia! 🚀**

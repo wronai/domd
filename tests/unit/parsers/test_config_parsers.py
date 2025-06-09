@@ -2,7 +2,7 @@
 Tests for configuration file parsers.
 """
 
-from pathlib import Path
+import json
 
 from domd.core.parsers.base import BaseParser
 

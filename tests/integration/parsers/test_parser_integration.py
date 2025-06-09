@@ -5,7 +5,7 @@ Integration tests for configuration parsers.
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from domd.core.parsing.base_parser import BaseParser
+from domd.core.parsing.base import BaseParser
 from domd.core.project_detection.detector import ProjectCommandDetector
 
 

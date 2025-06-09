@@ -115,14 +115,6 @@ class ProjectCommandDetector:
         """
         logger.debug("Starting parser initialization...")
 
-        # Try to manually import the docker parsers first
-        try:
-            import domd.parsers.docker
-
-            logger.debug("Successfully imported domd.parsers.docker")
-        except ImportError as e:
-            logger.warning(f"Failed to import docker parsers: {e}")
-
         # Discover parsers from the domd.core.parsers package
         try:
             logger.debug("Discovering parsers from domd.core.parsers...")
@@ -610,11 +602,11 @@ class ProjectCommandDetector:
                         error = cmd_dict["error"]
                         source = cmd_dict.get("source", "Unknown")
 
-                        f.write(f"### 🔧 Fix: {command}\n")
-                        f.write(f"- [ ] **Command**: `{command}`  \n")
-                        f.write(f"- **Error**: {error}  \n")
-                        f.write(f"- **Source**: `{source}`\n")
-                        f.write(f"- **Fix Suggestion**: \n\n")
+                        f.write(f"### 🔧 Fix: {command}\n")  # noqa: E231
+                        f.write(f"- [ ] **Command**: `{command}`  \n")  # noqa: E231
+                        f.write(f"- **Error**: {error}  \n")  # noqa: E231
+                        f.write(f"- **Source**: `{source}`\n")  # noqa: E231
+                        f.write("- **Fix Suggestion**: \n\n")  # noqa: E231
                         f.write(
                             "  ```bash\n  # Suggested fix\n  # Replace with the correct command\n  ```\n\n"
                         )
@@ -636,8 +628,8 @@ class ProjectCommandDetector:
                         command = cmd_dict["command"]
                         source = cmd_dict.get("source", "Unknown")
 
-                        f.write(f"- [x] `{command}`  \n")
-                        f.write(f"  - Source: `{source}`\n")
+                        f.write(f"- [x] `{command}`  \n")  # noqa: E231
+                        f.write(f"  - Source: `{source}`\n")  # noqa: E231
                 else:
                     f.write("No commands were executed successfully.\n")
 

@@ -1,11 +1,12 @@
 """Tests for .dodocker file handling."""
 
-from unittest.mock import MagicMock, os, patch
+import os
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from domd.core.command_execution.command_runner import CommandRunner
-from domd.core.ports.command_handler import CommandHandler
+from domd.core.ports.command_executor import CommandExecutor as CommandHandler
 
 
 class TestDodockerHandling:
