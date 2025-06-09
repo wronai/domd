@@ -3,11 +3,10 @@ Integration tests for configuration parsers.
 """
 
 from pathlib import Path
-from unittest.mock import patch
+from typing import Any, Dict, List, Optional, Union
 
-import pytest
-
-from domd.core.parsing.parser_registry import ParserRegistry, get_global_registry
+from domd.core.parsing.base_parser import BaseParser
+from domd.core.project_detection.detector import ProjectCommandDetector
 
 
 class TestParserIntegration:
@@ -105,7 +104,7 @@ class TestParserIntegration:
             ]
 
             # Debug: Print the file we're trying to parse
-            print(f"\n=== Parsing file ===")
+            print("\n=== Parsing file ===")
             print(f"File exists: {dockerfile.exists()}")
             print(f"File content: {dockerfile.read_text()}")
 

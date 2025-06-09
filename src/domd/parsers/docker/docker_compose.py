@@ -1,11 +1,14 @@
 """Parser for docker-compose.yml files."""
 
+import logging
 from typing import List
 
 import yaml
 
 from domd.core.commands import Command
 from domd.core.parsing.base import BaseParser
+
+logger = logging.getLogger(__name__)
 
 
 class DockerComposeParser(BaseParser):

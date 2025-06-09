@@ -3,7 +3,6 @@ Unit tests for base parser functionality.
 """
 
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 

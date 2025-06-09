@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
+from domd.core.project_detection.config_files import ConfigFileHandler
 from domd.core.project_detection.detector import ProjectCommandDetector
 
 

@@ -3,225 +3,57 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-
-A powerful tool for detecting and managing project commands with built-in support for virtual environments, Ansible, and more.
 [![Tests](https://github.com/wronai/domd/workflows/Tests/badge.svg)](https://github.com/wronai/domd/actions)
 
-**DoMD** automatically detects and tests project commands from various configuration files, then generates a detailed `TODO.md` file for failed commands with error reports and suggested fixes. Now with a clean architecture and REST API support!
+**DoMD** (DoM Detector) to narzędzie do automatycznego wykrywania i wykonywania komend w projektach programistycznych. Automatycznie wykrywa dostępne komendy z plików konfiguracyjnych (np. `package.json`, `Makefile`, `pyproject.toml`) i wykonuje je, generując szczegółowe raporty.
 
-## 🚀 Features
+## 📦 Instalacja
 
-- **Universal Detection**: Supports 15+ project types and build systems
-- **Smart Testing**: Executes commands with configurable timeouts and error handling
-- **Detailed Reports**: Generates formatted TODO.md with error analysis and fix suggestions
-- **Multiple Formats**: Output in Markdown, JSON, or plain text
-- **CI/CD Ready**: Perfect for automated project health checks
-- **Zero Configuration**: Works out of the box with sensible defaults
-- **Command Filtering**: Skip specific commands using `.doignore`
-- **Docker Integration**: Run commands in isolated Docker containers using `.dodocker`
-- **Clean Architecture**: Modular design with separation of concerns for better maintainability
-- **REST API**: Access all functionality through a RESTful API interface
-
-## 🛠 Development Scripts
-
-This project includes several utility scripts to help with development and testing. These are located in the `scripts/` directory:
-
-### Core Development Scripts
-- `clean_install.sh` - Completely cleans and recreates the Poetry environment with Python version checking
-- `setup_environment.sh` - Sets up the development environment with color-coded output
-- `run_tests.sh` - Runs the test suite
-- `build.sh` - Builds the project package
-- `build_docs.sh` - Builds the documentation
-- `publish.sh` - Builds and publishes the package (includes tests and formatting checks)
-- `check_version.py` - Version checking utility
-
-### Docker Testing
-Scripts for testing with Docker are located in `docker-test/`:
-- `build_and_run.sh` - Builds and runs tests in a Docker container
-- `test_install.sh` - Tests package installation in a clean environment
-
-### Usage Example
 ```bash
-# Set up a clean development environment
-./scripts/clean_install.sh
+# Instalacja przez pip
+pip install domd
 
-# Run tests
-./scripts/run_tests.sh
-
-# Build and publish
-./scripts/publish.sh
+# Lub z repozytorium
+pip install git+https://github.com/wronai/domd.git
 ```
 
-## 🔍 Supported Project Types
+## 🚀 Szybki start
 
-DoMD supports a wide range of project types and build systems, including:
-
-- **JavaScript/TypeScript**: `package.json` (npm, yarn)
-- **Python**: `setup.py`, `pyproject.toml`, `requirements.txt`
-- **Make**: `Makefile`
-- **Docker**: `Dockerfile`, `docker-compose.yml`
-- **Ansible**: Playbooks, roles, inventories, and Galaxy requirements
-- **PHP**: `composer.json`
-- **Rust**: `Cargo.toml`
-- **TOML**: Generic TOML file support
-- **YAML**: Generic YAML file support
-- **INI**: Generic INI file support
-
-### 🐍 Virtual Environment Support
-
-DoMD offers seamless integration with Python virtual environments, making it easy to work with project-specific dependencies:
-
-- **Automatic Detection**: Automatically finds and activates virtual environments in common locations (`.venv`, `venv`, `env`)
-- **Custom Paths**: Specify a custom virtual environment path with the `--venv` option
-- **Environment Variables**: Properly sets up `PATH` and `VIRTUAL_ENV` for command execution
-- **Python Interpreter**: Uses the virtual environment's Python interpreter for Python commands
-- **Cross-Platform**: Works on Windows, macOS, and Linux
-
-Example usage:
 ```bash
-# Auto-detect and use virtual environment
+# Przejdź do katalogu projektu
+cd twój-projekt
+
+# Uruchom DoMD
 domd
-
-# Specify custom virtual environment path
-domd --venv /path/to/venv
-
-# Run a specific command in the virtual environment
-domd run-in-venv python -m pytest
 ```
 
-### 🎭 Ansible Integration
+## 🔍 Co potrafi DoMD?
 
-DoMD provides comprehensive support for Ansible projects, making it easy to test and validate your infrastructure code.
+- Automatycznie wykrywa komendy z plików konfiguracyjnych
+- Wykonuje komendy i generuje raporty
+- Obsługuje wiele języków i narzędzi (Python, Node.js, Make itp.)
+- Integracja z Dockerem
+- Generuje plik TODO.md z błędami i sugerowanymi rozwiązaniami
 
-#### Features
+## 📚 Dokumentacja
 
-- **Playbook Testing**: Automatically detect and test Ansible playbooks with support for multiple plays and variable files
-- **Role Validation**: Full support for Ansible role structure, dependencies, and metadata verification
-- **Inventory Management**: Support for both static and dynamic inventories with proper host and group variable resolution
-- **Vault Security**: Secure handling of encrypted content with vault password file support
-- **Galaxy Integration**: Manage roles and collections through requirements files
+Pełna dokumentacja dostępna jest w katalogu [docs/](docs/):
 
-#### Directory Structure
+- [Instalacja](docs/installation.md)
+- [Użycie](docs/usage.md)
+- [Funkcje](docs/features/)
+- [API](docs/api.md)
+- [Rozwój](docs/development/)
 
-```
-ansible/
-├── site.yml              # Main playbook
-├── inventory/
-│   └── production        # Production inventory
-├── group_vars/           # Group variables
-├── host_vars/            # Host-specific variables
-├── roles/                # Custom roles
-└── requirements.yml      # Galaxy requirements
-```
+## 🤝 Wsparcie
 
-#### Quick Start
+Masz pytania lub problemy? [Zgłoś issue](https://github.com/wronai/domd/issues)
 
-1. **Install Ansible and dependencies**:
-   ```bash
-   # Install Ansible
-   python3 -m pip install --user ansible
+## 📜 Licencja
 
-   # Install required collections
-   ansible-galaxy install -r ansible/requirements.yml
-   ```
+[Apache 2.0](LICENSE) @ 2023 WronAI
 
-2. **Run the playbook**:
-   ```bash
-   # Dry run (check mode)
-   ansible-playbook -i ansible/inventory/production ansible/site.yml --check
-
-   # Full run
-   ansible-playbook -i ansible/inventory/production ansible/site.yml
-   ```
-
-3. **Using Vault**:
-   ```bash
-   # Create/edit encrypted file
-   ansible-vault edit ansible/group_vars/secrets.yml
-
-   # Run playbook with vault
-   ansible-playbook -i ansible/inventory/production ansible/site.yml --ask-vault-pass
-   ```
-
-#### Development Tools
-
-```bash
-# Run all Ansible tests
-make test-ansible
-
-# Specific test targets
-make test-playbooks      # Test playbook functionality
-make test-roles          # Test role functionality
-make test-galaxy         # Test Galaxy integration
-make test-vault          # Test Vault operations
-make test-inventory      # Test inventory handling
-
-# Lint Ansible files
-make ansible-lint
-```
-
-#### Testing Strategy
-
-Our Ansible integration includes comprehensive test coverage:
-
-- **Unit Tests**: Test individual components in isolation
-- **Integration Tests**: Verify playbook and role execution
-- **Mocked Tests**: Test external dependencies without actual infrastructure
-- **Fixtures**: Common Ansible structures for consistent testing
-
-#### Best Practices
-
-1. Always use `ansible-lint` to check your playbooks
-2. Encrypt sensitive data with `ansible-vault`
-3. Use `check` mode for dry runs
-4. Test with `--diff` to see changes
-5. Keep your collections updated with `ansible-galaxy collection install -r requirements.yml`
-
-#### Example Playbook
-
-```yaml
----
-- name: Deploy DoMD
-  hosts: all
-  become: true
-  gather_facts: true
-
-  tasks:
-    - name: Install system dependencies
-      package:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - python3
-        - python3-pip
-        - python3-venv
-
-    - name: Set up virtual environment
-      command: python3 -m venv /opt/domd/venv
-      args:
-        creates: /opt/domd/venv/bin/activate
-
-    - name: Install DoMD
-      pip:
-        name: .
-        virtualenv: /opt/domd/venv
-        virtualenv_command: python3 -m venv
-        state: present
-        editable: yes
-```
-
-```bash
-# Install development dependencies
-make dev-install
-
-# Run all tests
-make test
-
-# Run Ansible-specific tests
-make test-ansible
-```
-
-## 🔧 Advanced Usage
+## 🔧 Zaawansowane użycie
 
 ### REST API
 

@@ -85,6 +85,9 @@ class DockerfileParser(BaseParser):
             return []
 
         commands = []
+        run_cmd = ""
+        build_cmd = ""
+
         try:
             image_name = self._extract_image_name(self.file_path)
             logger.debug(f"Extracted image name: {image_name}")
@@ -102,7 +105,7 @@ class DockerfileParser(BaseParser):
         if exposed_ports:
             # Use the first exposed port for the default mapping
             port = exposed_ports[0]
-            port_mapping = f"-p {port}:{port}"
+            port_mapping = f"-p {port}:{port}"  # noqa: E231
 
             # If port 80 is exposed, prefer it for the default mapping
             if "80" in exposed_ports:
@@ -151,9 +154,7 @@ class DockerfileParser(BaseParser):
                     1:
                 ]:  # Skip the first port as it's already used
                     if port != "80":  # Skip if it's the same as the default
-                        port_cmd = (
-                            f"docker run {run_flags} -p {port}:{port} {image_name}"
-                        )
+                        port_cmd = f"docker run {run_flags} -p {port}:{port} {image_name}"  # noqa: E231
                         logger.debug(f"Adding port mapping command: {port_cmd}")
                         commands.append(
                             Command(
@@ -210,49 +211,3 @@ class DockerfileParser(BaseParser):
         except Exception as e:
             logger.error(f"Error parsing Dockerfile {self.file_path or 'content'}: {e}")
             return []
-
-            # Add run command with port mapping
-            if port_mapping and image_name:
-                run_cmd = f"docker run --rm {port_mapping} {image_name}"
-                commands.append(
-                    Command(
-                        command=run_cmd,
-                        type="docker_run",
-                        description=f"Docker: Run {image_name} container",
-                        source=str(self.file_path),
-                    )
-                )
-
-                # Add additional port mappings if multiple ports are exposed
-                if exposed_ports and len(exposed_ports) > 1:
-                    for port in exposed_ports[
-                        1:
-                    ]:  # Skip the first port as it's already used
-                        if port != "80":  # Skip if it's the same as the default
-                            port_cmd = f"docker run --rm -p {port}:{port} {image_name}"
-                            commands.append(
-                                Command(
-                                    command=port_cmd,
-                                    type="docker_run",
-                                    description=f"Docker: Run {image_name} on port {port}",
-                                    source=str(self.file_path),
-                                )
-                            )
-
-                # Add build and run in one command
-                if build_cmd and run_cmd:
-                    build_run_cmd = f"{build_cmd} && {run_cmd}"
-                    commands.append(
-                        Command(
-                            command=build_run_cmd,
-                            type="docker_build_run",
-                            description=f"Docker: Build and run {image_name}",
-                            source=str(self.file_path),
-                        )
-                    )
-
-        except OSError as e:
-            logger.error(f"Error in Dockerfile parsing: {e}")
-            return []
-
-        return commands

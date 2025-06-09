@@ -26,7 +26,17 @@ except ImportError:
 
 
 class PyProjectTomlParser(BaseParser):
-    """Parser for pyproject.toml files to extract Python project commands."""
+    """Parser for pyproject.toml files to extract Python project commands.
+
+    This parser extracts commands from the [tool.poetry.scripts] section of pyproject.toml files.
+    It handles both simple commands and combined commands (using '&&' to chain commands).
+
+    For combined commands (e.g., "black . && isort . && flake8"), the parser will:
+    1. Create a single command for the entire combined command
+    2. Create individual commands for each part of the combined command
+
+    Each command is wrapped with 'poetry run' to ensure it runs in the correct environment.
+    """
 
     @property
     def supported_file_patterns(self) -> List[str]:

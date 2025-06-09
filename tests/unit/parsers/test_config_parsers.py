@@ -2,11 +2,7 @@
 Tests for configuration file parsers.
 """
 
-import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 from domd.core.parsers.base import BaseParser
 

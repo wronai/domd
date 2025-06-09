@@ -2,12 +2,11 @@
 Tests for the TODO.md reporter functionality.
 """
 
-from pathlib import Path
 from unittest.mock import mock_open, patch
 
 import pytest
 
-from domd.core.commands import Command, CommandResult
+from domd.core.commands import Command
 from domd.reporters.todo_md import TodoMdReporter
 
 
