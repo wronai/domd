@@ -18,7 +18,7 @@ def get_parsers() -> List[Type[BaseParser]]:
 
     # Import and add PackageJsonParser
     try:
-        from domd.core.parsers.package_json import PackageJsonParser
+        from domd.parsers.package_json import PackageJsonParser
 
         parsers.append(PackageJsonParser)
         logger.debug("Successfully imported PackageJsonParser")

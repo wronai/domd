@@ -86,12 +86,49 @@ class CommandService:
         Returns:
             True, jeśli komenda powinna być ignorowana
         """
-        # Implementacja sprawdzania wzorców ignorowania
-        # Ta funkcja powinna być rozszerzona o faktyczną logikę
-        # dopasowywania wzorców
+        import fnmatch
+
+        # Check if any ignore pattern matches the command or its components
         for pattern in self.ignore_patterns:
-            if pattern in command.command:
+            # Check if pattern matches the full command string
+            if fnmatch.fnmatch(command.command, pattern):
                 return True
+
+            # Check if pattern matches just the script part (after 'npm run ')
+            if command.command.startswith("npm run ") and fnmatch.fnmatch(
+                command.command[8:], pattern
+            ):
+                return True
+
+            # Check if pattern matches the command type or description
+            if (
+                hasattr(command, "type")
+                and command.type
+                and fnmatch.fnmatch(command.type, pattern)
+            ):
+                return True
+
+            if (
+                hasattr(command, "description")
+                and command.description
+                and fnmatch.fnmatch(command.description, pattern)
+            ):
+                return True
+
+            # Check if pattern matches the source file
+            if (
+                hasattr(command, "source")
+                and command.source
+                and fnmatch.fnmatch(str(command.source), pattern)
+            ):
+                return True
+
+            # Check if pattern matches any metadata values
+            if hasattr(command, "metadata") and command.metadata:
+                for value in command.metadata.values():
+                    if isinstance(value, str) and fnmatch.fnmatch(value, pattern):
+                        return True
+
         return False
 
     def test_commands(self, commands: List[Command]) -> None:

@@ -58,10 +58,37 @@ def test_package_json_parser(temp_project, sample_package_json):
 
     # Test parse
     commands = parser.parse()
-    assert len(commands) == len(sample_package_json["scripts"])
-    assert all(cmd.command.startswith("npm run ") for cmd in commands)
-    assert all(cmd.type == "npm_script" for cmd in commands)
-    assert all(cmd.source == str(package_json_path) for cmd in commands)
+    assert isinstance(commands, list), "Expected commands to be a list"
+    assert len(commands) == len(
+        sample_package_json["scripts"]
+    ), f"Expected {len(sample_package_json['scripts'])} commands, got {len(commands)}"
+
+    # Convert script names to a set for easier checking
+    expected_scripts = set(sample_package_json["scripts"].keys())
+    found_scripts = set()
+
+    for cmd in commands:
+        assert isinstance(cmd, dict), f"Expected command to be a dict, got {type(cmd)}"
+        assert "command" in cmd, f"Command dict missing 'command' key: {cmd}"
+        assert cmd["command"].startswith(
+            "npm run "
+        ), f"Command should start with 'npm run ': {cmd['command']}"
+        assert (
+            cmd["type"] == "npm_script"
+        ), f"Expected type 'npm_script', got {cmd['type']}"
+        assert cmd["source"] == str(
+            package_json_path
+        ), f"Expected source {package_json_path}, got {cmd['source']}"
+
+        # Extract script name and verify it's one of our expected scripts
+        script_name = cmd["command"][8:]  # Remove 'npm run ' prefix
+        assert script_name in expected_scripts, f"Unexpected script name: {script_name}"
+        found_scripts.add(script_name)
+
+    # Verify we found all expected scripts
+    assert (
+        found_scripts == expected_scripts
+    ), f"Missing scripts: {expected_scripts - found_scripts}"
 
 
 def test_makefile_parser(temp_project):

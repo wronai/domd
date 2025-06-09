@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from .base import BaseParser
+from domd.core.parsing.base import BaseParser
 
 
 class PackageJsonParser(BaseParser):
@@ -25,31 +25,17 @@ class PackageJsonParser(BaseParser):
             **kwargs: Additional arguments passed to the base class
         """
         super().__init__(project_root=project_root, file_path=file_path, **kwargs)
-        self._initialized = False  # Explicitly initialize here to ensure it's set
 
-    @property
-    def supported_file_patterns(self) -> List[str]:
-        """Return supported file patterns for package.json."""
-        return ["package.json"]
-
-    def initialize(self) -> None:
-        """Initialize the parser if not already initialized."""
-        if not hasattr(self, "_initialized") or not self._initialized:
-            self._initialized = True
-            self._initialize()
-
-    def _initialize(self) -> None:
-        """Perform any necessary initialization."""
-        pass
+    # Supported file patterns for package.json
+    supported_file_patterns = ["package.json"]
 
     def parse(
-        self, file_path: Optional[Union[str, Path]] = None, **kwargs
+        self, file_path: Optional[Union[str, Path]] = None
     ) -> List[Dict[str, Any]]:
         """Parse package.json and extract npm scripts.
 
         Args:
             file_path: Path to the file to parse (overrides self.file_path if provided)
-            **kwargs: Additional arguments (ignored, for compatibility with base class)
 
         Returns:
             List of command dictionaries with 'command', 'description', 'source', and 'type' keys

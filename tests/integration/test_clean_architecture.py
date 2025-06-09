@@ -67,13 +67,13 @@ class MockCommandExecutor(CommandExecutor):
                 stderr="Error output",
             )
         else:
-            # Domyślnie zwróć sukces
+            # Domyślnie zwróć błąd dla nieznanych komend
             return CommandResult(
-                success=True,
-                return_code=0,
+                success=False,
+                return_code=127,  # Command not found
                 execution_time=0.1,
-                stdout="Default success output",
-                stderr="",
+                stdout="",
+                stderr=f"Command not found: {command.command}",
             )
 
     def execute_in_directory(

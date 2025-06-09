@@ -358,12 +358,36 @@ class CommandHandler:
                     self.ignored_commands.append(cmd)
                     continue
 
+                # Make a copy of the command to avoid modifying the original
+                cmd_copy = cmd.copy() if isinstance(cmd, dict) else cmd
+
                 # Execute the command
-                success = self.execute_single_command(cmd)
-                if success:
-                    self.successful_commands.append(cmd)
+                success = self.execute_single_command(cmd_copy)
+
+                # Set success flag if not already set
+                if isinstance(cmd_copy, dict):
+                    cmd_copy["success"] = success
                 else:
-                    self.failed_commands.append(cmd)
+                    setattr(cmd_copy, "success", success)
+
+                # Add to appropriate list
+                if success:
+                    self.successful_commands.append(cmd_copy)
+                else:
+                    # Ensure error is set for failed commands
+                    if isinstance(cmd_copy, dict):
+                        if "error" not in cmd_copy:
+                            cmd_copy["error"] = "Command failed"
+                    else:
+                        if not hasattr(cmd_copy, "error"):
+                            setattr(cmd_copy, "error", "Command failed")
+                    self.failed_commands.append(cmd_copy)
+
+                # Update original command with results
+                if isinstance(cmd, dict) and isinstance(cmd_copy, dict):
+                    cmd.update(cmd_copy)
+                elif hasattr(cmd, "__dict__") and hasattr(cmd_copy, "__dict__"):
+                    cmd.__dict__.update(cmd_copy.__dict__)
             except Exception as e:
                 logger.error("Error testing command: %s", e, exc_info=True)
                 if hasattr(cmd, "command"):  # Command object

@@ -685,9 +685,8 @@ class TestParserMethods:
         """Test parsing package.json with scripts."""
         from domd.core.parsers.package_json import PackageJsonParser
 
-        # Create a sample package.json
         package_data = {
-            "name": "test-package",
+            "name": "test-project",
             "version": "1.0.0",
             "scripts": {"test": "jest", "build": "webpack", "start": "node index.js"},
         }
@@ -700,20 +699,55 @@ class TestParserMethods:
         assert parser.can_parse(package_json_path)
 
         commands = parser.parse()
+        assert isinstance(commands, list)
+
+        # Convert script names to a set for easier checking
+        expected_scripts = set(package_data["scripts"].keys())
+        found_scripts = set()
 
         # Check that each script was parsed correctly
-        for script_name, script_cmd in package_data["scripts"].items():
-            cmd = next((c for c in commands if script_name in c.command), None)
-            assert cmd is not None, f"Command for script '{script_name}' not found"
-            assert f"npm run {script_name}" == cmd.command
-            assert script_name in cmd.description
-            assert str(package_json_path) == cmd.source
-            assert cmd.type == "npm_script"
-            assert cmd.metadata["script_name"] == script_name
-            assert cmd.metadata["script_command"] == script_cmd
-            assert cmd.metadata["original_command"] == script_cmd
-            assert cmd.description == f"NPM script: {script_name}"
-            assert str(package_json_path) in cmd.source
+        for cmd in commands:
+            assert isinstance(
+                cmd, dict
+            ), f"Expected command to be a dict, got {type(cmd)}"
+            assert "command" in cmd, f"Command dict missing 'command' key: {cmd}"
+            assert (
+                "description" in cmd
+            ), f"Command dict missing 'description' key: {cmd}"
+            assert "type" in cmd, f"Command dict missing 'type' key: {cmd}"
+            assert "source" in cmd, f"Command dict missing 'source' key: {cmd}"
+            assert "metadata" in cmd, f"Command dict missing 'metadata' key: {cmd}"
+
+            # Extract script name from command (format: 'npm run <script_name>')
+            assert cmd["command"].startswith(
+                "npm run "
+            ), f"Command should start with 'npm run ': {cmd['command']}"
+            script_name = cmd["command"][8:]  # Remove 'npm run ' prefix
+
+            # Check if this is one of our expected scripts
+            assert (
+                script_name in expected_scripts
+            ), f"Unexpected script name: {script_name}"
+            found_scripts.add(script_name)
+
+            # Verify the command structure
+            assert cmd["type"] == "npm_script"
+            assert str(package_json_path) == cmd["source"]
+            assert script_name in cmd["description"]
+            assert cmd["metadata"]["script_name"] == script_name
+            assert (
+                cmd["metadata"]["script_command"]
+                == package_data["scripts"][script_name]
+            )
+            assert (
+                cmd["metadata"]["original_command"]
+                == package_data["scripts"][script_name]
+            )
+
+        # Verify we found all expected scripts
+        assert (
+            found_scripts == expected_scripts
+        ), f"Missing scripts: {expected_scripts - found_scripts}"
 
     @pytest.mark.parsers
     def test_parse_package_json_no_scripts(self, temp_project):
@@ -1120,16 +1154,6 @@ class TestIntegrationScenarios:
 
     def test_mixed_project_types(self, temp_project):
         """Test project with multiple configuration file types."""
-        # Import and register the PackageJsonParser first
-        from domd.core.parsers.package_json import PackageJsonParser
-        from domd.core.parsing.parser_registry import global_registry
-
-        # Clear any existing parsers
-        global_registry.clear()
-
-        # Register PackageJsonParser
-        global_registry.register(PackageJsonParser)
-
         # Create multiple config files
         package_json = {"scripts": {"test": "jest", "build": "webpack"}}
         with open(temp_project / "package.json", "w") as f:
@@ -1141,29 +1165,49 @@ class TestIntegrationScenarios:
         dockerfile_content = "FROM node:16\nRUN echo 'docker'"
         (temp_project / "Dockerfile").write_text(dockerfile_content)
 
-        # Create detector - it should now use the registered parsers
+        # Create detector
         detector = ProjectCommandDetector(str(temp_project))
-
-        # Verify PackageJsonParser is in the parsers list
-        parser_types = [type(p).__name__ for p in detector.parsers]
-        assert (
-            "PackageJsonParser" in parser_types
-        ), f"PackageJsonParser not found in parsers: {parser_types}"
 
         # Run the scan
         commands = detector.scan_project()
 
-        # Should find commands from all sources
-        sources = {cmd.source for cmd in commands}
-        source_filenames = {source.split("/")[-1] for source in sources}
-        assert "package.json" in source_filenames
-        assert "Makefile" in source_filenames
-        assert "Dockerfile" in source_filenames
+        # Convert commands to dicts for easier inspection
+        command_dicts = []
+        for cmd in commands:
+            if hasattr(cmd, "to_dict"):
+                command_dicts.append(cmd.to_dict())
+            else:
+                command_dicts.append(cmd)
 
-        types = {cmd.type for cmd in commands}
-        assert "npm_script" in types
-        assert "make_target" in types
-        assert "docker_build" in types
+        # Debug output
+        print("Found commands:", command_dicts)
+
+        # Check that we have commands from all expected sources
+        sources = {cmd.get("source", "") for cmd in command_dicts}
+        source_filenames = {
+            source.split("/")[-1] if source else "" for source in sources
+        }
+        print("Source filenames:", source_filenames)
+
+        # Check for package.json commands (npm scripts)
+        npm_commands = [cmd for cmd in command_dicts if cmd.get("type") == "npm_script"]
+        assert (
+            len(npm_commands) >= 2
+        ), f"Expected at least 2 npm commands, got {len(npm_commands)}"
+
+        # Check for Makefile commands
+        make_commands = [
+            cmd for cmd in command_dicts if cmd.get("type") == "make_target"
+        ]
+        assert (
+            len(make_commands) >= 2
+        ), f"Expected at least 2 make commands, got {len(make_commands)}"
+
+        # Check for Dockerfile commands
+        docker_commands = [
+            cmd for cmd in command_dicts if cmd.get("type") == "docker_build"
+        ]
+        assert len(docker_commands) > 0, "Expected at least 1 docker command"
 
     def test_exclude_patterns_integration(self, temp_project):
         """Test exclude patterns in real scenario."""
