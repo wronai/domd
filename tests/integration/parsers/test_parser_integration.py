@@ -2,16 +2,12 @@
 Integration tests for configuration parsers.
 """
 
-import inspect
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from domd.core.parsing.base import BaseParser
 from domd.core.parsing.parser_registry import ParserRegistry, get_global_registry
-from domd.core.project_detection.detector import ProjectCommandDetector
 
 
 class TestParserIntegration:

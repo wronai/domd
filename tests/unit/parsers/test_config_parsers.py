@@ -100,13 +100,13 @@ def test_makefile_parser(temp_project):
     .PHONY: test build clean
 
     test:
-    	pytest tests/
+        pytest tests/
 
     build:
-    	echo "Building..."
+        echo "Building..."
 
     clean:
-    	rm -rf dist/ build/
+        rm -rf dist/ build/
     """
 
     makefile_path = temp_project / "Makefile"

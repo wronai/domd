@@ -3,7 +3,7 @@ Tests for the TODO.md reporter functionality.
 """
 
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import mock_open, patch
 
 import pytest
 

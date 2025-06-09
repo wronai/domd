@@ -5,10 +5,7 @@ Ten test sprawdza, czy cały przepływ pracy z aplikacją działa poprawnie,
 od skanowania projektu, przez wykonanie komend, po generowanie raportów.
 """
 
-import os
-import shutil
 import tempfile
-import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -16,8 +13,6 @@ from domd.application.factory import ApplicationFactory
 from domd.core.domain.command import Command, CommandResult
 from domd.core.ports.command_executor import CommandExecutor
 from domd.core.ports.command_repository import CommandRepository
-from domd.core.services.command_service import CommandService
-from domd.core.services.report_service import ReportService
 
 
 class MockCommandExecutor(CommandExecutor):

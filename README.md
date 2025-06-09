@@ -26,19 +26,31 @@ A powerful tool for detecting and managing project commands with built-in suppor
 
 This project includes several utility scripts to help with development and testing. These are located in the `scripts/` directory:
 
-- `clean_install.sh` - Completely cleans and recreates the Poetry environment
-- `fresh_install.sh` - Sets up a fresh Python virtual environment (simpler alternative to clean_install.sh)
-- `setup_environment.sh` - Comprehensive environment setup with color-coded output
-- `publish.sh` - Builds and publishes the package (includes tests and formatting checks)
+### Core Development Scripts
+- `clean_install.sh` - Completely cleans and recreates the Poetry environment with Python version checking
+- `setup_environment.sh` - Sets up the development environment with color-coded output
+- `run_tests.sh` - Runs the test suite
 - `build.sh` - Builds the project package
 - `build_docs.sh` - Builds the documentation
-- `run_tests.sh` - Runs the test suite
-- `setup_dev.sh` - Sets up the development environment
+- `publish.sh` - Builds and publishes the package (includes tests and formatting checks)
+- `check_version.py` - Version checking utility
 
-### Docker Testing Scripts
+### Docker Testing
 Scripts for testing with Docker are located in `docker-test/`:
 - `build_and_run.sh` - Builds and runs tests in a Docker container
 - `test_install.sh` - Tests package installation in a clean environment
+
+### Usage Example
+```bash
+# Set up a clean development environment
+./scripts/clean_install.sh
+
+# Run tests
+./scripts/run_tests.sh
+
+# Build and publish
+./scripts/publish.sh
+```
 
 ## 🔍 Supported Project Types
 

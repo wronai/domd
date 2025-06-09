@@ -3,13 +3,10 @@ Integration tests for ProjectCommandDetector class.
 """
 
 import json
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from domd.core.project_detection.command_handling import CommandHandler
-from domd.core.project_detection.config_files import ConfigFileHandler
 from domd.core.project_detection.detector import ProjectCommandDetector
 
 
@@ -26,10 +23,10 @@ class TestDetectorIntegration:
         makefile = temp_project / "Makefile"
         makefile_content = """
         test:
-        	echo 'Running tests'
+            echo 'Running tests'
 
         build:
-        	echo 'Building...'
+            echo 'Building...'
         """
         makefile.write_text(makefile_content)
 
@@ -154,9 +151,7 @@ class TestDetectorIntegration:
                     print(f"Command {i}: {cmd}")
 
                 # Verify we found commands from both files
-                assert (
-                    len(commands) == 3
-                ), f"Expected 3 commands, got {len(commands)}: {commands}"
+                assert len(commands) == 4  # 2 from package.json + 2 from Makefile
 
                 # Convert commands to dict for easier assertion
                 cmd_dicts = [

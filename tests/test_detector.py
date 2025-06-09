@@ -316,7 +316,7 @@ class TestProjectCommandDetector:
                 if "poetry run test" in cmd:
                     found_commands.add("test")
                 elif (
-                    "poetry run lint" in cmd and "black" not in cmd
+                    "poetry run lint" in cmd and "black" not in cmd  # noqa: E713
                 ):  # Only match the combined command
                     found_commands.add("lint")
                 elif "poetry run black" in cmd:
@@ -701,7 +701,7 @@ class TestProjectCommandDetector:
 
         # Verify we have some commands in the failed section
         assert (
-            "No failed commands found" not in content
+            "No failed commands found" not in content  # noqa: E713
         ), "Expected to find failed commands"
 
 
@@ -838,8 +838,8 @@ deploy:
         assert "make deploy" in target_commands
 
         # Should not include special targets
-        assert ".PHONY" not in target_commands
-        assert "PHONY" not in target_commands
+        assert ".PHONY" not in target_commands  # noqa: E713
+        assert "PHONY" not in target_commands  # noqa: E713
 
         # Check command details
         test_cmd = next((cmd for cmd in commands if "test" in cmd.command), None)
