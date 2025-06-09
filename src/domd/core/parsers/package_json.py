@@ -19,7 +19,7 @@ class PackageJsonParser(BaseParser):
         """Return supported file patterns for package.json."""
         return ["package.json"]
 
-    def parse(self, file_path=None, content=None) -> "List[Command]":
+    def parse(self, file_path=None, content=None) -> List[Dict]:
         """Parse package.json and extract npm scripts.
 
         Args:
@@ -27,14 +27,17 @@ class PackageJsonParser(BaseParser):
             content: Content of the package.json file (mutually exclusive with file_path)
 
         Returns:
-            List of Command objects
+            List of command dictionaries with 'command', 'description', 'source', and 'type' keys
         """
         import logging
-
-        from domd.core.commands import Command
+        from pathlib import Path
 
         logger = logging.getLogger(__name__)
-        self._commands: List[Command] = []
+        commands = []
+
+        # Set file path if provided
+        if file_path is not None:
+            self.file_path = Path(file_path)
 
         try:
             # If content is provided, parse it directly

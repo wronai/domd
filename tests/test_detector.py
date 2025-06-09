@@ -1120,6 +1120,16 @@ class TestIntegrationScenarios:
 
     def test_mixed_project_types(self, temp_project):
         """Test project with multiple configuration file types."""
+        # Import and register the PackageJsonParser first
+        from domd.core.parsers.package_json import PackageJsonParser
+        from domd.core.parsing.parser_registry import global_registry
+
+        # Clear any existing parsers
+        global_registry.clear()
+
+        # Register PackageJsonParser
+        global_registry.register(PackageJsonParser)
+
         # Create multiple config files
         package_json = {"scripts": {"test": "jest", "build": "webpack"}}
         with open(temp_project / "package.json", "w") as f:
@@ -1131,19 +1141,16 @@ class TestIntegrationScenarios:
         dockerfile_content = "FROM node:16\nRUN echo 'docker'"
         (temp_project / "Dockerfile").write_text(dockerfile_content)
 
-        # Create detector and manually register parsers if needed
+        # Create detector - it should now use the registered parsers
         detector = ProjectCommandDetector(str(temp_project))
-        
-        # Ensure PackageJsonParser is registered
-        from domd.core.parsers.package_json import PackageJsonParser
-        from domd.core.parsing.parser_registry import global_registry
-        
-        if not any(isinstance(p, PackageJsonParser) for p in detector.parsers):
-            logger.warning("PackageJsonParser not found in parsers, registering it")
-            global_registry.register(PackageJsonParser)
-            # Re-initialize parsers to include the newly registered one
-            detector.parsers = detector._initialize_parsers()
-        
+
+        # Verify PackageJsonParser is in the parsers list
+        parser_types = [type(p).__name__ for p in detector.parsers]
+        assert (
+            "PackageJsonParser" in parser_types
+        ), f"PackageJsonParser not found in parsers: {parser_types}"
+
+        # Run the scan
         commands = detector.scan_project()
 
         # Should find commands from all sources
