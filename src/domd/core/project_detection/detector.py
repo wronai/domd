@@ -314,6 +314,21 @@ class ProjectCommandDetector:
             command=command, cwd=cwd, env=env, timeout=timeout
         )
 
+    def _find_config_files(self) -> List[Path]:
+        """Find configuration files in the project.
+
+        This is a backward compatibility method for tests.
+
+        Returns:
+            List of configuration file paths
+        """
+        # Initialize parsers if not already done
+        if not hasattr(self, "parsers") or not self.parsers:
+            self.parsers = self._initialize_parsers()
+
+        # Use the config handler to find configuration files
+        return self.config_handler.find_config_files(self.parsers)
+
     def generate_reports(self) -> Dict[str, Path]:
         """Generate reports for successful and failed commands.
 

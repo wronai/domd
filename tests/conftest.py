@@ -130,8 +130,12 @@ def mock_successful_command(monkeypatch):
             error=None,
         )
 
-    # Patch the CommandExecutor.execute method
+    # Patch the CommandExecutor.execute method w obu możliwych ścieżkach
     monkeypatch.setattr("domd.core.detector.CommandExecutor.execute", mock_execute)
+    monkeypatch.setattr("domd.command_execution.CommandExecutor.execute", mock_execute)
+    monkeypatch.setattr(
+        "domd.core.commands.executor.CommandExecutor.execute", mock_execute
+    )
 
 
 @pytest.fixture
