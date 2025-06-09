@@ -126,6 +126,34 @@ class FileProcessor:
 
         return sorted(found_files)
 
+    def find_files(
+        self,
+        patterns: Optional[Iterable[str]] = None,
+        exclude: Optional[Iterable[str]] = None,
+        max_depth: Optional[int] = None,
+        include_patterns: Optional[Iterable[str]] = None,
+        exclude_patterns: Optional[Iterable[str]] = None,
+    ) -> List[Path]:
+        """Find files matching the given patterns (alias for find_config_files).
+
+        Args:
+            patterns: File patterns to match (overrides include_patterns if provided)
+            exclude: File patterns to exclude (overrides exclude_patterns if provided)
+            max_depth: Maximum directory depth to search (overrides self.max_depth if provided)
+            include_patterns: Alias for patterns (for backward compatibility)
+            exclude_patterns: Alias for exclude (for backward compatibility)
+
+        Returns:
+            List of matching file paths
+        """
+        # Handle backward compatibility with old parameter names
+        if include_patterns is not None and patterns is None:
+            patterns = include_patterns
+        if exclude_patterns is not None and exclude is None:
+            exclude = exclude_patterns
+
+        return self.find_config_files(patterns, exclude, max_depth)
+
     def group_files_by_extension(
         self, files: Iterable[Union[str, Path]]
     ) -> Dict[str, List[Path]]:

@@ -1,0 +1,360 @@
+"""Project command detector for finding and executing commands in project files."""
+
+import logging
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+from domd.command_execution import CommandExecutor, CommandRunner
+from domd.core.project_detection.command_handling import CommandHandler
+from domd.core.project_detection.config_files import ConfigFileHandler
+from domd.core.project_detection.virtualenv import (
+    get_virtualenv_environment,
+    get_virtualenv_info,
+)
+from domd.parsing import FileProcessor, ParserRegistry, PatternMatcher
+from domd.parsing.base import BaseParser
+from domd.reporting import MarkdownFormatter, Reporter
+
+logger = logging.getLogger(__name__)
+
+
+class ProjectCommandDetector:
+    """Detects and executes commands in project configuration files."""
+
+    def __init__(
+        self,
+        project_path: Union[str, Path] = ".",
+        timeout: int = 60,
+        exclude_patterns: Optional[List[str]] = None,
+        include_patterns: Optional[List[str]] = None,
+        todo_file: Union[str, Path] = "TODO.md",
+        done_file: Union[str, Path] = "DONE.md",
+        script_file: Union[str, Path] = "todo.sh",
+        ignore_file: str = ".doignore",
+        venv_path: Optional[str] = None,
+    ):
+        """Initialize the project command detector.
+
+        Args:
+            project_path: Path to the project root
+            timeout: Command execution timeout in seconds
+            exclude_patterns: List of file patterns to exclude
+            include_patterns: List of file patterns to include
+            todo_file: Path to the TODO file
+            done_file: Path to the DONE file
+            script_file: Path to the script file
+            ignore_file: Path to the ignore file
+            venv_path: Path to the virtual environment
+        """
+        self.project_path = Path(project_path).resolve()
+        self.timeout = timeout
+        self.exclude_patterns = exclude_patterns or []
+        self.include_patterns = include_patterns or []
+        self.todo_file = Path(todo_file)
+        self.done_file = Path(done_file)
+        self.script_file = Path(script_file)
+        self.ignore_file = self.project_path / ignore_file
+
+        # Initialize virtual environment
+        self.venv_path = venv_path
+        self.venv_info = get_virtualenv_info(venv_path or self.project_path)
+
+        # Command ignore patterns (separate from file exclude patterns)
+        self.ignore_patterns = []
+
+        # Initialize components
+        self.command_executor = CommandExecutor(timeout=timeout)
+        self.command_runner = CommandRunner(
+            executor=self.command_executor,
+        )
+        self.reporter = Reporter(
+            output_dir=self.project_path,
+            formatters={
+                "todo": MarkdownFormatter(title="TODO Commands"),
+                "done": MarkdownFormatter(title="DONE Commands"),
+            },
+        )
+        self.parser_registry = ParserRegistry()
+        self.file_processor = FileProcessor(project_root=self.project_path)
+        self.pattern_matcher = PatternMatcher()
+
+        # Initialize handlers
+        self.config_handler = ConfigFileHandler(
+            project_path=self.project_path,
+            exclude_patterns=self.exclude_patterns,
+            include_patterns=self.include_patterns,
+            ignore_file=self.ignore_file,
+        )
+        self.command_handler = CommandHandler(
+            project_path=self.project_path,
+            command_runner=self.command_runner,
+            timeout=self.timeout,
+            ignore_patterns=self.ignore_patterns,
+        )
+
+        # Initialize parsers
+        self.parsers = self._initialize_parsers()
+
+        # Command storage (references to command_handler storage)
+        self.failed_commands = self.command_handler.failed_commands
+        self.successful_commands = self.command_handler.successful_commands
+        self.ignored_commands = self.command_handler.ignored_commands
+
+    def _initialize_parsers(self) -> List[BaseParser]:
+        """Initialize parsers for detecting commands in configuration files.
+
+        Returns:
+            List of parser instances
+        """
+        # Use ParserRegistry to get all available parsers
+        parsers = self.parser_registry.get_all_parsers()
+
+        if not parsers:
+            logger.warning("No parsers found in registry, using legacy parsers")
+            # Fallback to legacy parsers if needed
+            try:
+                from domd.parsers import get_all_parsers
+
+                parsers = get_all_parsers()
+            except ImportError:
+                logger.error("Failed to import legacy parsers")
+                parsers = []
+
+        logger.debug(f"Initialized {len(parsers)} parsers")
+        return parsers
+
+    def _should_process_file(self, file_path: Union[str, Path]) -> bool:
+        """Check if a file should be processed based on include/exclude patterns.
+
+        Args:
+            file_path: Path to the file to check
+
+        Returns:
+            True if the file should be processed, False otherwise
+        """
+        # Convert to Path and make relative to project path
+        path = Path(file_path)
+        try:
+            rel_path = path.relative_to(self.project_path)
+        except ValueError:
+            # File is outside project path
+            return False
+
+        # Check if file is in an excluded directory
+        for part in rel_path.parts:
+            if part.startswith(".") or part in (
+                "node_modules",
+                "venv",
+                ".venv",
+                "env",
+                "__pycache__",
+            ):
+                return False
+
+        # If include patterns are specified, file must match at least one
+        if self.include_patterns:
+            for pattern in self.include_patterns:
+                if self.pattern_matcher.match_file(str(rel_path), {pattern}):
+                    return True
+            return False
+
+        # If exclude patterns are specified, file must not match any
+        for pattern in self.exclude_patterns:
+            if self.pattern_matcher.match_file(str(rel_path), {pattern}):
+                return False
+
+        return True
+
+    def _get_environment(self) -> Dict[str, str]:
+        """Get environment variables for command execution.
+
+        Returns:
+            Dictionary with environment variables
+        """
+        return get_virtualenv_environment(self.venv_info)
+
+    def scan_project(self) -> List[Dict[str, Any]]:
+        """Scan the project for commands in configuration files.
+
+        Returns:
+            List of command dictionaries
+        """
+        logger.info(f"Scanning project: {self.project_path}")
+
+        # Find configuration files
+        config_files = self.config_handler.find_config_files(self.parsers)
+        logger.info(f"Found {len(config_files)} configuration files")
+
+        # Parse files and collect commands
+        all_commands = []
+
+        for file_path in config_files:
+            try:
+                # Try to get parser from registry first
+                parser = self.parser_registry.get_parser_for_file(file_path)
+
+                # If no parser found in registry, try legacy method
+                if not parser:
+                    parser = self._get_parser_for_file(file_path)
+
+                if not parser:
+                    logger.warning(f"No parser found for {file_path}")
+                    continue
+
+                logger.debug(f"Parsing {file_path} with {parser.__class__.__name__}")
+
+                # Check if parser.parse accepts file_path parameter
+                import inspect
+
+                sig = inspect.signature(parser.parse)
+
+                if "file_path" in sig.parameters:
+                    commands = parser.parse(file_path=file_path)
+                else:
+                    # Legacy parser - read file content and pass to parse method
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    commands = parser.parse(content)
+
+                # Add file path to commands if not already present
+                for cmd in commands:
+                    if isinstance(cmd, dict) and "file" not in cmd:
+                        cmd["file"] = str(file_path)
+                    elif hasattr(cmd, "file") and not cmd.file:
+                        cmd.file = str(file_path)
+
+                all_commands.extend(commands)
+                logger.debug(f"Found {len(commands)} commands in {file_path}")
+
+            except Exception as e:
+                logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
+
+        logger.info(f"Found {len(all_commands)} commands in total")
+        return all_commands
+
+    def _get_parser_for_file(self, file_path: Path) -> Optional[BaseParser]:
+        """Get a parser for a specific file (legacy method).
+
+        Args:
+            file_path: Path to the file
+
+        Returns:
+            Parser instance or None if no parser found
+        """
+        for parser in self.parsers:
+            try:
+                if hasattr(parser, "can_parse") and parser.can_parse(file_path):
+                    return parser
+            except Exception as e:
+                logger.warning(
+                    f"Error checking parser {parser.__class__.__name__}: {e}"
+                )
+
+        return None
+
+    def test_commands(self, commands: List) -> None:
+        """Test a list of commands and update internal state.
+
+        Args:
+            commands: List of Command objects or command dictionaries to test
+        """
+        self.command_handler.test_commands(commands)
+
+    def execute_command(self, command, **kwargs) -> Dict[str, Any]:
+        """Execute a command with proper environment setup.
+
+        Args:
+            command: Command to execute (string or list of args)
+            **kwargs: Additional arguments to pass to command_handler
+
+        Returns:
+            Dictionary with command execution results
+        """
+        return self.command_handler.execute_command(command, **kwargs)
+
+    def run_in_venv(self, command, **kwargs) -> Dict[str, Any]:
+        """Run a command in the virtual environment.
+
+        Args:
+            command: Command to execute (string or list of args)
+            **kwargs: Additional arguments to pass to command_handler
+
+        Returns:
+            Dictionary with command execution results
+        """
+        # Get environment variables for virtualenv
+        venv_env = self._get_environment()
+
+        # Pass the environment to command_handler.run_in_venv
+        return self.command_handler.run_in_venv(command, venv_env=venv_env, **kwargs)
+
+    def generate_reports(self) -> Dict[str, Path]:
+        """Generate reports for successful and failed commands.
+
+        Returns:
+            Dictionary with report file paths
+        """
+        logger.info("Generating reports")
+
+        # Use the Reporter to generate reports
+        todo_path = self.reporter.generate_report(
+            data=self.failed_commands, formatter_name="todo", output_file=self.todo_file
+        )
+
+        done_path = self.reporter.generate_report(
+            data=self.successful_commands,
+            formatter_name="done",
+            output_file=self.done_file,
+        )
+
+        # Generate shell script if needed
+        if self.script_file:
+            self._generate_shell_script()
+
+        return {
+            "todo": todo_path,
+            "done": done_path,
+            "script": self.script_file if self.script_file else None,
+        }
+
+    def _generate_shell_script(self) -> None:
+        """Generate a shell script to fix failed commands."""
+        logger.info(f"Generating shell script: {self.script_file}")
+
+        script_lines = [
+            "#!/bin/bash",
+            "# Auto-generated script to fix failed commands",
+            "# Generated by domd",
+            "",
+            "set -e",
+            "",
+        ]
+
+        for cmd in self.failed_commands:
+            if isinstance(cmd, dict):
+                command = cmd.get("command", "")
+            else:
+                command = getattr(cmd, "command", "")
+
+            if command:
+                script_lines.append(f"echo 'Running: {command}'")
+                script_lines.append(command)
+                script_lines.append("")
+
+        with open(self.script_file, "w") as f:
+            f.write("\n".join(script_lines))
+
+        # Make script executable
+        try:
+            import os
+
+            os.chmod(self.script_file, 0o755)
+        except Exception as e:
+            logger.warning(f"Could not make script executable: {e}")
+
+    def create_llm_optimized_todo_md(self) -> None:
+        """Generate a TODO.md file with failed commands and fix suggestions."""
+        # This method would be implemented in a separate module
+        # focused on LLM integration
+        pass

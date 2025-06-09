@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 
 def find_virtualenv(project_path: str) -> Optional[str]:
@@ -63,7 +63,62 @@ def get_activate_command(venv_path: str) -> Optional[str]:
     return None
 
 
-def get_virtualenv_info(project_path: str) -> Dict[str, any]:
+def get_environment(venv_info: Dict[str, Any]) -> Dict[str, str]:
+    """Get environment variables for command execution with virtualenv.
+
+    Args:
+        venv_info: Dictionary with virtual environment information
+
+    Returns:
+        Dictionary with environment variables with virtualenv paths included
+    """
+    env = os.environ.copy()
+
+    # Add virtual environment's bin/scripts to PATH if available
+    if venv_info.get("path"):
+        venv_path = venv_info["path"]
+        if sys.platform == "win32":
+            bin_path = os.path.join(venv_path, "Scripts")
+        else:
+            bin_path = os.path.join(venv_path, "bin")
+
+        if os.path.exists(bin_path):
+            # Add to the beginning of PATH to ensure virtualenv binaries take precedence
+            env["PATH"] = f"{bin_path}{os.pathsep}{env.get('PATH', '')}"
+
+            # Set VIRTUAL_ENV for Python tools that check this
+            env["VIRTUAL_ENV"] = venv_path
+
+            # On Windows, we also need to set PYTHONHOME to None to avoid conflicts
+            if sys.platform == "win32" and "PYTHONHOME" in env:
+                del env["PYTHONHOME"]
+
+    return env
+
+
+def setup_virtualenv(venv_path: Optional[str] = None) -> Dict[str, Any]:
+    """Set up virtual environment for command execution.
+
+    Args:
+        venv_path: Optional path to virtual environment
+
+    Returns:
+        Dictionary with virtual environment information
+    """
+    if venv_path:
+        venv_info = get_virtualenv_info(venv_path)
+    else:
+        venv_info = {
+            "exists": False,
+            "path": None,
+            "activate_command": None,
+            "python_path": None,
+        }
+
+    return venv_info
+
+
+def get_virtualenv_info(project_path: str) -> Dict[str, Any]:
     """Get information about virtual environment.
 
     Args:
