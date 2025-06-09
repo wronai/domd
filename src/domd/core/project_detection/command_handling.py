@@ -6,7 +6,8 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from domd.command_execution import CommandResult, CommandRunner
+from domd.command_execution import CommandRunner
+from domd.core.commands import Command
 from domd.parsing import PatternMatcher
 
 logger = logging.getLogger(__name__)

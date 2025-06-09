@@ -1,225 +1,207 @@
-# 🎉 domd
+# 🚀 Przewodnik użytkownika DoMD
 
-## ✅ **STATUS: WSZYSTKIE PLIKI WYGENEROWANE KOMPLETNIE**
+## Spis treści
+1. [Podstawowe użycie](#-podstawowe-użycie)
+2. [Skanowanie projektu](#-skanowanie-projektu)
+3. [Konfiguracja](#-konfiguracja)
+4. [Zaawansowane funkcje](#-zaawansowane-funkcje)
+5. [Integracja z CI/CD](#-integracja-z-cicd)
+6. [Przykłady użycia](#-przykłady-użycia)
+7. [Rozwiązywanie problemów](#-rozwiązywanie-problemów)
 
-Bazując na Twoim pliku `pyproject.toml`, została stworzona **kompletna, profesjonalna paczka Python domd** z pełną implementacją oryginalnego skryptu oraz zaawansowanymi funkcjami.
+## 🏁 Podstawowe użycie
 
----
+Najprostszy sposób na uruchomienie DoMD w Twoim projekcie:
 
-## 📦 **Wygenerowane Pliki (21 artefaktów)**
-
-### 🔧 **Konfiguracja Projektu**
-| Plik | Opis | Status |
-|------|------|--------|
-| `pyproject.toml` | Pełna konfiguracja Poetry z zależnościami | ✅ Kompletny |
-| `tox.ini` | Konfiguracja testów w różnych środowiskach | ✅ Kompletny |
-| `.pre-commit-config.yaml` | Pre-commit hooks dla jakości kodu | ✅ Kompletny |
-| `.gitignore` | Ignorowane pliki dla Git | ✅ Kompletny |
-| `LICENSE` | Licencja Apache 2.0 | ✅ Kompletny |
-
-### 🐍 **Kod Źródłowy**
-| Plik | Opis | Status |
-|------|------|--------|
-| `src/domd/__init__.py` | Inicjalizacja paczki | ✅ Kompletny |
-| `src/domd/cli.py` | Interfejs linii komend | ✅ Kompletny |
-| `src/domd/detector.py` | **Główna logika detektora** (oryginalny skrypt) | ✅ Kompletny |
-
-### 🧪 **Testy**
-| Plik | Opis | Status |
-|------|------|--------|
-| `tests/conftest.py` | Konfiguracja pytest z fixtures | ✅ Kompletny |
-| `tests/test_detector.py` | Testy jednostkowe i integracyjne | ✅ Kompletny |
-
-### 📚 **Dokumentacja**
-| Plik | Opis | Status |
-|------|------|--------|
-| `README.md` | Główna dokumentacja projektu | ✅ Kompletny |
-| `QUICK_START.md` | Przewodnik szybkiego startu | ✅ Kompletny |
-| `INSTALLATION.md` | Szczegółowa instrukcja instalacji | ✅ Kompletny |
-| `CHANGELOG.md` | Historia zmian | ✅ Kompletny |
-| `mkdocs.yml` | Konfiguracja dokumentacji MkDocs | ✅ Kompletny |
-| `docs/index.md` | Strona główna dokumentacji | ✅ Kompletny |
-
-### 🚀 **Automatyzacja i CI/CD**
-| Plik | Opis | Status |
-|------|------|--------|
-| `Makefile` | Komendy automatyzacji (50+ zadań) | ✅ Kompletny |
-| `.github/workflows/ci.yml` | GitHub Actions CI/CD pipeline | ✅ Kompletny |
-| `scripts/setup_project.sh` | Automatyczna konfiguracja projektu | ✅ Kompletny |
-| `scripts/check_version.py` | Sprawdzanie spójności wersji | ✅ Kompletny |
-
----
-
-## 🚀 **Funkcjonalności Zaimplementowane**
-
-### 🔍 **Wykrywanie Komend (15+ typów projektów)**
-- ✅ **JavaScript/Node.js**: package.json, npm/yarn/pnpm
-- ✅ **Python**: pyproject.toml, setup.py, tox.ini, pytest, requirements.txt
-- ✅ **Build Systems**: Makefile, CMake, Gradle, Maven
-- ✅ **Docker**: Dockerfile, docker-compose
-- ✅ **CI/CD**: GitHub Actions, GitLab CI, Jenkins
-- ✅ **Inne języki**: PHP, Ruby, Rust, Go
-
-### 🧪 **Testowanie Komend**
-- ✅ **Bezpieczne wykonywanie** z timeout i error handling
-- ✅ **Szczegółowe przechwytywanie błędów** z kodami powrotu
-- ✅ **Pomiar czasu wykonania** dla analizy wydajności
-- ✅ **Filtrowanie plików** (include/exclude patterns)
-
-### 📊 **Generowanie Raportów**
-- ✅ **TODO.md** ze szczegółowymi raportami błędów
-- ✅ **Sugestie napraw** dla częstych problemów
-- ✅ **Wieloformatowe wyjście**: Markdown, JSON, Text
-- ✅ **Statystyki** i analizy sukcesu
-
-### 🛠️ **CLI Interface**
-- ✅ **Dry-run mode** - podgląd bez wykonywania
-- ✅ **Verbose/Quiet modes** - kontrola szczegółowości
-- ✅ **Konfigurowalny timeout**
-- ✅ **Custom output paths**
-- ✅ **Pattern filtering**
-
----
-
-## 🏗️ **Architektura Projektu**
-
-```
-domd/
-├── 📋 Konfiguracja
-│   ├── pyproject.toml           # Poetry config
-│   ├── tox.ini                  # Multi-env testing
-│   ├── .pre-commit-config.yaml  # Code quality hooks
-│   └── .github/workflows/       # CI/CD pipeline
-├── 🐍 Kod Źródłowy
-│   └── src/domd/
-│       ├── __init__.py          # Package init
-│       ├── cli.py               # Command line interface
-│       └── detector.py          # Main detection logic
-├── 🧪 Testy
-│   ├── conftest.py              # Pytest configuration
-│   └── test_detector.py         # Comprehensive tests
-├── 📚 Dokumentacja
-│   ├── README.md                # Main documentation
-│   ├── QUICK_START.md           # Quick start guide
-│   ├── INSTALLATION.md          # Installation guide
-│   └── docs/                    # MkDocs documentation
-└── 🚀 Automatyzacja
-    ├── Makefile                 # Build automation
-    └── scripts/                 # Helper scripts
-```
-
----
-
-## 🚀 **Szybki Start**
-
-### 1. **Utwórz Projekt**
 ```bash
-# Utwórz katalog i skopiuj wszystkie pliki
-mkdir domd && cd domd
+# Przejdź do katalogu projektu
+cd /ścieżka/do/projektu
 
-# Skopiuj wszystkie artefakty (pyproject.toml, src/, tests/, etc.)
+# Uruchom domd
+domd
 ```
 
-### 2. **Automatyczna Konfiguracja**
+Domyślnie DoMD:
+1. Przeskanuje bieżący katalog w poszukiwaniu plików konfiguracyjnych
+2. Zidentyfikuje dostępne komendy (np. z `package.json`, `Makefile`, `pyproject.toml`)
+3. Wykona znalezione komendy
+4. Wygeneruje raport w pliku `TODO.md`
+
+## 🔍 Skanowanie projektu
+
+### Obsługiwane pliki konfiguracyjne
+
+DoMD automatycznie wykrywa i analizuje następujące typy plików:
+
+- **JavaScript/TypeScript**: `package.json` (npm, yarn)
+- **Python**: `setup.py`, `pyproject.toml`, `requirements.txt`
+- **Make**: `Makefile`
+- **Docker**: `Dockerfile`, `docker-compose.yml`
+- **Ansible**: Playbooki, role, inventory
+- **PHP**: `composer.json`
+- **Rust**: `Cargo.toml`
+- **TOML**: Ogólna obsługa plików TOML
+- **YAML**: Ogólna obsługa plików YAML
+- **INI**: Ogólna obsługa plików INI
+
+### Opcje skanowania
+
 ```bash
-# Uruchom automatyczny setup
-chmod +x scripts/setup_project.sh
-./scripts/setup_project.sh
+# Skanowanie konkretnego katalogu
+domd --path /ścieżka/do/projektu
+
+# Pomijanie określonych plików/katalogów
+domd --exclude "*.test.js" --exclude "node_modules/*"
+
+# Skanowanie tylko wybranych plików
+domd --include-only "Makefile" --include-only "package.json"
 ```
 
-### 3. **Pierwsze Użycie**
+## ⚙️ Konfiguracja
+
+### Plik .domdignore
+
+Możesz utworzyć plik `.domdignore` w głównym katalogu projektu, aby wykluczyć określone komendy:
+
+```
+# Ignoruj konkretne komendy
+npm run test:coverage
+pytest -xvs
+
+# Ignoruj według wzorca
+*coverage*
+*test*
+```
+
+### Plik .dodocker
+
+Aby uruchamiać komendy w kontenerze Docker, utwórz plik `.dodocker`:
+
+```yaml
+image: python:3.9
+volumes:
+  - .:/app
+working_dir: /app
+environment:
+  - PYTHONPATH=/app
+```
+
+## 🚀 Zaawansowane funkcje
+
+### Tryb podglądu (dry-run)
+
 ```bash
-# Podgląd komend (bezpieczny)
-poetry run domd --dry-run
-
-# Test rzeczywisty
-poetry run domd --verbose
-
-# Dogfooding - domd testuje sam siebie!
-make health-check
+# Pokaż, jakie komendy zostałyby wykonane, bez faktycznego ich wykonywania
+domd --dry-run
 ```
 
----
+### Różne formaty wyjściowe
 
-## 🎯 **Gotowe Do Użycia**
-
-### ✅ **Podstawowe Komendy**
 ```bash
-make dev           # Pełne środowisko deweloperskie
-make test          # Uruchom testy
-make lint          # Sprawdź jakość kodu
-make build         # Zbuduj paczkę
-make health-check  # domd testuje sam siebie
+# Format JSON
+domd --format json
+
+# Format tekstowy
+domd --format text
+
+# Format Markdown (domyślny)
+domd --format markdown
+
+# Własna ścieżka wyjściowa
+domd --output raport.md
 ```
 
-### ✅ **CI/CD Ready**
-- GitHub Actions workflow skonfigurowany
-- Pre-commit hooks zainstalowane
-- Testy w wielu wersjach Python (3.8-3.12)
-- Automatyczne budowanie i publikacja
+### Ustawienie limitu czasu
 
-### ✅ **Dokumentacja**
-- Kompletny README z przykładami
-- Przewodnik szybkiego startu
-- Szczegółowa instrukcja instalacji
-- MkDocs dla profesjonalnej dokumentacji
-
----
-
-## 📊 **Statystyki Projektu**
-
-| Metryka | Wartość |
-|---------|---------|
-| **Obsługiwane technologie** | 15+ |
-| **Wykrywane formaty plików** | 20+ |
-| **Rozpoznawane wzorce komend** | 50+ |
-| **Formaty wyjściowe** | 3 (MD, JSON, Text) |
-| **Wspierane wersje Python** | 3.8 - 3.12 |
-| **Pliki konfiguracyjne** | 21 |
-| **Gotowość do produkcji** | ✅ 100% |
-
----
-
-## 🔄 **Następne Kroki**
-
-### 1. **Dostosuj Do Swoich Potrzeb**
-- Zmień `wronai` na prawdziwy username w URL-ach
-- Zaktualizuj informacje o autorze w `pyproject.toml`
-- Dostosuj exclude/include patterns do swojego projektu
-
-### 2. **Rozwijaj**
-- Dodaj nowe parsery w `src/domd/parsers/`
-- Stwórz custom reportery w `src/domd/reporters/`
-- Dodaj integracje z narzędziami (Slack, Teams, etc.)
-
-### 3. **Publikuj**
 ```bash
-make release-patch  # Publikuj wersję patch
-make release-minor  # Publikuj wersję minor
+# Ustawienie limitu czasu na wykonanie komendy (domyślnie 60s)
+domd --timeout 120
 ```
 
+## 🤖 Integracja z CI/CD
+
+### GitHub Actions
+
+Przykładowy plik workflow dla GitHub Actions:
+
+```yaml
+name: DoMD Health Check
+
+on: [push, pull_request]
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install DoMD
+        run: pip install domd
+
+      - name: Run health check
+        run: domd --output health-report.md
+
+      - name: Upload report
+        uses: actions/upload-artifact@v3
+        with:
+          name: health-report
+          path: health-report.md
+```
+
+## 💡 Przykłady użycia
+
+### Przykład 1: Podstawowe użycie
+
+```bash
+# Przejdź do katalogu projektu
+cd moj-projekt
+
+# Uruchom domd
+domd
+
+# Sprawdź wygenerowany raport
+cat TODO.md
+```
+
+### Przykład 2: Integracja z Makefile
+
+Dodaj do swojego `Makefile`:
+
+```makefile
+health-check:
+	domd --output HEALTH.md
+
+.PHONY: health-check
+```
+
+## ❓ Rozwiązywanie problemów
+
+### Błędy wykonania komend
+
+Jeśli napotkasz błędy podczas wykonywania komend:
+
+1. Sprawdź, czy wszystkie wymagane narzędzia są zainstalowane
+2. Upewnij się, że wszystkie zmienne środowiskowe są ustawione poprawnie
+3. Spróbuj uruchomić problematyczną komendę ręcznie
+4. Użyj flagi `--verbose`, aby uzyskać więcej informacji
+
+### Zgłaszanie błędów
+
+Jeśli znajdziesz błąd lub masz sugestię:
+
+1. Sprawdź, czy problem nie został już zgłoszony w [issues](https://github.com/wronai/domd/issues)
+2. Jeśli nie, utwórz nowe zgłoszenie z:
+   - Krótkim opisem problemu
+   - Krokami do odtworzenia błędu
+   - Oczekiwanym i faktycznym zachowaniem
+   - Wersją DoMD (`domd --version`)
+   - Środowiskiem (system operacyjny, wersja Pythona itp.)
+
 ---
 
-## 🏆 **Osiągnięcia**
-
-✅ **Oryginalny skrypt** został przekształcony w profesjonalną paczkę Python
-✅ **Zachowana funkcjonalność** + dodane zaawansowane features
-✅ **Kompletna dokumentacja** z przykładami użycia
-✅ **Testy** zapewniające jakość kodu
-✅ **CI/CD pipeline** dla automatyzacji
-✅ **Modułowa architektura** umożliwiająca łatwe rozszerzanie
-✅ **Zgodność z Python 3.8+** i najlepszymi praktykami
-
----
-
-## 🎉 **Podsumowanie**
-
-**domd jest gotowe do użycia w produkcji!**
-
-Projekt zawiera:
-- **Kompletną implementację** oryginalnego skryptu
-- **Zaawansowane funkcje** CLI i API
-- **Profesjonalną strukturę** paczki Python
-- **Pełną dokumentację** i przykłady
-- **Automatyzację** budowania i testowania
-- **Integrację CI/CD** z GitHub Actions
+Masz dodatkowe pytania? Sprawdź [dokumentację](https://domd.readthedocs.io/) lub [zgłoś problem](https://github.com/wronai/domd/issues).
