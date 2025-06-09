@@ -86,8 +86,14 @@ class AnsibleRoleParser(BaseParser):
                 return []
 
         try:
+            # Get relative path if file is in project directory, otherwise use full path
+            try:
+                role_rel_path = role_path.parent.parent.relative_to(self.project_root)
+            except ValueError:
+                role_rel_path = role_path.parent.parent
+
             # Create a command to run the role directly
-            cmd = f"ansible-playbook {role_path.parent.parent}/site.yml --tags {role_name}"
+            cmd = f"ansible-playbook {role_rel_path}/site.yml --tags {role_name}"
             description = f"Ansible role: {role_name}"
 
             self._commands.append(

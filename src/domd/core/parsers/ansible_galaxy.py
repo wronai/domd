@@ -139,7 +139,12 @@ class AnsibleGalaxyParser(BaseParser):
             return []
 
         self._commands: List[Command] = []
-        rel_path = self.file_path.relative_to(self.project_root)
+
+        # Get relative path if file is in project directory, otherwise use full path
+        try:
+            rel_path = self.file_path.relative_to(self.project_root)
+        except ValueError:
+            rel_path = self.file_path
 
         # If content is not provided, read from file
         if content is None and not self.file_path.is_dir():

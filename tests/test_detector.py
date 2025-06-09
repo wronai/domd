@@ -11,7 +11,7 @@ import toml
 
 from domd.core.commands import Command
 from domd.core.detector import ProjectCommandDetector
-from domd.core.parsers import MakefileParser, PackageJsonParser, PyProjectTomlParser
+from domd.core.parsers import MakefileParser, PackageJsonParser
 
 
 class TestProjectCommandDetector:
@@ -198,7 +198,7 @@ class TestProjectCommandDetector:
                         if f"make {target}" == cmd_dict.get("command"):
                             found = True
                             break
-                    assert found, f"Command 'make {target}' not found in commands"
+                    assert found, f"Command 'make {target}' not in commands"
 
         print("\n" + "=" * 80)
         print("TEST COMPLETED")
@@ -274,38 +274,57 @@ class TestProjectCommandDetector:
                 elif isinstance(cmd, dict) and "command" in cmd:
                     command_strings.append(cmd["command"])
 
-            # Verify we found the expected commands
+            # We expect both the combined and individual commands
+            expected_commands = [
+                "poetry run test",
+                "poetry run lint",  # Combined command
+                "poetry run black .",  # Individual commands from lint
+                "poetry run isort .",
+                "poetry run flake8",
+            ]
+
+            # Check that all expected commands are present
+            for expected_cmd in expected_commands:
+                assert any(
+                    cmd == expected_cmd for cmd in command_strings
+                ), f"Expected command '{expected_cmd}' not found in: {command_strings}"
+
+            # Check that we have the expected number of poetry scripts
+            # We should have:
+            # 1. test command
+            # 2. lint (combined)
+            # 3. black . (from lint)
+            # 4. isort . (from lint)
+            # 5. flake8 (from lint)
+            poetry_commands = [
+                cmd
+                for cmd in commands
+                if getattr(cmd, "type", None) in ("poetry_script", "poetry_script_part")
+                or (
+                    isinstance(cmd, dict)
+                    and cmd.get("type") in ("poetry_script", "poetry_script_part")
+                )
+            ]
+
             assert (
-                any("pytest" in cmd for cmd in command_strings)
-                or any("black" in cmd for cmd in command_strings)
-                or any("isort" in cmd for cmd in command_strings)
-                or any("flake8" in cmd for cmd in command_strings)
-            ), f"Expected commands not found in: {command_strings}"
-        commands = detector.scan_project()
+                len(poetry_commands) == 5
+            ), f"Expected 5 poetry commands, got {len(poetry_commands)}: {poetry_commands}"
 
-        # Should find poetry scripts and tool commands
-        poetry_commands = []
-        pytest_commands = []
-
-        for cmd in commands:
-            cmd_dict = cmd if isinstance(cmd, dict) else cmd.__dict__
-            if cmd_dict.get("type") == "poetry_script":
-                poetry_commands.append(cmd_dict)
-            elif cmd_dict.get("type") == "pytest":
-                pytest_commands.append(cmd_dict)
-
-        assert len(poetry_commands) > 0
-        assert len(pytest_commands) > 0
-
-        # Check specific commands
-        scripts = sample_pyproject_toml["tool"]["poetry"]["scripts"]
-        for script_name in scripts:
-            script_command = None
-            for cmd in poetry_commands:
-                if script_name in cmd.get("command", ""):
-                    script_command = cmd
-                    break
-            assert script_command is not None
+            # Check that we have the expected commands
+            found_commands = set()
+            for cmd in command_strings:
+                if "poetry run test" in cmd:
+                    found_commands.add("test")
+                elif (
+                    "poetry run lint" in cmd and "black" not in cmd
+                ):  # Only match the combined command
+                    found_commands.add("lint")
+                elif "poetry run black" in cmd:
+                    found_commands.add("black")
+                elif "poetry run isort" in cmd:
+                    found_commands.add("isort")
+                elif "poetry run flake8" in cmd:
+                    found_commands.add("flake8")
 
     @pytest.mark.unit
     def test_should_process_file_include_patterns(self, temp_project):
@@ -453,7 +472,7 @@ class TestProjectCommandDetector:
         assert total_commands > 0, "No commands were processed"
 
         # Log the results for debugging
-        print(f"\nTest results:")
+        print("\nTest results:")
         print(f"  Failed: {len(detector.failed_commands)}")
         print(f"  Successful: {len(detector.successful_commands)}")
         print(f"  Ignored: {len(detector.ignored_commands)}")
@@ -499,7 +518,7 @@ class TestProjectCommandDetector:
         for cmd in sample_failed_commands:
             cmd_str = cmd.get("command", "")
             if cmd_str:
-                assert cmd_str in content, f"Command '{cmd_str}' not found in TODO.md"
+                assert cmd_str in content, f"Command '{cmd_str}' not in TODO.md"
 
     @pytest.mark.unit
     def test_generate_json_report(self, temp_project, sample_failed_commands):
@@ -678,7 +697,7 @@ class TestProjectCommandDetector:
 
         # Verify each actual command is in the content
         for cmd in actual_commands:
-            assert cmd in content, f"Command '{cmd}' not found in TODO.md"
+            assert cmd in content, f"Command '{cmd}' not in TODO.md"
 
         # Verify we have some commands in the failed section
         assert (
@@ -866,28 +885,81 @@ deploy:
 
         commands = parser.parse()
 
-        # Should find Poetry scripts
-        poetry_commands = [cmd for cmd in commands if cmd.type == "poetry_script"]
-        assert len(poetry_commands) == len(pyproject_data["tool"]["poetry"]["scripts"])
+        # Separate the commands by type
+        poetry_scripts = [cmd for cmd in commands if cmd.type == "poetry_script"]
+        poetry_script_parts = [
+            cmd for cmd in commands if cmd.type == "poetry_script_part"
+        ]
+
+        # We should have at least the test script and the combined lint script
+        assert (
+            len(poetry_scripts) >= 2
+        ), f"Expected at least 2 script commands, got {len(poetry_scripts)}"
+
+        # We should have the individual parts of the combined command
+        # (3 parts: black, isort, flake8)
+        assert (
+            len(poetry_script_parts) == 3
+        ), f"Expected 3 script parts, got {len(poetry_script_parts)}"
 
         # Should also find pytest configuration
         pytest_commands = [cmd for cmd in commands if cmd.type == "pytest"]
         assert len(pytest_commands) > 0
 
-        # Check command details
+        # Check command details for the test command
         test_cmd = next(
             (
                 cmd
-                for cmd in poetry_commands
+                for cmd in poetry_scripts
                 if cmd.metadata.get("script_name") == "test"
             ),
             None,
         )
-        assert test_cmd is not None
+        assert test_cmd is not None, "Test command not found in parsed commands"
         assert test_cmd.metadata.get("script_target") == "pytest"
         assert test_cmd.metadata.get("original_command") == "pytest"
         assert "test" in test_cmd.description.lower()
         assert str(pyproject_path) in test_cmd.source
+
+        # Check the combined lint command
+        lint_cmd = next(
+            (
+                cmd
+                for cmd in poetry_scripts
+                if cmd.metadata.get("script_name") == "lint"
+                and cmd.metadata.get("is_combined")
+            ),
+            None,
+        )
+        assert lint_cmd is not None, "Combined lint command not found"
+        assert lint_cmd.command == "poetry run lint"
+        assert "lint" in lint_cmd.description.lower()
+        assert str(pyproject_path) in lint_cmd.source
+
+        # Check the individual lint sub-commands
+        lint_parts = [
+            cmd
+            for cmd in poetry_script_parts
+            if cmd.metadata.get("is_part_of") == "lint"
+        ]
+        assert len(lint_parts) == 3, f"Expected 3 lint parts, got {len(lint_parts)}"
+
+        # Check each part of the lint command
+        expected_commands = [
+            ("black .", "poetry run black ."),
+            ("isort .", "poetry run isort ."),
+            ("flake8", "poetry run flake8"),
+        ]
+
+        for expected_original, expected_cmd in expected_commands:
+            found = any(
+                cmd.metadata.get("script_target") == expected_original
+                and cmd.command == expected_cmd
+                for cmd in lint_parts
+            )
+            assert (
+                found
+            ), f"Expected command part '{expected_cmd}' (original: '{expected_original}') not found"
 
     @pytest.mark.parsers
     def test_parse_tox_ini(self, temp_project):

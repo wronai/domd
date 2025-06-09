@@ -22,6 +22,24 @@ A powerful tool for detecting and managing project commands with built-in suppor
 - **Clean Architecture**: Modular design with separation of concerns for better maintainability
 - **REST API**: Access all functionality through a RESTful API interface
 
+## 🛠 Development Scripts
+
+This project includes several utility scripts to help with development and testing. These are located in the `scripts/` directory:
+
+- `clean_install.sh` - Completely cleans and recreates the Poetry environment
+- `fresh_install.sh` - Sets up a fresh Python virtual environment (simpler alternative to clean_install.sh)
+- `setup_environment.sh` - Comprehensive environment setup with color-coded output
+- `publish.sh` - Builds and publishes the package (includes tests and formatting checks)
+- `build.sh` - Builds the project package
+- `build_docs.sh` - Builds the documentation
+- `run_tests.sh` - Runs the test suite
+- `setup_dev.sh` - Sets up the development environment
+
+### Docker Testing Scripts
+Scripts for testing with Docker are located in `docker-test/`:
+- `build_and_run.sh` - Builds and runs tests in a Docker container
+- `test_install.sh` - Tests package installation in a clean environment
+
 ## 🔍 Supported Project Types
 
 DoMD supports a wide range of project types and build systems, including:

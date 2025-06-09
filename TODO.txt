@@ -1,0 +1,60 @@
+# DoMD - Lista zadań refaktoryzacyjnych
+
+## Naprawy pilne (krótkoterminowe)
+1. [x] Naprawić błąd raportowania wykonanych komend w CLI
+   - [x] Poprawić funkcję print_summary w cli.py, aby używała rzeczywistej liczby przetestowanych komend
+   - [x] Zaktualizować typy w CommandHandler, aby odzwierciedlały mieszane typy (Command i Dict)
+
+## Refaktoryzacja architektury (średnioterminowa)
+1. [x] Wprowadzić czystą architekturę warstwową
+   - [x] Stworzyć katalog core/domain z modelami domenowymi
+   - [x] Zdefiniować jasne modele Command i CommandResult
+   - [x] Oddzielić wynik wykonania komendy od samej komendy
+
+2. [x] Wprowadzić wzorzec portów i adapterów
+   - [x] Zdefiniować interfejsy dla repozytoriów komend
+   - [x] Zdefiniować interfejsy dla wykonawców komend
+   - [x] Zdefiniować interfejsy dla formaterów raportów
+
+3. [x] Zaimplementować usługi biznesowe
+   - [x] CommandService do zarządzania wykonaniem komend
+   - [x] ReportService do generowania raportów
+   - [ ] ProjectService do zarządzania projektem
+
+4. [x] Zaimplementować adaptery
+   - [x] CLI adapter (CommandPresenter)
+   - [x] Adapter formatera Markdown
+   - [x] Adapter repozytorium w pamięci
+
+5. [x] Wprowadzić wzorzec fabryki
+   - [x] ApplicationFactory do tworzenia i łączenia komponentów
+
+## Rozszerzenia (długoterminowe)
+1. [ ] Dodać REST API
+   - [ ] Zaimplementować adapter REST
+   - [ ] Dodać dokumentację API (Swagger/OpenAPI)
+
+2. [ ] Dodać interfejs webowy
+   - [ ] Zaimplementować prosty interfejs webowy do zarządzania komendami
+
+3. [ ] Dodać integrację z systemami CI/CD
+   - [ ] Dodać adapter dla GitLab CI
+   - [ ] Dodać adapter dla GitHub Actions
+
+4. [ ] Dodać system wtyczek
+   - [ ] Zdefiniować interfejs wtyczek
+   - [ ] Dodać mechanizm ładowania wtyczek
+
+## Testy
+1. [ ] Dodać testy jednostkowe dla każdej warstwy
+   - [ ] Testy modeli domenowych
+   - [ ] Testy usług biznesowych
+   - [ ] Testy adapterów
+
+2. [ ] Dodać testy integracyjne
+   - [ ] Testy przepływu komend od wykrycia do raportu
+   - [ ] Testy CLI
+
+3. [ ] Dodać testy wydajnościowe
+   - [ ] Benchmark wykrywania komend
+   - [ ] Benchmark wykonywania komend

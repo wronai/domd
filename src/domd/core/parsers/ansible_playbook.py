@@ -74,6 +74,12 @@ class AnsiblePlaybookParser(BaseParser):
             if not isinstance(playbook, list):
                 return []
 
+            # Get relative path if file is in project directory, otherwise use full path
+            try:
+                playbook_path = self.file_path.relative_to(self.project_root)
+            except ValueError:
+                playbook_path = self.file_path
+
             for play in playbook:
                 if not isinstance(play, dict):
                     continue
@@ -82,9 +88,7 @@ class AnsiblePlaybookParser(BaseParser):
                 hosts = play.get("hosts", "all")
 
                 # Create a command to run this playbook
-                cmd = (
-                    f"ansible-playbook {self.file_path.relative_to(self.project_root)}"
-                )
+                cmd = f"ansible-playbook {playbook_path}"
                 description = f"Ansible playbook: {play_name} (hosts: {hosts})"
 
                 self._commands.append(

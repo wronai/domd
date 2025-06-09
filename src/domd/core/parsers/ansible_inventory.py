@@ -91,7 +91,11 @@ class AnsibleInventoryParser(BaseParser):
                 return []
 
         try:
-            rel_path = self.file_path.relative_to(self.project_root)
+            # Get relative path if file is in project directory, otherwise use full path
+            try:
+                rel_path = self.file_path.relative_to(self.project_root)
+            except ValueError:
+                rel_path = self.file_path
 
             if self._is_dynamic_inventory(self.file_path):
                 # Dynamic inventory script
