@@ -306,56 +306,54 @@ class Reporter:
         Returns:
             Path to the generated report
         """
-        # Store the original data
-        original_data = self.data
+        logger.info(f"Generating report with formatter '{formatter_name}'")
 
+        # Determine the output path
+        if output_file:
+            output_path = Path(output_file)
+        elif self.output_dir:
+            # Generate a filename based on the formatter
+            output_path = self._generate_output_path(formatter_name)
+        else:
+            raise ValueError("No output path specified and no output_dir set")
+
+        # Ensure the directory exists
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Get the formatter and use it to write the report
         try:
-            # Set the data to the provided data
-            self.data = data
-
-            # Determine the output path
-            if output_file is not None:
-                output_path = Path(output_file)
+            # Sprawdź, czy formatter_name jest w self._formatter_instances
+            if formatter_name in self._formatter_instances:
+                # Pobierz instancję formatera
+                formatter = self._formatter_instances[formatter_name]
+                # Sformatuj dane i zapisz do pliku
+                formatted_content = formatter.format_report(data, **kwargs)
+                with open(output_path, "w", encoding="utf-8") as f:
+                    f.write(formatted_content)
+            # Sprawdź, czy formatter_name jest w self._formatters (klasy formaterów)
+            elif formatter_name in self._formatters:
+                # Użyj metody write_report, która utworzy instancję formatera
+                output_path = self.write_report(
+                    output_path=output_path, format_name=formatter_name, **kwargs
+                )
             else:
-                output_path = self._get_report_filename(formatter_name)
-
-            # Ensure the directory exists
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-
-            # Get the formatter and use it to write the report
-            try:
-                # Najpierw spróbuj użyć formatera jako obiektu
-                if formatter_name in self._formatters:
-                    # Write the report using the write_report method
-                    output_path = self.write_report(
-                        output_path=output_path, format_name=formatter_name, **kwargs
-                    )
-                # Jeśli formatter_name to nazwa instancji formatera
-                elif formatter_name in self._formatter_instances:
-                    # Pobierz instancję formatera
-                    formatter = self._formatter_instances[formatter_name]
-                    # Sformatuj dane i zapisz do pliku
-                    formatted_content = formatter.format_report(data, **kwargs)
-                    with open(output_path, "w", encoding="utf-8") as f:
-                        f.write(formatted_content)
-                else:
-                    # Fallback - użyj domyślnego formatera
-                    logger.warning(
-                        f"Formatter '{formatter_name}' not found, using default"
-                    )
-                    with open(output_path, "w", encoding="utf-8") as f:
-                        f.write(str(data))
-            except Exception as e:
-                logger.error(f"Error generating report: {e}")
-                # Ensure the file exists even if there was an error
-                if not output_path.exists():
-                    output_path.touch()
-
-            # Ensure the file exists (create empty file if needed)
+                # Fallback - użyj domyślnego formatera
+                logger.warning(
+                    f"Formatter '{formatter_name}' not found, using default '{self.default_format}'"
+                )
+                # Użyj domyślnego formatera
+                formatter = self.get_formatter(self.default_format)
+                formatted_content = formatter.format_report(data, **kwargs)
+                with open(output_path, "w", encoding="utf-8") as f:
+                    f.write(formatted_content)
+        except Exception as e:
+            logger.error(f"Error generating report: {e}")
+            # Ensure the file exists even if there was an error
             if not output_path.exists():
                 output_path.touch()
 
-            return output_path
-        finally:
-            # Restore the original data
-            self.data = original_data
+        # Ensure the file exists (create empty file if needed)
+        if not output_path.exists():
+            output_path.touch()
+
+        return output_path
