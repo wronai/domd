@@ -94,26 +94,56 @@ class PatternMatcher:
         if isinstance(patterns, str):
             patterns = [patterns]
 
+        # Convert command to lowercase if case-insensitive matching is enabled
+        if not self.case_sensitive:
+            command = command.lower()
+
         for pattern in patterns:
+            # Skip empty patterns
+            if not pattern:
+                continue
+
+            # Convert pattern to lowercase if case-insensitive matching is enabled
+            current_pattern = pattern.lower() if not self.case_sensitive else pattern
+
             # Handle regex patterns
-            if pattern.startswith("re:"):
+            if current_pattern.startswith("re:"):
                 try:
-                    regex = self._compile_regex(pattern[3:], fullmatch=False)
+                    regex = self._compile_regex(current_pattern[3:], fullmatch=False)
                     if regex.search(command):
                         return True
                 except re.error as e:
-                    logger.warning("Invalid regex pattern '%s': %s", pattern[3:], e)
+                    logger.warning(
+                        "Invalid regex pattern '%s': %s", current_pattern[3:], e
+                    )
                 continue
 
-            # Handle glob patterns
-            if "*" in pattern or "?" in pattern or "[" in pattern:
-                if fnmatch.fnmatch(command, pattern):
+            # Handle glob patterns (check both full command and command parts)
+            if (
+                "*" in current_pattern
+                or "?" in current_pattern
+                or "[" in current_pattern
+            ):
+                # Check full command
+                if fnmatch.fnmatch(command, current_pattern):
                     return True
+
+                # For npm scripts, also check the script name part after "run"
+                if command.startswith("npm run ") and len(command.split()) > 2:
+                    script_part = command[8:]  # Get the part after "npm run "
+                    if fnmatch.fnmatch(script_part, current_pattern):
+                        return True
                 continue
 
-            # Simple string match
-            if pattern in command:
+            # Simple string match (check both full command and command parts)
+            if current_pattern in command:
                 return True
+
+            # For npm scripts, also check the script name part after "run"
+            if command.startswith("npm run ") and len(command.split()) > 2:
+                script_part = command[8:]  # Get the part after "npm run "
+                if current_pattern in script_part:
+                    return True
 
         return False
 

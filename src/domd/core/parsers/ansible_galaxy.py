@@ -48,11 +48,21 @@ class AnsibleGalaxyParser(BaseParser):
 
         return False
 
-    def _parse_requirements_file(self, file_path: Path) -> List[Dict[str, Any]]:
-        """Parse a requirements.yml file and return a list of requirements."""
+    def _parse_requirements_file(
+        self, file_path: Path, content: str = None
+    ) -> List[Dict[str, Any]]:
+        """Parse a requirements.yml file and return a list of requirements.
+
+        Args:
+            file_path: Path to the requirements file
+            content: Optional content of the file. If not provided, will read from file_path.
+        """
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = yaml.safe_load(f)
+            if content is None:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = yaml.safe_load(f)
+            else:
+                content = yaml.safe_load(content)
 
             if not content:
                 return []
@@ -65,39 +75,60 @@ class AnsibleGalaxyParser(BaseParser):
                     return content.get("roles", [])
                 if "collections" in content:
                     return content.get("collections", [])
-
         except (yaml.YAMLError, UnicodeDecodeError) as e:
             print(f"Error parsing requirements file {file_path}: {e}")
 
         return []
 
-    def _parse_meta_file(self, file_path: Path) -> List[Dict[str, Any]]:
-        """Parse a meta/main.yml file and return role dependencies."""
+    def _parse_meta_file(
+        self, file_path: Path, content: str = None
+    ) -> List[Dict[str, Any]]:
+        """Parse a meta/main.yml file and return role dependencies.
+
+        Args:
+            file_path: Path to the meta file
+            content: Optional content of the file. If not provided, will read from file_path.
+        """
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                meta = yaml.safe_load(f)
+            if content is None:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    meta = yaml.safe_load(f)
+            else:
+                meta = yaml.safe_load(content)
 
             if isinstance(meta, dict) and "dependencies" in meta:
                 deps = meta["dependencies"]
                 if isinstance(deps, list):
                     return deps
-
         except (yaml.YAMLError, UnicodeDecodeError) as e:
             print(f"Error parsing meta file {file_path}: {e}")
 
         return []
 
-    def _parse_galaxy_file(self, file_path: Path) -> Dict[str, Any]:
-        """Parse a galaxy.yml file and return collection metadata."""
+    def _parse_galaxy_file(
+        self, file_path: Path, content: str = None
+    ) -> Dict[str, Any]:
+        """Parse a galaxy.yml file and return collection metadata.
+
+        Args:
+            file_path: Path to the galaxy.yml file
+            content: Optional content of the file. If not provided, will read from file_path.
+        """
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
+            if content is None:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    return yaml.safe_load(f) or {}
+            else:
+                return yaml.safe_load(content) or {}
         except (yaml.YAMLError, UnicodeDecodeError) as e:
             print(f"Error parsing galaxy.yml {file_path}: {e}")
             return {}
 
-    def parse(self) -> "List[Command]":
+    def parse(self, content: str = None) -> "List[Command]":
         """Parse Ansible Galaxy files and extract commands.
+
+        Args:
+            content: Optional content of the file. If not provided, will read from file_path.
 
         Returns:
             List of Command objects
@@ -110,10 +141,19 @@ class AnsibleGalaxyParser(BaseParser):
         self._commands: List[Command] = []
         rel_path = self.file_path.relative_to(self.project_root)
 
+        # If content is not provided, read from file
+        if content is None and not self.file_path.is_dir():
+            try:
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except (IOError, UnicodeDecodeError):
+                # If we can't read the file, return empty list
+                return []
+
         try:
             # Handle requirements files
             if self.file_path.name in ["requirements.yml", "requirements.yaml"]:
-                requirements = self._parse_requirements_file(self.file_path)
+                requirements = self._parse_requirements_file(self.file_path, content)
                 if requirements:
                     cmd = f"ansible-galaxy install -r {rel_path}"
                     description = f"Install Ansible roles/collections from: {rel_path}"
@@ -134,7 +174,7 @@ class AnsibleGalaxyParser(BaseParser):
 
             # Handle meta/main.yml for role dependencies
             elif self.file_path.name == "main.yml" and "meta" in self.file_path.parts:
-                deps = self._parse_meta_file(self.file_path)
+                deps = self._parse_meta_file(self.file_path, content)
                 if deps:
                     cmd = (
                         f"ansible-galaxy install -r {rel_path.parent}/requirements.yml"
@@ -157,7 +197,7 @@ class AnsibleGalaxyParser(BaseParser):
 
             # Handle galaxy.yml for collections
             elif self.file_path.name == "galaxy.yml":
-                collection_info = self._parse_galaxy_file(self.file_path)
+                collection_info = self._parse_galaxy_file(self.file_path, content)
                 if collection_info:
                     namespace = collection_info.get("namespace", "unknown")
                     name = collection_info.get("name", "unknown")

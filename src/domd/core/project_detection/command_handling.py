@@ -359,41 +359,81 @@ class CommandHandler:
                     continue
 
                 # Make a copy of the command to avoid modifying the original
-                cmd_copy = cmd.copy() if isinstance(cmd, dict) else cmd
+                if isinstance(cmd, dict):
+                    cmd_copy = cmd.copy()
+                else:
+                    # For Command objects, create a shallow copy
+                    cmd_copy = type(cmd)(**cmd.__dict__)
 
-                # Execute the command
+                # Execute the command and get the full result
                 success = self.execute_single_command(cmd_copy)
 
-                # Set success flag if not already set
+                # Set success flag and error information
                 if isinstance(cmd_copy, dict):
+                    # Ensure we have all required fields for the test
+                    if "source" not in cmd_copy:
+                        cmd_copy["source"] = cmd_copy.get("file", "unknown")
+
+                    # If command failed but no error was set, set a default error message
+                    if not success and not cmd_copy.get("error"):
+                        cmd_copy["error"] = cmd_copy.get("stderr") or "Command failed"
+
+                    # Ensure success flag is set
                     cmd_copy["success"] = success
                 else:
+                    # For Command objects
+                    if not hasattr(cmd_copy, "source"):
+                        setattr(
+                            cmd_copy, "source", getattr(cmd_copy, "file", "unknown")
+                        )
+
+                    # If command failed but no error was set, set a default error message
+                    if not success and not hasattr(cmd_copy, "error"):
+                        error_msg = (
+                            getattr(cmd_copy, "stderr", None) or "Command failed"
+                        )
+                        setattr(cmd_copy, "error", error_msg)
+
+                    # Ensure success flag is set
                     setattr(cmd_copy, "success", success)
 
                 # Add to appropriate list
                 if success:
                     self.successful_commands.append(cmd_copy)
                 else:
-                    # Ensure error is set for failed commands
-                    if isinstance(cmd_copy, dict):
-                        if "error" not in cmd_copy:
-                            cmd_copy["error"] = "Command failed"
-                    else:
-                        if not hasattr(cmd_copy, "error"):
-                            setattr(cmd_copy, "error", "Command failed")
                     self.failed_commands.append(cmd_copy)
+                    # Get command and error, handling both dict and Command object
+                    cmd_str = (
+                        cmd_copy.get("command", "")
+                        if isinstance(cmd_copy, dict)
+                        else getattr(cmd_copy, "command", "")
+                    )
+                    error_msg = (
+                        cmd_copy.get("error", "Unknown error")
+                        if isinstance(cmd_copy, dict)
+                        else getattr(cmd_copy, "error", "Unknown error")
+                    )
+                    logger.warning(f"Command failed: {cmd_str} - {error_msg}")
 
                 # Update original command with results
                 if isinstance(cmd, dict) and isinstance(cmd_copy, dict):
                     cmd.update(cmd_copy)
                 elif hasattr(cmd, "__dict__") and hasattr(cmd_copy, "__dict__"):
-                    cmd.__dict__.update(cmd_copy.__dict__)
+                    # Update the original command's attributes
+                    for k, v in cmd_copy.__dict__.items():
+                        setattr(cmd, k, v)
+
             except Exception as e:
                 logger.error("Error testing command: %s", e, exc_info=True)
+                error_msg = str(e)
                 if hasattr(cmd, "command"):  # Command object
-                    setattr(cmd, "error", str(e))
+                    setattr(cmd, "error", error_msg)
                     setattr(cmd, "success", False)
+                    if not hasattr(cmd, "source"):
+                        setattr(cmd, "source", "unknown")
                 else:  # Dictionary
-                    cmd["error"] = str(e)
+                    cmd["error"] = error_msg
                     cmd["success"] = False
+                    if "source" not in cmd:
+                        cmd["source"] = "unknown"
                 self.failed_commands.append(cmd)

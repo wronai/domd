@@ -345,7 +345,25 @@ class ProjectCommandDetector:
         Args:
             commands: List of Command objects or command dictionaries to test
         """
+        # Clear any previous command results
+        self.command_handler.failed_commands = []
+        self.command_handler.successful_commands = []
+        self.command_handler.ignored_commands = []
+
+        # Test the commands using the command handler
         self.command_handler.test_commands(commands)
+
+        # Ensure our references are up to date
+        self.failed_commands = self.command_handler.failed_commands
+        self.successful_commands = self.command_handler.successful_commands
+        self.ignored_commands = self.command_handler.ignored_commands
+
+        logger.info(
+            f"Command test results - "
+            f"Failed: {len(self.failed_commands)}, "
+            f"Successful: {len(self.successful_commands)}, "
+            f"Ignored: {len(self.ignored_commands)}"
+        )
 
     def execute_command(self, command, **kwargs) -> Dict[str, Any]:
         """Execute a command with proper environment setup.
@@ -581,17 +599,25 @@ class ProjectCommandDetector:
                 # Add failed commands to the TODO.md file
                 if self.failed_commands:
                     for cmd in self.failed_commands:
-                        if hasattr(cmd, "command") and hasattr(cmd, "error"):
-                            f.write(f"### 🔧 Fix: {cmd.command}\n")
-                            f.write(f"- [ ] **Command**: `{cmd.command}`  \n")
-                            f.write(f"- **Error**: {cmd.error}  \n")
-                            f.write(
-                                f"- **Source**: `{getattr(cmd, 'source', 'Unknown')}`\n"
-                            )
-                            f.write(f"- **Fix Suggestion**: \n\n")
-                            f.write(
-                                "  ```bash\n  # Suggested fix\n  # Replace with the correct command\n  ```\n\n"
-                            )
+                        # Handle both dictionary and object formats
+                        cmd_dict = cmd if isinstance(cmd, dict) else cmd.__dict__
+
+                        # Skip if command or error is missing
+                        if not cmd_dict.get("command") or not cmd_dict.get("error"):
+                            continue
+
+                        command = cmd_dict["command"]
+                        error = cmd_dict["error"]
+                        source = cmd_dict.get("source", "Unknown")
+
+                        f.write(f"### 🔧 Fix: {command}\n")
+                        f.write(f"- [ ] **Command**: `{command}`  \n")
+                        f.write(f"- **Error**: {error}  \n")
+                        f.write(f"- **Source**: `{source}`\n")
+                        f.write(f"- **Fix Suggestion**: \n\n")
+                        f.write(
+                            "  ```bash\n  # Suggested fix\n  # Replace with the correct command\n  ```\n\n"
+                        )
                 else:
                     f.write("No failed commands found. 🎉\n\n")
 
@@ -600,11 +626,18 @@ class ProjectCommandDetector:
                 f.write("## ✅ Successful Commands\n\n")
                 if self.successful_commands:
                     for cmd in self.successful_commands:
-                        if hasattr(cmd, "command"):
-                            f.write(f"- [x] `{cmd.command}`  \n")
-                            f.write(
-                                f"  - Source: `{getattr(cmd, 'source', 'Unknown')}`\n"
-                            )
+                        # Handle both dictionary and object formats
+                        cmd_dict = cmd if isinstance(cmd, dict) else cmd.__dict__
+
+                        # Skip if command is missing
+                        if not cmd_dict.get("command"):
+                            continue
+
+                        command = cmd_dict["command"]
+                        source = cmd_dict.get("source", "Unknown")
+
+                        f.write(f"- [x] `{command}`  \n")
+                        f.write(f"  - Source: `{source}`\n")
                 else:
                     f.write("No commands were executed successfully.\n")
 

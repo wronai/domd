@@ -88,47 +88,62 @@ class CommandService:
         """
         import fnmatch
 
+        logger.debug(f"Checking if command should be ignored: {command.command}")
+        logger.debug(f"Ignore patterns: {self.ignore_patterns}")
+
         # Check if any ignore pattern matches the command or its components
         for pattern in self.ignore_patterns:
+            logger.debug(f"  Checking pattern: {pattern}")
+
             # Check if pattern matches the full command string
             if fnmatch.fnmatch(command.command, pattern):
+                logger.debug(f"    Pattern '{pattern}' matches full command")
                 return True
 
             # Check if pattern matches just the script part (after 'npm run ')
-            if command.command.startswith("npm run ") and fnmatch.fnmatch(
-                command.command[8:], pattern
-            ):
-                return True
+            if command.command.startswith("npm run "):
+                script_part = command.command[8:]
+                if fnmatch.fnmatch(script_part, pattern):
+                    logger.debug(
+                        f"    Pattern '{pattern}' matches script part: {script_part}"
+                    )
+                    return True
 
-            # Check if pattern matches the command type or description
-            if (
-                hasattr(command, "type")
-                and command.type
-                and fnmatch.fnmatch(command.type, pattern)
-            ):
-                return True
+            # Check if pattern matches the command type
+            if hasattr(command, "type") and command.type:
+                if fnmatch.fnmatch(command.type, pattern):
+                    logger.debug(
+                        f"    Pattern '{pattern}' matches type: {command.type}"
+                    )
+                    return True
 
-            if (
-                hasattr(command, "description")
-                and command.description
-                and fnmatch.fnmatch(command.description, pattern)
-            ):
-                return True
+            # Check if pattern matches the command description
+            if hasattr(command, "description") and command.description:
+                if fnmatch.fnmatch(command.description, pattern):
+                    logger.debug(
+                        f"    Pattern '{pattern}' matches description: {command.description}"
+                    )
+                    return True
 
             # Check if pattern matches the source file
-            if (
-                hasattr(command, "source")
-                and command.source
-                and fnmatch.fnmatch(str(command.source), pattern)
-            ):
-                return True
+            if hasattr(command, "source") and command.source:
+                source_str = str(command.source)
+                if fnmatch.fnmatch(source_str, pattern):
+                    logger.debug(
+                        f"    Pattern '{pattern}' matches source: {source_str}"
+                    )
+                    return True
 
             # Check if pattern matches any metadata values
             if hasattr(command, "metadata") and command.metadata:
-                for value in command.metadata.values():
+                for key, value in command.metadata.items():
                     if isinstance(value, str) and fnmatch.fnmatch(value, pattern):
+                        logger.debug(
+                            f"    Pattern '{pattern}' matches metadata {key}: {value}"
+                        )
                         return True
 
+        logger.debug("  No patterns matched, command will not be ignored")
         return False
 
     def test_commands(self, commands: List[Command]) -> None:

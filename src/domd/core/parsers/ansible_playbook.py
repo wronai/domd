@@ -43,8 +43,11 @@ class AnsiblePlaybookParser(BaseParser):
 
         return False
 
-    def parse(self) -> "List[Command]":
+    def parse(self, content: str = None) -> "List[Command]":
         """Parse Ansible playbook and extract commands.
+
+        Args:
+            content: Optional content of the file to parse. If not provided, will read from file_path.
 
         Returns:
             List of Command objects
@@ -56,9 +59,17 @@ class AnsiblePlaybookParser(BaseParser):
 
         self._commands: List[Command] = []
 
+        # If content is not provided, read from file
+        if content is None and not self.file_path.is_dir():
+            try:
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except (IOError, UnicodeDecodeError):
+                # If we can't read the file, return empty list
+                return []
+
         try:
-            with open(self.file_path, "r", encoding="utf-8") as f:
-                playbook = yaml.safe_load(f)
+            playbook = yaml.safe_load(content)
 
             if not isinstance(playbook, list):
                 return []

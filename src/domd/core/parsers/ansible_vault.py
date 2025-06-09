@@ -51,8 +51,11 @@ class AnsibleVaultParser(BaseParser):
 
         return False
 
-    def parse(self) -> "List[Command]":
+    def parse(self, content: str = None) -> "List[Command]":
         """Parse Ansible Vault files and extract commands.
+
+        Args:
+            content: Optional content of the file to parse. If not provided, will read from file_path.
 
         Returns:
             List of Command objects
@@ -63,7 +66,21 @@ class AnsibleVaultParser(BaseParser):
             return []
 
         self._commands: List[Command] = []
-        rel_path = self.file_path.relative_to(self.project_root)
+
+        # Get relative path if file is in project directory, otherwise use full path
+        try:
+            rel_path = self.file_path.relative_to(self.project_root)
+        except ValueError:
+            rel_path = self.file_path
+
+        # If content is not provided, read from file
+        if content is None and not self.file_path.is_dir():
+            try:
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except (IOError, UnicodeDecodeError):
+                # If we can't read the file, return empty list
+                return []
 
         try:
             # Handle password files

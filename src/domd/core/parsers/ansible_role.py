@@ -46,8 +46,11 @@ class AnsibleRoleParser(BaseParser):
             return parts[role_index + 1]
         return "unknown"
 
-    def parse(self) -> "List[Command]":
+    def parse(self, content: str = None) -> "List[Command]":
         """Parse Ansible role and extract commands.
+
+        Args:
+            content: Optional content of the file to parse. If not provided, will read from file_path.
 
         Returns:
             List of Command objects
@@ -72,6 +75,15 @@ class AnsibleRoleParser(BaseParser):
             if hasattr(cmd, "metadata")
         ):
             return []
+
+        # If content is not provided, read from file
+        if content is None and not self.file_path.is_dir():
+            try:
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except (IOError, UnicodeDecodeError):
+                # If we can't read the file, return empty list
+                return []
 
         try:
             # Create a command to run the role directly

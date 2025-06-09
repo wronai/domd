@@ -65,8 +65,11 @@ class AnsibleInventoryParser(BaseParser):
         except (UnicodeDecodeError, IOError):
             return False
 
-    def parse(self) -> "List[Command]":
+    def parse(self, content: str = None) -> "List[Command]":
         """Parse Ansible inventory and extract commands.
+
+        Args:
+            content: Optional content of the file to parse. If not provided, will read from file_path.
 
         Returns:
             List of Command objects
@@ -77,6 +80,15 @@ class AnsibleInventoryParser(BaseParser):
             return []
 
         self._commands: List[Command] = []
+
+        # If content is not provided, read from file
+        if content is None:
+            try:
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except (IOError, UnicodeDecodeError):
+                # If we can't read the file, return empty list
+                return []
 
         try:
             rel_path = self.file_path.relative_to(self.project_root)

@@ -1,22 +1,24 @@
 """Parser for pyproject.toml files."""
 
+import logging
 from typing import Any, Dict, List
 
 from ..commands.command import Command
 from .base import BaseParser
 
+logger = logging.getLogger(__name__)
+
 # Try to import tomli (Python 3.11+) or toml (older Python)
 try:
     import tomli as toml  # noqa: F401
-
     TOML_AVAILABLE = True
 except ImportError:
     try:
         import toml  # noqa: F401, F811
-
         TOML_AVAILABLE = True
     except ImportError:
         TOML_AVAILABLE = False
+        logger.warning("Neither tomli nor toml package is available. PyProjectTomlParser will not work.")
 
 
 class PyProjectTomlParser(BaseParser):
@@ -33,7 +35,14 @@ class PyProjectTomlParser(BaseParser):
         Returns:
             List of Command objects
         """
-        if not TOML_AVAILABLE or not self.file_path or not self.file_path.exists():
+        logger.debug(f"Starting to parse {self.file_path}")
+        
+        if not TOML_AVAILABLE:
+            logger.error("No TOML parser available. Install 'tomli' or 'toml' package.")
+            return []
+            
+        if not self.file_path or not self.file_path.exists():
+            logger.error(f"File not found: {self.file_path}")
             return []
 
         from domd.core.commands import Command
@@ -41,34 +50,37 @@ class PyProjectTomlParser(BaseParser):
         self._commands: List[Command] = []
 
         try:
-            # Read the file as text first
+            logger.debug(f"Reading content from {self.file_path}")
             content = self.file_path.read_text(encoding="utf-8")
 
             # Try to load with the available TOML library
             if "tomli" in globals():
                 import tomli as toml_lib
+                logger.debug("Using tomli for TOML parsing")
             else:
                 import toml as toml_lib
+                logger.debug("Using toml for TOML parsing")
 
             if hasattr(toml_lib, "loads"):
                 data = toml_lib.loads(content)
             else:
                 # Fallback for older versions of toml
                 data = toml_lib.loads(content)
+                
+            logger.debug(f"Successfully parsed TOML data: {data.keys() if data else 'empty'}")
 
             # Extract Poetry scripts
             self._extract_poetry_scripts(data)
 
             # Extract test commands
             self._extract_test_commands(data)
-
             # Extract build commands
             self._extract_build_commands(data)
+            
+            logger.debug(f"Extracted {len(self._commands)} commands from {self.file_path}")
+            
         except Exception as e:
-            print(f"Error parsing {self.file_path}: {e}")
-            import traceback
-
-            traceback.print_exc()
+            logger.error(f"Error parsing {self.file_path}: {e}", exc_info=True)
             return []
 
         return self._commands
