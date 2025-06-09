@@ -161,12 +161,13 @@ docs-clean: ## Clean documentation build
 
 # Build and publish targets
 clean: ## Clean build artifacts
-	rm -rf dist/
-	rm -rf build/
-	rm -rf *.egg-info/
-	find . -path './.venv' -prune -o -type d -name '__pycache__' -exec rm -rf {} +
-	find . -path './.venv' -prune -o -type f -name '*.pyc' -exec rm -f {} +
-	find . -path './.venv' -prune -o -type f -name '*.pyo' -exec rm -f {} +
+	@echo "Cleaning build artifacts..."
+	rm -rf dist/ build/ *.egg-info/ || true
+	@echo "Cleaning Python cache files..."
+	find . -path './.venv' -prune -o -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+	find . -path './.venv' -prune -o -type f -name '*.py[co]' -delete 2>/dev/null || true
+	find . -path './.venv' -prune -o -type d -name '*.egg-info' -exec rm -rf {} + 2>/dev/null || true
+	@echo "Clean complete."
 
 build: clean ## Build the package
 	poetry version patch

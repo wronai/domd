@@ -1,11 +1,14 @@
 """Parser for Dockerfile files."""
 
+import logging
 import re
 from pathlib import Path
 from typing import List
 
 from domd.core.commands import Command
 from domd.core.parsing.base import BaseParser
+
+logger = logging.getLogger(__name__)
 
 
 class DockerfileParser(BaseParser):
@@ -73,15 +76,29 @@ class DockerfileParser(BaseParser):
         Returns:
             List of Command objects.
         """
+        logger.debug(
+            f"Starting to parse Dockerfile: {getattr(self.file_path, 'name', 'unknown')}"
+        )
+
         if not self.file_path:
+            logger.warning("No file path provided for Dockerfile parser")
             return []
 
         commands = []
-        image_name = self._extract_image_name(self.file_path)
-        exposed_ports = self._extract_exposed_ports(content)
+        try:
+            image_name = self._extract_image_name(self.file_path)
+            logger.debug(f"Extracted image name: {image_name}")
+
+            exposed_ports = self._extract_exposed_ports(content)
+            logger.debug(f"Found exposed ports: {exposed_ports}")
+        except Exception as e:
+            logger.error(f"Error initializing Dockerfile parser: {e}", exc_info=True)
+            return []
 
         # Default port mapping if no ports are exposed
         port_mapping = "-p 80:80"
+        run_flags = "--rm"
+
         if exposed_ports:
             # Use the first exposed port for the default mapping
             port = exposed_ports[0]
@@ -91,28 +108,82 @@ class DockerfileParser(BaseParser):
             if "80" in exposed_ports:
                 port_mapping = "-p 80:80"
 
-        # Add build command
-        build_cmd = f"docker build -t {image_name} ."
-        commands.append(
-            Command(
-                command=build_cmd,
-                type="docker_build",
-                description=f"Docker: Build {image_name} image",
-                source=str(self.file_path),
-            )
-        )
+        try:
+            # Add build command
+            build_cmd = f"docker build -t {image_name} ."
+            logger.debug(f"Adding build command: {build_cmd}")
 
-        # Add run command if we have exposed ports
-        run_cmd = f"docker run {port_mapping} {image_name}"
-        commands.append(
-            Command(
-                command=run_cmd,
-                type="docker_run",
-                description=f"Docker: Run {image_name} container",
-                source=str(self.file_path),
+            commands.append(
+                Command(
+                    command=build_cmd,
+                    type="docker_build",
+                    description=f"Docker: Build {image_name} image",
+                    source=str(self.file_path),
+                )
             )
-        )
+        except Exception as e:
+            logger.error(f"Error adding build command: {e}", exc_info=True)
 
+        try:
+            # Add run command with port mapping
+            if port_mapping and image_name:
+                run_cmd = f"docker run {run_flags} {port_mapping} {image_name}"
+                logger.debug(f"Adding run command: {run_cmd}")
+
+                commands.append(
+                    Command(
+                        command=run_cmd,
+                        type="docker_run",
+                        description=f"Docker: Run {image_name} container",
+                        source=str(self.file_path),
+                    )
+                )
+        except Exception as e:
+            logger.error(f"Error adding run command: {e}", exc_info=True)
+
+        # Add additional port mappings if multiple ports are exposed
+        try:
+            if exposed_ports and len(exposed_ports) > 1:
+                logger.debug(
+                    f"Adding additional port mappings for ports: {exposed_ports[1:]}"
+                )
+                for port in exposed_ports[
+                    1:
+                ]:  # Skip the first port as it's already used
+                    if port != "80":  # Skip if it's the same as the default
+                        port_cmd = (
+                            f"docker run {run_flags} -p {port}:{port} {image_name}"
+                        )
+                        logger.debug(f"Adding port mapping command: {port_cmd}")
+                        commands.append(
+                            Command(
+                                command=port_cmd,
+                                type="docker_run",
+                                description=f"Docker: Run {image_name} on port {port}",
+                                source=str(self.file_path),
+                            )
+                        )
+        except Exception as e:
+            logger.error(f"Error adding port mapping commands: {e}", exc_info=True)
+
+        try:
+            # Add build and run in one command
+            if build_cmd and run_cmd:
+                build_run_cmd = f"{build_cmd} && {run_cmd}"
+                logger.debug(f"Adding build and run command: {build_run_cmd}")
+
+                commands.append(
+                    Command(
+                        command=build_run_cmd,
+                        type="docker_build_run",
+                        description=f"Docker: Build and run {image_name}",
+                        source=str(self.file_path),
+                    )
+                )
+        except Exception as e:
+            logger.error(f"Error adding build and run command: {e}", exc_info=True)
+
+        logger.debug(f"Finished parsing Dockerfile. Found {len(commands)} commands.")
         return commands
 
     def parse(self, content: str = None) -> List[Command]:
@@ -141,45 +212,47 @@ class DockerfileParser(BaseParser):
             return []
 
             # Add run command with port mapping
-            run_cmd = f"docker run --rm {port_mapping} {image_name}"
-            commands.append(
-                Command(
-                    command=run_cmd,
-                    type="docker_run",
-                    description=f"Docker: Run {image_name} container",
-                    source=str(self.file_path),
+            if port_mapping and image_name:
+                run_cmd = f"docker run --rm {port_mapping} {image_name}"
+                commands.append(
+                    Command(
+                        command=run_cmd,
+                        type="docker_run",
+                        description=f"Docker: Run {image_name} container",
+                        source=str(self.file_path),
+                    )
                 )
-            )
 
-            # Add additional port mappings if multiple ports are exposed
-            if len(exposed_ports) > 1:
-                for port in exposed_ports[
-                    1:
-                ]:  # Skip the first port as it's already used
-                    if port != "80":  # Skip if it's the same as the default
-                        port_cmd = f"docker run --rm -p {port}:{port} {image_name}"
-                        commands.append(
-                            Command(
-                                command=port_cmd,
-                                type="docker_run",
-                                description=f"Docker: Run {image_name} on port {port}",
-                                source=str(self.file_path),
+                # Add additional port mappings if multiple ports are exposed
+                if exposed_ports and len(exposed_ports) > 1:
+                    for port in exposed_ports[
+                        1:
+                    ]:  # Skip the first port as it's already used
+                        if port != "80":  # Skip if it's the same as the default
+                            port_cmd = f"docker run --rm -p {port}:{port} {image_name}"
+                            commands.append(
+                                Command(
+                                    command=port_cmd,
+                                    type="docker_run",
+                                    description=f"Docker: Run {image_name} on port {port}",
+                                    source=str(self.file_path),
+                                )
                             )
+
+                # Add build and run in one command
+                if build_cmd and run_cmd:
+                    build_run_cmd = f"{build_cmd} && {run_cmd}"
+                    commands.append(
+                        Command(
+                            command=build_run_cmd,
+                            type="docker_build_run",
+                            description=f"Docker: Build and run {image_name}",
+                            source=str(self.file_path),
                         )
+                    )
 
-            # Add build and run in one command
-            build_run_cmd = f"{build_cmd} && {run_cmd}"
-            commands.append(
-                Command(
-                    command=build_run_cmd,
-                    type="docker_build_run",
-                    description=f"Docker: Build and run {image_name}",
-                    source=str(self.file_path),
-                )
-            )
-
-        except OSError:
-            # Log error or handle as needed
-            pass
+        except OSError as e:
+            logger.error(f"Error in Dockerfile parsing: {e}")
+            return []
 
         return commands

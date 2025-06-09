@@ -285,7 +285,7 @@ Command timed out after 60 seconds
 
 - [ ] Command took longer than 60s - consider increasing timeout
 - [ ] Check if command is hanging or waiting for input
-- [ ] Add to .domdignore if this is a long-running service command
+- [ ] Add to .doignore if this is a long-running service command
 - [ ] Check Makefile syntax and dependencies
 - [ ] Verify all required tools are installed (gcc, etc.)
 - [ ] Check if target dependencies exist

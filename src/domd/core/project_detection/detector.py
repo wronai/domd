@@ -1,7 +1,6 @@
 """Project command detector for finding and executing commands in project files."""
 
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -114,32 +113,62 @@ class ProjectCommandDetector:
         Returns:
             List of parser instances
         """
-        # Use ParserRegistry to get all parsers
-        parsers = self.parser_registry.get_all_parsers()
+        logger.debug("Starting parser initialization...")
 
-        if not parsers:
+        # Try to manually import the docker parsers first
+        try:
+            import domd.parsers.docker
+
+            logger.debug("Successfully imported domd.parsers.docker")
+        except ImportError as e:
+            logger.warning(f"Failed to import docker parsers: {e}")
+
+        # Discover parsers from the domd.core.parsers package
+        try:
+            logger.debug("Discovering parsers from domd.core.parsers...")
+            self.parser_registry.discover_parsers("domd.core.parsers")
+            logger.debug("Parser discovery completed")
+        except Exception as e:
+            logger.error(f"Failed to discover parsers: {e}", exc_info=True)
+
+        # Get all parsers from the registry
+        parsers = self.parser_registry.get_all_parsers()
+        logger.debug(f"Found {len(parsers)} parsers in registry")
+
+        # Log the names of the parsers found
+        if parsers:
+            logger.debug(
+                f"Parser classes found: {[p.__class__.__name__ for p in parsers]}"
+            )
+        else:
             logger.warning("No parsers found in registry, using legacy parsers")
+
             # Fallback to legacy parsers if needed
             try:
+                logger.debug("Attempting to use legacy parser import...")
                 from domd.parsers import get_all_parsers
 
                 parser_classes = get_all_parsers()
-                # Tworzenie instancji parserów zamiast używania klas
+                logger.debug(f"Found {len(parser_classes)} legacy parser classes")
+
+                # Create parser instances instead of using classes directly
                 parsers = []
                 for parser_class in parser_classes:
                     try:
-                        # Tworzenie instancji parsera
+                        # Create parser instance
                         parser_instance = parser_class()
                         parsers.append(parser_instance)
+                        logger.debug(f"Initialized parser: {parser_class.__name__}")
                     except Exception as e:
                         logger.error(
-                            f"Failed to initialize parser {parser_class.__name__}: {e}"
+                            f"Failed to initialize parser {parser_class.__name__}: {e}",
+                            exc_info=True,
                         )
-            except ImportError:
-                logger.error("Failed to import legacy parsers")
+            except ImportError as e:
+                logger.error(f"Failed to import legacy parsers: {e}", exc_info=True)
                 parsers = []
 
-        logger.debug(f"Initialized {len(parsers)} parsers")
+        logger.info(f"Initialized {len(parsers)} parsers")
         return parsers
 
     def _should_process_file(self, file_path: Union[str, Path]) -> bool:
@@ -230,25 +259,24 @@ class ProjectCommandDetector:
                     logger.error(f"Error reading file {file_path}: {e}")
                     continue
 
-                # Spróbuj różne sposoby wywołania metody parse
+                # Set the file_path on the parser if it has that attribute
+                if hasattr(parser, "file_path"):
+                    parser.file_path = file_path
+
+                # Try different ways to call the parse method
                 try:
-                    # Najpierw spróbuj z oboma parametrami
                     import inspect
 
                     sig = inspect.signature(parser.parse)
 
-                    if (
-                        len(sig.parameters) >= 3
-                        and "content" in sig.parameters
-                        and "file_path" in sig.parameters
-                    ):
+                    if "file_path" in sig.parameters and "content" in sig.parameters:
                         commands = parser.parse(content=content, file_path=file_path)
-                    elif "file_path" in sig.parameters:
-                        commands = parser.parse(file_path=file_path)
                     elif "content" in sig.parameters:
                         commands = parser.parse(content=content)
+                    elif "file_path" in sig.parameters:
+                        commands = parser.parse(file_path=file_path)
                     else:
-                        # Ostatnia szansa - spróbuj przekazać tylko content jako pierwszy argument
+                        # Last resort - try passing content as the first argument
                         commands = parser.parse(content)
 
                     # Add file path to commands if not already present

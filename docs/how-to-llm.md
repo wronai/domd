@@ -111,11 +111,11 @@ cat TODO.md    # Zobacz zadania dla LLM
 ```bash
 $ domd
 
-TodoMD v0.1.1 - Project Command Detector with .domdignore
+TodoMD v0.1.1 - Project Command Detector with .doignore
 🔍 Project: /home/user/my-project
-📋 Found .domdignore file with ignore rules
+📋 Found .doignore file with ignore rules
 ✅ Found 64 total commands
-🚫 Ignored 19 commands (via .domdignore)
+🚫 Ignored 19 commands (via .doignore)
 🧪 Will test 45 commands
 
 📝 Created TODO.md (LLM task list)
@@ -134,7 +134,7 @@ TodoMD v0.1.1 - Project Command Detector with .domdignore
 📊 Test Results:
    ✅ Working: 39 → DONE.md
    ❌ Failed: 6 → TODO.md
-   🚫 Ignored: 19 (via .domdignore)
+   🚫 Ignored: 19 (via .doignore)
 ```
 
 ### **DONE.md (po testowaniu):**

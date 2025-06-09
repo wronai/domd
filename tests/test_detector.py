@@ -1131,7 +1131,19 @@ class TestIntegrationScenarios:
         dockerfile_content = "FROM node:16\nRUN echo 'docker'"
         (temp_project / "Dockerfile").write_text(dockerfile_content)
 
+        # Create detector and manually register parsers if needed
         detector = ProjectCommandDetector(str(temp_project))
+        
+        # Ensure PackageJsonParser is registered
+        from domd.core.parsers.package_json import PackageJsonParser
+        from domd.core.parsing.parser_registry import global_registry
+        
+        if not any(isinstance(p, PackageJsonParser) for p in detector.parsers):
+            logger.warning("PackageJsonParser not found in parsers, registering it")
+            global_registry.register(PackageJsonParser)
+            # Re-initialize parsers to include the newly registered one
+            detector.parsers = detector._initialize_parsers()
+        
         commands = detector.scan_project()
 
         # Should find commands from all sources

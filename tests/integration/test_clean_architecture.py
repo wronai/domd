@@ -110,7 +110,7 @@ class CleanArchitectureIntegrationTest(unittest.TestCase):
         # Utwórz przykładowe pliki projektu
         self.create_test_project_files()
 
-        # Utwórz plik .domdignore
+        # Utwórz plik .doignore
         self.create_domdignore_file()
 
         # Inicjalizuj komponenty
@@ -186,9 +186,9 @@ class CleanArchitectureIntegrationTest(unittest.TestCase):
 
     def create_domdignore_file(self):
         """
-        Tworzy plik .domdignore do testów.
+        Tworzy plik .doignore do testów.
         """
-        domdignore = self.project_path / ".domdignore"
+        domdignore = self.project_path / ".doignore"
         with open(domdignore, "w") as f:
             f.write(
                 """

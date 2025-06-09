@@ -1,8 +1,8 @@
-# 📋 .domdignore - Instrukcja użycia
+# 📋 .doignore - Instrukcja użycia
 
 ## ✅ **Problem rozwiązany!**
 
-Dodałem kompletny system `.domdignore` do TodoMD! Teraz możesz łatwo **pomijać problematyczne komendy** bez ich ręcznego usuwania.
+Dodałem kompletny system `.doignore` do TodoMD! Teraz możesz łatwo **pomijać problematyczne komendy** bez ich ręcznego usuwania.
 
 ---
 
@@ -10,13 +10,13 @@ Dodałem kompletny system `.domdignore` do TodoMD! Teraz możesz łatwo **pomija
 
 ### **1. Automatyczne filtrowanie komend**
 ```bash
-# TodoMD automatycznie pominie komendy z .domdignore
+# TodoMD automatycznie pominie komendy z .doignore
 domd
 ```
 
-### **2. Generowanie template .domdignore**
+### **2. Generowanie template .doignore**
 ```bash
-# Stwórz plik .domdignore z przykładami
+# Stwórz plik .doignore z przykładami
 domd --generate-ignore
 ```
 
@@ -34,10 +34,10 @@ domd --ignore-file my-ignores.txt
 
 ---
 
-## 📝 **Składnia .domdignore:**
+## 📝 **Składnia .doignore:**
 
 ```bash
-# .domdignore - TodoMD Ignore File
+# .doignore - TodoMD Ignore File
 
 # === DOKŁADNE DOPASOWANIE ===
 poetry run domd                    # Pominie dokładnie tę komendę
@@ -78,8 +78,8 @@ tox
 ```bash
 $ domd --generate-ignore
 
-📝 Generating .domdignore template...
-✅ Created .domdignore template at /home/user/project/.domdignore
+📝 Generating .doignore template...
+✅ Created .doignore template at /home/user/project/.doignore
 💡 Edit this file to customize which commands to skip
 📖 See examples and patterns in the template
 ```
@@ -96,7 +96,7 @@ $ domd --show-ignored
    🚫 Commands to ignore: 19
 
 🚫 Commands that will be IGNORED:
-   (based on .domdignore rules)
+   (based on .doignore rules)
 
    📋 exact match: poetry run domd:
       🚫 poetry run domd (pyproject.toml)
@@ -124,23 +124,23 @@ $ domd --show-ignored
         Description: Make target: test
    ...
 
-💡 To modify ignore rules, edit: /home/user/project/.domdignore
+💡 To modify ignore rules, edit: /home/user/project/.doignore
 ```
 
-### **3. Inicjalizacja z .domdignore:**
+### **3. Inicjalizacja z .doignore:**
 ```bash
 $ domd --init-only
 
-TodoMD v0.1.1 - Project Command Detector with .domdignore
+TodoMD v0.1.1 - Project Command Detector with .doignore
 🔍 Project: /home/user/my-project
 📝 TODO file: TODO.md
 🔧 Script file: todo.sh
-🚫 Ignore file: .domdignore
+🚫 Ignore file: .doignore
 
 🔍 Scanning project: /home/user/my-project
-📋 Found .domdignore file with ignore rules
+📋 Found .doignore file with ignore rules
 ✅ Found 64 total commands
-🚫 Ignored 19 commands (via .domdignore)
+🚫 Ignored 19 commands (via .doignore)
 🧪 Will test 45 commands
 
 📝 Created TODO.md with command status
@@ -149,10 +149,10 @@ TodoMD v0.1.1 - Project Command Detector with .domdignore
 ✅ Initialization complete!
 📋 Created TODO.md with 45 testable commands
 🔧 Created executable todo.sh
-🚫 Ignored 19 commands via .domdignore
+🚫 Ignored 19 commands via .doignore
 
 💡 Next steps:
-   • Review and edit .domdignore to adjust ignored commands
+   • Review and edit .doignore to adjust ignored commands
    • Run: ./todo.sh to execute commands manually
    • Or run: domd to test with TodoMD
    • Use: domd --show-ignored to see ignored commands
@@ -162,23 +162,23 @@ TodoMD v0.1.1 - Project Command Detector with .domdignore
 ```bash
 $ domd
 
-TodoMD v0.1.1 - Project Command Detector with .domdignore
+TodoMD v0.1.1 - Project Command Detector with .doignore
 🔍 Project: /home/user/my-project
 📝 TODO file: TODO.md
 🔧 Script file: todo.sh
-🚫 Ignore file: .domdignore
+🚫 Ignore file: .doignore
 
 🔍 Scanning project: /home/user/my-project
-📋 Found .domdignore file with ignore rules
+📋 Found .doignore file with ignore rules
 ✅ Found 64 total commands
-🚫 Ignored 19 commands (via .domdignore)
+🚫 Ignored 19 commands (via .doignore)
 🧪 Will test 45 commands
 
 📝 Created TODO.md with command status
 🔧 Created todo.sh executable script
 
 🧪 Testing 45 commands...
-🚫 Ignoring 19 commands via .domdignore
+🚫 Ignoring 19 commands via .doignore
 📊 Progress will be updated in TODO.md
 
 [1/45] Testing: Run pytest tests
@@ -195,7 +195,7 @@ EXECUTION SUMMARY
 📊 Results:
    Total commands found: 64
    Commands tested: 45
-   Commands ignored: 19 (via .domdignore)
+   Commands ignored: 19 (via .doignore)
    ✅ Successful: 42
    ❌ Failed: 3
    📈 Success rate: 93.3%
@@ -203,16 +203,16 @@ EXECUTION SUMMARY
 📝 Files:
    📋 TODO file: TODO.md
    🔧 Script file: todo.sh
-   🚫 Ignore file: .domdignore
+   🚫 Ignore file: .doignore
 
 🔧 Next steps:
    1. Review failed commands in TODO.md
-   2. Add problematic commands to .domdignore
+   2. Add problematic commands to .doignore
    3. Edit todo.sh if needed
    4. Re-run: domd
 
 🚫 Ignored commands:
-   19 commands were skipped via .domdignore
+   19 commands were skipped via .doignore
    Use --show-ignored to see which commands are ignored
 ```
 
@@ -234,7 +234,7 @@ EXECUTION SUMMARY
 
 - **Total Found:** 64
 - **Will Test:** 45
-- **Ignored:** 19 (via .domdignore)
+- **Ignored:** 19 (via .doignore)
 - **Tested:** 0/45
 - **Successful:** 0
 - **Failed:** 0
@@ -251,7 +251,7 @@ EXECUTION SUMMARY
 
 ## 🚫 Ignored Commands (19)
 
-These commands are skipped based on .domdignore rules:
+These commands are skipped based on .doignore rules:
 
 | Command | Source | Description | Ignore Reason |
 |---------|--------|-------------|---------------|
@@ -274,13 +274,13 @@ These commands are skipped based on .domdignore rules:
 💡 **Next Steps:**
 1. Run: `domd` to start testing commands
 2. Or run: `./todo.sh` to execute all commands manually
-3. Edit `.domdignore` to skip additional commands
+3. Edit `.doignore` to skip additional commands
 4. Monitor this file for real-time updates during testing
 ```
 
 ---
 
-## 🎨 **Zaawansowane wzorce w .domdignore:**
+## 🎨 **Zaawansowane wzorce w .doignore:**
 
 ### **1. Kategorie problemów:**
 ```bash
@@ -376,8 +376,8 @@ pip install -e .
 # Wygeneruj template
 domd --generate-ignore
 
-# Edytuj .domdignore
-nano .domdignore
+# Edytuj .doignore
+nano .doignore
 
 # Sprawdź co będzie ignorowane
 domd --show-ignored
@@ -392,7 +392,7 @@ domd --init-only
 
 ### **Problem z rekurencją:**
 ```bash
-# Dodaj do .domdignore:
+# Dodaj do .doignore:
 poetry run domd
 poetry run project-detector
 poetry run cmd-detector
@@ -401,7 +401,7 @@ domd
 
 ### **Problematyczne tox commands:**
 ```bash
-# Dodaj do .domdignore:
+# Dodaj do .doignore:
 tox
 tox -e *
 *tox*
@@ -409,7 +409,7 @@ tox -e *
 
 ### **Wolne/blokujące komendy:**
 ```bash
-# Dodaj do .domdignore:
+# Dodaj do .doignore:
 *serve*
 *watch*
 *dev*
