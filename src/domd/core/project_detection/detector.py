@@ -104,13 +104,16 @@ class ProjectCommandDetector:
         self.successful_commands = self.command_handler.successful_commands
         self.ignored_commands = self.command_handler.ignored_commands
 
+        # Add ignore_parser attribute for backward compatibility
+        self.ignore_parser = self
+
     def _initialize_parsers(self) -> List[BaseParser]:
         """Initialize parsers for detecting commands in configuration files.
 
         Returns:
             List of parser instances
         """
-        # Use ParserRegistry to get all available parsers
+        # Use ParserRegistry to get all parsers
         parsers = self.parser_registry.get_all_parsers()
 
         if not parsers:
@@ -119,7 +122,18 @@ class ProjectCommandDetector:
             try:
                 from domd.parsers import get_all_parsers
 
-                parsers = get_all_parsers()
+                parser_classes = get_all_parsers()
+                # Tworzenie instancji parserów zamiast używania klas
+                parsers = []
+                for parser_class in parser_classes:
+                    try:
+                        # Tworzenie instancji parsera
+                        parser_instance = parser_class()
+                        parsers.append(parser_instance)
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to initialize parser {parser_class.__name__}: {e}"
+                        )
             except ImportError:
                 logger.error("Failed to import legacy parsers")
                 parsers = []
@@ -214,14 +228,19 @@ class ProjectCommandDetector:
                 except Exception as e:
                     logger.error(f"Error reading file {file_path}: {e}")
                     continue
-                    
+
                 # Spróbuj różne sposoby wywołania metody parse
                 try:
                     # Najpierw spróbuj z oboma parametrami
                     import inspect
+
                     sig = inspect.signature(parser.parse)
-                    
-                    if len(sig.parameters) >= 3 and "content" in sig.parameters and "file_path" in sig.parameters:
+
+                    if (
+                        len(sig.parameters) >= 3
+                        and "content" in sig.parameters
+                        and "file_path" in sig.parameters
+                    ):
                         commands = parser.parse(content=content, file_path=file_path)
                     elif "file_path" in sig.parameters:
                         commands = parser.parse(file_path=file_path)
@@ -243,6 +262,12 @@ class ProjectCommandDetector:
 
                 except Exception as e:
                     logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
+                    continue
+            except Exception as e:
+                logger.error(
+                    f"Unexpected error processing {file_path}: {e}", exc_info=True
+                )
+                continue
 
         logger.info(f"Found {len(all_commands)} commands in total")
         return all_commands
@@ -461,3 +486,89 @@ class ProjectCommandDetector:
             )
         except Exception as e:
             logger.error(f"Error loading ignore patterns: {e}")
+
+    def should_ignore_command(self, command):
+        """Check if a command should be ignored based on ignore patterns.
+
+        Args:
+            command: Command string to check
+
+        Returns:
+            True if the command should be ignored, False otherwise
+        """
+        return self.command_handler.should_ignore_command({"command": command})
+
+    def get_ignore_reason(self, command):
+        """Get the reason why a command is ignored.
+
+        Args:
+            command: Command string to check
+
+        Returns:
+            Reason string or None if not ignored
+        """
+        # For now, we just return a generic reason
+        if self.should_ignore_command(command):
+            return "Matched ignore pattern in .doignore file"
+        return None
+
+    @property
+    def ignore_file_path(self):
+        """Get the path to the ignore file.
+
+        Returns:
+            Path object for the ignore file
+        """
+        return self.ignore_file
+
+    def generate_doignore_template(self):
+        """Generate a template .doignore file.
+
+        Returns:
+            True if the file was created, False otherwise
+        """
+        try:
+            # Create parent directories if they don't exist
+            self.ignore_file.parent.mkdir(parents=True, exist_ok=True)
+
+            # Don't overwrite existing file
+            if self.ignore_file.exists():
+                logger.info(f"Ignore file already exists: {self.ignore_file}")
+                return True
+
+            # Default ignore patterns
+            default_patterns = [
+                "# TodoMD Ignore File (.doignore)",
+                "# Lines starting with # are comments",
+                "# Each line is a pattern to ignore commands",
+                "# Examples:",
+                "# make test-integration  # Ignore specific command",
+                "# make test-*            # Ignore commands matching wildcard",
+                "# *ansible*              # Ignore commands containing 'ansible'",
+                "",
+                "# Common patterns to ignore",
+                "make clean",
+                "make clean-*",
+                "make *-clean",
+                "make docs-*",
+                "make serve-*",
+                "make publish*",
+                "make release-*",
+                "make bump-*",
+                "make tag",
+                "make git-*",
+                "make deps-update",
+                "make watch-*",
+                "# Add your custom ignore patterns below",
+                "",
+            ]
+
+            # Write the template
+            with open(self.ignore_file, "w", encoding="utf-8") as f:
+                f.write("\n".join(default_patterns))
+
+            logger.info(f"Created ignore file template: {self.ignore_file}")
+            return True
+        except Exception as e:
+            logger.error(f"Error creating ignore file template: {e}")
+            return False

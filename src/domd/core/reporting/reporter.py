@@ -321,7 +321,7 @@ class Reporter:
 
             # Ensure the directory exists
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             # Get the formatter and use it to write the report
             try:
                 # Najpierw spróbuj użyć formatera jako obiektu
@@ -330,17 +330,19 @@ class Reporter:
                     output_path = self.write_report(
                         output_path=output_path, format_name=formatter_name, **kwargs
                     )
-                # Jeśli formatter_name to nazwa formatera w słowniku formatters
-                elif formatter_name in self.formatters:
-                    # Pobierz formater z słownika formatters
-                    formatter = self.formatters[formatter_name]
+                # Jeśli formatter_name to nazwa instancji formatera
+                elif formatter_name in self._formatter_instances:
+                    # Pobierz instancję formatera
+                    formatter = self._formatter_instances[formatter_name]
                     # Sformatuj dane i zapisz do pliku
                     formatted_content = formatter.format_report(data, **kwargs)
                     with open(output_path, "w", encoding="utf-8") as f:
                         f.write(formatted_content)
                 else:
                     # Fallback - użyj domyślnego formatera
-                    logger.warning(f"Formatter '{formatter_name}' not found, using default")
+                    logger.warning(
+                        f"Formatter '{formatter_name}' not found, using default"
+                    )
                     with open(output_path, "w", encoding="utf-8") as f:
                         f.write(str(data))
             except Exception as e:

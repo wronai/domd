@@ -201,7 +201,7 @@ class CommandHandler:
         # Check ignore patterns using PatternMatcher
         command_str = cmd_dict.get("command", "")
         return (
-            self.pattern_matcher.match_any_pattern(command_str, self.ignore_patterns)
+            self.pattern_matcher.match_command(command_str, self.ignore_patterns)
             if self.ignore_patterns
             else False
         )
