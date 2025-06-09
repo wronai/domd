@@ -80,8 +80,8 @@ Workflow:
 
     parser.add_argument(
         "--ignore-file",
-        default=".domdignore",
-        help="Ignore file (default: .domdignore)",
+        default=".doignore",
+        help="Ignore file (default: .doignore)",
     )
 
     parser.add_argument(
@@ -121,13 +121,13 @@ Workflow:
     parser.add_argument(
         "--generate-ignore",
         action="store_true",
-        help="Generate .domdignore template file",
+        help="Generate .doignore template file",
     )
 
     parser.add_argument(
         "--show-ignored",
         action="store_true",
-        help="Show what commands would be ignored via .domdignore",
+        help="Show what commands would be ignored via .doignore",
     )
 
     parser.add_argument(
@@ -302,7 +302,7 @@ def main() -> int:
         presenter = ApplicationFactory.create_command_presenter(repository)
 
         if not args.quiet:
-            print(f"TodoMD v{__version__} - Project Command Detector with .domdignore")
+            print(f"TodoMD v{__version__} - Project Command Detector with .doignore")
             print(f"🔍 Project: {project_path}")
             print(f"📝 TODO file: {args.todo_file}")
             print(f"🔧 Script file: {args.script_file}")
@@ -349,7 +349,7 @@ def main() -> int:
 
         # Handle init-only mode
         if args.init_only:
-            # Also generate .domdignore template if it doesn't exist
+            # Also generate .doignore template if it doesn't exist
             if not ignore_file_path.exists():
                 detector.generate_domdignore_template()
 

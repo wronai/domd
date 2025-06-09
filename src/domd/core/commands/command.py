@@ -20,6 +20,7 @@ class Command:
     type: str
     description: str
     source: str
+    file: str = ""  # Path to the file where the command was found
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -33,6 +34,7 @@ class Command:
             "type": self.type,
             "description": self.description,
             "source": self.source,
+            "file": self.file,
             "metadata": self.metadata,
         }
 
@@ -51,6 +53,7 @@ class Command:
             type=data["type"],
             description=data["description"],
             source=data["source"],
+            file=data.get("file", ""),
             metadata=data.get("metadata", {}),
         )
 

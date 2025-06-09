@@ -36,6 +36,22 @@ class CommandHandler:
         self.ignore_patterns = ignore_patterns or []
         self.pattern_matcher = PatternMatcher()
 
+        # Wczytaj komendy, które powinny być wykonywane w kontenerze Docker
+        self.docker_commands = []
+        docker_file_path = self.project_path / ".dodocker"
+        if docker_file_path.exists():
+            try:
+                with open(docker_file_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            self.docker_commands.append(line)
+                logger.info(
+                    f"Loaded {len(self.docker_commands)} Docker commands from {docker_file_path}"
+                )
+            except Exception as e:
+                logger.error(f"Error loading Docker commands: {e}")
+
         # Command storage - może zawierać zarówno obiekty Command jak i słowniki
         self.failed_commands: List[Union[Command, Dict[str, Any]]] = []
         self.successful_commands: List[Union[Command, Dict[str, Any]]] = []
@@ -206,6 +222,25 @@ class CommandHandler:
             else False
         )
 
+    def should_run_in_docker(self, command: str) -> bool:
+        """Check if a command should be run in Docker based on .dodocker file.
+
+        Args:
+            command: Command string to check
+
+        Returns:
+            bool: True if the command should be run in Docker, False otherwise
+        """
+        if not self.docker_commands:
+            return False
+
+        # Sprawdź dokładne dopasowanie
+        if command in self.docker_commands:
+            return True
+
+        # Sprawdź dopasowanie wzorców
+        return self.pattern_matcher.match_command(command, self.docker_commands)
+
     def execute_single_command(self, cmd_info) -> bool:
         """Execute a single command and update the command info with results.
 
@@ -225,6 +260,14 @@ class CommandHandler:
             cwd = str(cmd_info.get("cwd", self.project_path))
             timeout = cmd_info.get("timeout", self.timeout)
             env = cmd_info.get("env", None)
+
+        # Sprawdź, czy komenda powinna być wykonana w kontenerze Docker
+        use_docker = self.should_run_in_docker(command)
+        if use_docker:
+            logger.info(f"Executing command in Docker: {command}")
+            # Przygotuj komendę do wykonania w kontenerze Docker
+            docker_command = f'docker run --rm -v {self.project_path}:/app -w /app python:3.9 sh -c "{command}"'
+            command = docker_command
 
         logger.info("Executing command: %s", command)
 

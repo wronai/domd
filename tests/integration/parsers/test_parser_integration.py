@@ -124,9 +124,15 @@ class TestParserIntegration:
 
             # Verify that our custom parser was used
             assert len(commands) > 0, "No commands were found"
-            assert (
-                commands[0]["command"] == "custom_parser_command"
-            ), "Custom parser was not used"
+
+            # Handle both dictionary and Command object
+            first_command = commands[0]
+            if hasattr(first_command, "command"):  # It's a Command object
+                command_str = first_command.command
+            else:  # It's a dictionary
+                command_str = first_command.get("command", "")
+
+            assert command_str == "custom_parser_command", "Custom parser was not used"
             assert detector.command_handler is not None
 
     def test_parser_error_handling(self, temp_project, caplog):

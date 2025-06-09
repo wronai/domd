@@ -47,6 +47,7 @@ class Command:
     type: str
     description: str
     source: str
+    file: str = ""  # Path to the file where the command was found
     metadata: Dict[str, Any] = field(default_factory=dict)
     result: Optional[CommandResult] = None
 
@@ -72,6 +73,7 @@ class Command:
             "type": self.type,
             "description": self.description,
             "source": self.source,
+            "file": self.file,
             "metadata": self.metadata.copy() if self.metadata else {},
         }
 

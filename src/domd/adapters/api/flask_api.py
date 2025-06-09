@@ -42,7 +42,7 @@ class DomdFlaskApi:
 
         # Załaduj wzorce ignorowania
         self.ignore_patterns = []
-        ignore_file_path = self.project_path / ".domdignore"
+        ignore_file_path = self.project_path / ".doignore"
         if ignore_file_path.exists():
             with open(ignore_file_path, "r", encoding="utf-8") as f:
                 for line in f:

@@ -37,8 +37,10 @@ class TestDetectorIntegration:
         class MockPackageJsonParser:
             supported_file_patterns = {"package.json"}
 
-            def can_parse(self, file_path):
-                return file_path.name == "package.json"
+            def can_parse(self, file_path=None, content=None):
+                if file_path is not None:
+                    return file_path.name == "package.json"
+                return False
 
             def parse(self, file_path=None, content=None):
                 return [
@@ -54,8 +56,10 @@ class TestDetectorIntegration:
         class MockMakefileParser:
             supported_file_patterns = {"Makefile", "makefile"}
 
-            def can_parse(self, file_path):
-                return file_path.name.lower() in ("makefile", "gnumakefile")
+            def can_parse(self, file_path=None, content=None):
+                if file_path is not None:
+                    return file_path.name.lower() in ("makefile", "gnumakefile")
+                return False
 
             def parse(self, file_path=None, content=None):
                 return [
@@ -73,18 +77,34 @@ class TestDetectorIntegration:
                     },
                 ]
 
+        # Create mock parsers
+        mock_parsers = [
+            MockPackageJsonParser(),
+            MockMakefileParser(),
+        ]
+
         # Create the detector with our mock parsers
         with patch(
-            "domd.core.project_detection.detector.ProjectCommandDetector._initialize_parsers"
-        ) as mock_init_parsers:
+            "domd.core.project_detection.detector.ParserRegistry.get_all_parsers"
+        ) as mock_get_parsers:
             # Set up the mock to return our mock parsers
-            mock_init_parsers.return_value = [
-                MockPackageJsonParser(),
-                MockMakefileParser(),
-            ]
+            mock_get_parsers.return_value = mock_parsers
 
-            # Initialize the detector
-            detector = ProjectCommandDetector(str(temp_project))
+            # Also patch the parser registry to return our parsers
+            with patch(
+                "domd.core.project_detection.detector.ParserRegistry.get_parser_for_file"
+            ) as mock_get_parser:
+
+                def get_parser_side_effect(file_path):
+                    for parser in mock_parsers:
+                        if parser.can_parse(file_path=file_path):
+                            return parser
+                    return None
+
+                mock_get_parser.side_effect = get_parser_side_effect
+
+                # Initialize the detector
+                detector = ProjectCommandDetector(str(temp_project))
 
             # Mock the command handler to avoid actual command execution
             with patch(
@@ -130,8 +150,10 @@ class TestDetectorIntegration:
         class MockParser:
             supported_file_patterns = {"*.txt"}
 
-            def can_parse(self, file_path):
-                return file_path.suffix == ".txt"
+            def can_parse(self, file_path=None, content=None):
+                if file_path is not None:
+                    return file_path.suffix == ".txt"
+                return False
 
             def parse(self, file_path=None, content=None):
                 return [
@@ -143,12 +165,21 @@ class TestDetectorIntegration:
                     }
                 ]
 
+        # Create mock parser
+        mock_parser = MockParser()
+
         # Create the detector with our mock parser and exclude pattern
         with patch(
-            "domd.core.project_detection.detector.ProjectCommandDetector._initialize_parsers"
-        ) as mock_init_parsers:
+            "domd.core.project_detection.detector.ParserRegistry.get_all_parsers"
+        ) as mock_get_parsers:
             # Set up the mock to return our mock parser
-            mock_init_parsers.return_value = [MockParser()]
+            mock_get_parsers.return_value = [mock_parser]
+
+            # Also patch the parser registry to return our parser
+            with patch(
+                "domd.core.project_detection.detector.ParserRegistry.get_parser_for_file"
+            ) as mock_get_parser:
+                mock_get_parser.return_value = mock_parser
 
             # Initialize the detector with exclude pattern
             detector = ProjectCommandDetector(
