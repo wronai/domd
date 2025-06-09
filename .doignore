@@ -14,7 +14,21 @@ poetry run project-detector
 poetry run cmd-detector
 poetry run todomd
 poetry run llmtask
+
+# Direct domd command invocations
 domd
+domd *
+python -m domd
+python3 -m domd
+
+# Common script patterns
+*domd*
+*domd *
+*domd.*
+*domd-*
+*domd_*
+
+# Other command variants
 project-detector
 cmd-detector
 todomd

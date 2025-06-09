@@ -21,6 +21,9 @@ dev-install: ## Install with development dependencies
 install-all: ## Install with all optional dependencies
 	poetry install --with dev,docs,testing,lint --extras "all"
 
+install-api: ## Install with REST API dependencies
+	poetry install --extras "api"
+
 # Testing targets
 test: ## Run all tests
 	@echo "Running all tests..."
@@ -34,6 +37,10 @@ test-unit: ## Run unit tests only
 test-integration: ## Run integration tests only
 	@echo "Running integration tests..."
 	poetry run pytest -m "integration"
+
+test-api: ## Run API tests only
+	@echo "Running API tests..."
+	poetry run pytest tests/test_api_*.py -v
 
 # Ansible test targets
 test-ansible: ## Run all Ansible-related tests
@@ -137,6 +144,17 @@ docs: ## Build documentation
 
 serve-docs: ## Serve documentation locally
 	poetry run mkdocs serve
+
+# API targets
+run-api: ## Run the REST API server
+	poetry run domd-api
+
+run-api-debug: ## Run the REST API server in debug mode
+	poetry run domd-api --debug
+
+run-api-port: ## Run the REST API server on a specific port
+	@read -p "Enter port number (default: 5000): " port; \
+	poetry run domd-api --port $${port:-5000}
 
 docs-clean: ## Clean documentation build
 	rm -rf site/

@@ -7,7 +7,7 @@
 A powerful tool for detecting and managing project commands with built-in support for virtual environments, Ansible, and more.
 [![Tests](https://github.com/wronai/domd/workflows/Tests/badge.svg)](https://github.com/wronai/domd/actions)
 
-**DoMD** automatically detects and tests project commands from various configuration files, then generates a detailed `TODO.md` file for failed commands with error reports and suggested fixes.
+**DoMD** automatically detects and tests project commands from various configuration files, then generates a detailed `TODO.md` file for failed commands with error reports and suggested fixes. Now with a clean architecture and REST API support!
 
 ## 🚀 Features
 
@@ -19,6 +19,8 @@ A powerful tool for detecting and managing project commands with built-in suppor
 - **Zero Configuration**: Works out of the box with sensible defaults
 - **Command Filtering**: Skip specific commands using `.doignore`
 - **Docker Integration**: Run commands in isolated Docker containers using `.dodocker`
+- **Clean Architecture**: Modular design with separation of concerns for better maintainability
+- **REST API**: Access all functionality through a RESTful API interface
 
 ## 🔍 Supported Project Types
 
@@ -189,6 +191,55 @@ make test
 make test-ansible
 ```
 
+## 🔧 Advanced Usage
+
+### REST API
+
+DoMD now provides a REST API for programmatic access to all functionality:
+
+```bash
+# Start the API server
+domd-api --port 8080 --path /path/to/project
+```
+
+Available endpoints:
+
+- `GET /health` - Check server status
+- `GET /api/commands` - Get all commands
+- `POST /api/commands/scan` - Scan project for commands
+- `POST /api/commands/test` - Test commands
+- `GET /api/reports` - Get information about reports
+- `POST /api/reports/generate` - Generate reports
+- `GET /api/stats` - Get statistics
+
+Example API usage:
+
+```bash
+# Scan a project
+curl -X POST http://localhost:8080/api/commands/scan \
+  -H "Content-Type: application/json" \
+  -d '{"project_path": "/path/to/project"}'
+
+# Test commands
+curl -X POST http://localhost:8080/api/commands/test
+
+# Generate reports
+curl -X POST http://localhost:8080/api/reports/generate \
+  -H "Content-Type: application/json" \
+  -d '{"todo_file": "TODO.md", "done_file": "DONE.md"}'
+```
+
+### Architecture
+
+DoMD now uses a clean, layered architecture:
+
+- **Domain Layer**: Core business entities and logic
+- **Application Layer**: Use cases and application services
+- **Interface Layer**: CLI, API, and other interfaces
+- **Infrastructure Layer**: External services and implementations
+
+This modular design makes it easy to extend DoMD with new features and adapters.
+
 ## 🔧 Command Filtering with .doignore
 
 Easily skip specific commands during testing by creating a `.doignore` file in your project root. This is perfect for excluding long-running services, deployment scripts, or commands that require special handling.
@@ -282,49 +333,40 @@ domd --docker-image python:3.9
 - `Cargo.toml` (Rust)
 - `go.mod` (Go)
 
-## 🛠 Installation
+## 🤓 Installation
 
 ### Using pip
 ```bash
+# Install from PyPI
 pip install domd
-```
 
-### Using Poetry
-```bash
-poetry add domd
-```
+# Install with all optional dependencies
+pip install domd[all]
 
-### From source
-```bash
-git clone https://github.com/wronai/domd.git
-cd domd
-poetry install
+# Install with REST API support
+pip install domd[api]
 ```
-
-## 📖 Usage
 
 ### Basic Usage
 ```bash
-# Scan current directory
+# Scan current directory and test commands
 domd
 
-# Scan specific project
+# Specify a project directory
 domd --path /path/to/project
 
-# Preview commands without executing
-domd --dry-run
+# Only create files without testing commands
+domd --init-only
 
-# Custom output file
-domd --output FAILED_COMMANDS.md
+# Generate .doignore template
+domd --generate-ignore
+
+# Show what commands would be ignored
+domd --show-ignored
+
+# Start the REST API server
+domd-api --port 8080
 ```
-
-### Advanced Options
-```bash
-# Verbose output with detailed logging
-domd --verbose
-
-# Quiet mode (errors only)
-domd --quiet
 
 # Custom timeout (default: 60 seconds)
 domd --timeout 120
