@@ -1,6 +1,7 @@
 """Command execution functionality for the domd package."""
 
 import logging
+import os
 import shlex
 import subprocess
 from dataclasses import dataclass

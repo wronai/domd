@@ -54,18 +54,18 @@ def create_mock_venv(venv_path: str, python_path: Optional[str] = None) -> None:
         f.write("#!/bin/sh\n")
         f.write('if [ "$1" = "--version" ]; then\n')
         f.write('    echo "Python 3.9.0 (default, Jan  1 2023, 00:00:00) [GCC]"\n')
-        f.write('    exit 0\n')
+        f.write("    exit 0\n")
         f.write('elif [ "$1" = "-c" ]; then\n')
-        f.write('    # Handle simple Python commands\n')
+        f.write("    # Handle simple Python commands\n")
         f.write('    if echo "$2" | grep -q "import sys; print(sys.prefix)"; then\n')
         f.write(f'        echo "{venv_path}"\n')
-        f.write('        exit 0\n')
-        f.write('    fi\n')
+        f.write("        exit 0\n")
+        f.write("    fi\n")
         f.write('    echo "Mock Python: $*" >&2\n')
-        f.write('    exit 0\n')
-        f.write('fi\n')
+        f.write("    exit 0\n")
+        f.write("fi\n")
         f.write('echo "Python command not implemented in mock: $*" >&2\n')
-        f.write('exit 0\n')  # Always exit successfully for tests
+        f.write("exit 0\n")  # Always exit successfully for tests
 
     # Make the script executable
     os.chmod(python_exe, 0o755)
@@ -126,26 +126,32 @@ def test_execute_command_in_venv(venv_project):
     """Test executing a command in a virtual environment."""
     # Initialize the detector
     detector = ProjectCommandDetector(project_path=str(venv_project))
-    
+
     # Verify the virtual environment was detected
     assert detector.venv_info.get("exists") is True, "Virtual environment not detected"
-    
+
     # Run a simple command in the virtual environment
     result = detector.run_in_venv(["python", "--version"])
-    
+
     # Check the result
     assert result is not None, "Command execution returned None"
     assert isinstance(result, dict), f"Expected result to be a dict, got {type(result)}"
-    
+
     # Debug output
     print(f"Command result: {result}")
-    
+
     # Check the command was successful
-    assert result.get("success") is True, f"Command failed: {result.get('stderr', 'No stderr')}"
-    assert result.get("return_code") == 0, f"Expected return code 0, got {result.get('return_code')}"
-    
+    assert (
+        result.get("success") is True
+    ), f"Command failed: {result.get('stderr', 'No stderr')}"
+    assert (
+        result.get("return_code") == 0
+    ), f"Expected return code 0, got {result.get('return_code')}"
+
     # Check the output contains the Python version
-    assert "Python" in result.get("stdout", ""), f"Python version not in output: {result.get('stdout')}"
+    assert "Python" in result.get(
+        "stdout", ""
+    ), f"Python version not in output: {result.get('stdout')}"
 
 
 def test_execute_command_with_env_vars(venv_project):
@@ -202,22 +208,49 @@ print(os.environ.get("CUSTOM_VAR", "NOT_FOUND"), end="")
 
 def test_missing_virtualenv(temp_project):
     """Test behavior when no virtual environment is present."""
-    # Create a detector in a project without a virtual environment
-    detector = ProjectCommandDetector(project_path=temp_project)
+    # Ensure no virtual environment exists in the temp project
+    venv_path = temp_project / ".venv"
+    if venv_path.exists():
+        shutil.rmtree(venv_path)
 
-    # The virtual environment should not be detected
-    assert "exists" in detector.venv_info
-    assert detector.venv_info["exists"] is False
+    # Initialize the detector
+    detector = ProjectCommandDetector(project_path=str(temp_project))
 
-    # Running a command should still work
+    # Check that no virtual environment is detected
+    assert hasattr(detector, "venv_info"), "venv_info attribute not found"
+    assert isinstance(detector.venv_info, dict), "venv_info is not a dictionary"
+
+    # Debug output
+    print(f"venv_info: {detector.venv_info}")
+
+    # Check that no virtual environment is detected
+    assert (
+        detector.venv_info.get("exists") is False
+    ), "Virtual environment incorrectly detected"
+
+    # Choose a simple command to run
     if sys.platform == "win32":
         cmd = ["cmd", "/c", "echo Hello"]
     else:
         cmd = ["echo", "Hello"]
 
+    # Run the command
     result = detector.run_in_venv(cmd)
-    assert result["success"] is True
-    assert "Hello" in result["stdout"]
+
+    # Check the result
+    assert result is not None, "Command execution returned None"
+    assert isinstance(result, dict), f"Expected result to be a dict, got {type(result)}"
+
+    # Debug output
+    print(f"Command result: {result}")
+
+    # The command should still succeed
+    assert (
+        result.get("success") is True
+    ), f"Command failed: {result.get('stderr', 'No stderr')}"
+    assert "Hello" in result.get(
+        "stdout", ""
+    ), f"Expected 'Hello' in output, got: {result.get('stdout')}"
 
 
 def test_custom_venv_path(temp_project):

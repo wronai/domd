@@ -289,10 +289,10 @@ def print_summary(detector: ProjectCommandDetector, total_commands: int) -> None
     successful = len(detector.successful_commands)
     failed = len(detector.failed_commands)
     ignored = len(detector.ignored_commands)
-    
+
     # Upewnij się, że statystyki są aktualne
     total_tested = successful + failed
-    
+
     print("\n" + "=" * 60)
     print("EXECUTION SUMMARY")
     print("=" * 60)
@@ -381,22 +381,26 @@ def main() -> int:
                 print("\n🔍 DRY RUN MODE - Filtered commands:")
                 for i, cmd in enumerate(commands, 1):
                     # Obsługa zarówno obiektów Command jak i słowników
-                    if hasattr(cmd, 'description') and hasattr(cmd, 'command') and hasattr(cmd, 'source'):
+                    if (
+                        hasattr(cmd, "description")
+                        and hasattr(cmd, "command")
+                        and hasattr(cmd, "source")
+                    ):
                         # To jest obiekt Command
                         description = cmd.description
                         command = cmd.command
                         source = cmd.source
                     elif isinstance(cmd, dict):
                         # To jest słownik
-                        description = cmd.get('description', 'No description')
-                        command = cmd.get('command', 'No command')
-                        source = cmd.get('source', 'Unknown source')
+                        description = cmd.get("description", "No description")
+                        command = cmd.get("command", "No command")
+                        source = cmd.get("source", "Unknown source")
                     else:
                         # Nieznany typ, pokaż co mamy
                         description = str(cmd)
                         command = str(cmd)
                         source = type(cmd).__name__
-                        
+
                     print(f"{i:3d}. {description}")
                     print(f"     Command:  {command}")
                     print(f"     Source:   {source}")
@@ -447,7 +451,9 @@ def main() -> int:
         # Print summary
         if not args.quiet:
             # Używamy rzeczywistej liczby przetestowanych komend, a nie początkowej listy
-            total_tested = len(detector.successful_commands) + len(detector.failed_commands)
+            total_tested = len(detector.successful_commands) + len(
+                detector.failed_commands
+            )
             print_summary(detector, total_tested)
 
         # Return exit code based on results
