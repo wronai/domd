@@ -287,3 +287,51 @@ class Reporter:
         filename = f"report_{timestamp}.{ext}"
 
         return self.output_dir / filename
+
+    def generate_report(
+        self,
+        data: Any,
+        formatter_name: str = "markdown",
+        output_file: Optional[Union[str, Path]] = None,
+        **kwargs: Any,
+    ) -> Path:
+        """Generate a report from the provided data.
+
+        Args:
+            data: Data to include in the report
+            formatter_name: Name of the formatter to use
+            output_file: Path to the output file
+            **kwargs: Additional formatting options
+
+        Returns:
+            Path to the generated report
+        """
+        # Store the original data
+        original_data = self.data
+
+        try:
+            # Set the data to the provided data
+            self.data = data
+
+            # Determine the output path
+            if output_file is not None:
+                output_path = Path(output_file)
+            else:
+                output_path = self._get_report_filename(formatter_name)
+
+            # Ensure the directory exists
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Write the report
+            output_path = self.write_report(
+                output_path=output_file, format_name=formatter_name, **kwargs
+            )
+
+            # Ensure the file exists (create empty file if needed)
+            if not output_path.exists():
+                output_path.touch()
+
+            return output_path
+        finally:
+            # Restore the original data
+            self.data = original_data

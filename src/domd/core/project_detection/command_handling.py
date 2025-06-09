@@ -135,33 +135,36 @@ class CommandHandler:
         cmd_list = command if isinstance(command, list) else shlex.split(str(command))
 
         # If we have a Python path in the environment, use it for Python commands
-        python_path = venv_env.get("VIRTUAL_ENV")
-        if python_path:
-            if cmd_list and cmd_list[0] in ("python", "python3"):
-                # Try to find the Python executable in the virtualenv
-                import os
-                import sys
+        venv_path = venv_env.get("VIRTUAL_ENV")
+        if venv_path and cmd_list and cmd_list[0] in ("python", "python3"):
+            # Try to find the Python executable in the virtualenv
+            import os
+            import sys
 
-                if sys.platform == "win32":
-                    bin_dir = "Scripts"
-                    python_exe = "python.exe"
-                else:
-                    bin_dir = "bin"
-                    python_exe = "python"
+            if sys.platform == "win32":
+                bin_dir = "Scripts"
+                python_exe = "python.exe"
+            else:
+                bin_dir = "bin"
+                python_exe = "python"
 
-                python_path = os.path.join(python_path, bin_dir, python_exe)
+            python_path = os.path.join(venv_path, bin_dir, python_exe)
+            if os.path.isfile(python_path):
+                cmd_list[0] = python_path
+            else:
+                # Fallback to the Python executable in the virtualenv's bin directory
+                python_path = os.path.join(
+                    venv_path,
+                    bin_dir,
+                    f"python{sys.version_info.major}.{sys.version_info.minor}",
+                )
                 if os.path.isfile(python_path):
                     cmd_list[0] = python_path
 
         # Merge environments, with user-provided env taking precedence
-        env = kwargs.pop("env", None) or {}
+        env = kwargs.pop("env", {})
         merged_env = venv_env.copy()
-
-        for key, value in env.items():
-            if value is not None:
-                merged_env[str(key)] = str(value)
-            elif key in merged_env:
-                del merged_env[key]
+        merged_env.update({k: str(v) for k, v in env.items() if v is not None})
 
         # Run the command using the command runner
         result = self.command_runner.run(command=cmd_list, env=merged_env, **kwargs)
@@ -173,8 +176,9 @@ class CommandHandler:
             "execution_time": result.execution_time,
             "stdout": result.stdout or "",
             "stderr": result.stderr or "",
-            "command": cmd_list if isinstance(cmd_list, str) else " ".join(cmd_list),
-            "output": (result.stdout or "") + "\n" + (result.stderr or ""),
+            "command": " ".join(cmd_list) if isinstance(cmd_list, list) else cmd_list,
+            "output": (result.stdout or "")
+            + ("\n" + result.stderr if result.stderr else ""),
         }
 
         return result_dict

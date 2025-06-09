@@ -133,6 +133,7 @@ class FileProcessor:
         max_depth: Optional[int] = None,
         include_patterns: Optional[Iterable[str]] = None,
         exclude_patterns: Optional[Iterable[str]] = None,
+        include: Optional[Iterable[str]] = None,  # Alias for patterns
     ) -> List[Path]:
         """Find files matching the given patterns (alias for find_config_files).
 
@@ -142,14 +143,19 @@ class FileProcessor:
             max_depth: Maximum directory depth to search (overrides self.max_depth if provided)
             include_patterns: Alias for patterns (for backward compatibility)
             exclude_patterns: Alias for exclude (for backward compatibility)
+            include: Alias for patterns (for backward compatibility)
 
         Returns:
             List of matching file paths
         """
         # Handle backward compatibility with old parameter names
-        if include_patterns is not None and patterns is None:
-            patterns = include_patterns
-        if exclude_patterns is not None and exclude is None:
+        if patterns is None:
+            if include is not None:
+                patterns = include
+            elif include_patterns is not None:
+                patterns = include_patterns
+
+        if exclude is None and exclude_patterns is not None:
             exclude = exclude_patterns
 
         return self.find_config_files(patterns, exclude, max_depth)

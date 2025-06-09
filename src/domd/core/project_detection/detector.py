@@ -289,6 +289,31 @@ class ProjectCommandDetector:
         # Pass the environment to command_handler.run_in_venv
         return self.command_handler.run_in_venv(command, venv_env=venv_env, **kwargs)
 
+    def _execute_command(self, command_info: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a command with the given information.
+
+        This is a backward compatibility method for tests.
+
+        Args:
+            command_info: Dictionary with command information
+                - command: Command to execute
+                - cwd: Working directory
+                - env: Environment variables
+                - timeout: Timeout in seconds
+
+        Returns:
+            Dictionary with command execution results
+        """
+        command = command_info.get("command")
+        cwd = command_info.get("cwd", self.project_path)
+        env = command_info.get("env")
+        timeout = command_info.get("timeout", self.timeout)
+
+        # Use the command handler to execute the command
+        return self.command_handler.execute_command(
+            command=command, cwd=cwd, env=env, timeout=timeout
+        )
+
     def generate_reports(self) -> Dict[str, Path]:
         """Generate reports for successful and failed commands.
 

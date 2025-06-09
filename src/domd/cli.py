@@ -175,8 +175,15 @@ def validate_args(args: argparse.Namespace) -> Optional[str]:
 
 
 def setup_logging(verbose: bool, quiet: bool) -> None:
-    """Setup logging based on verbosity level."""
+    """Setup logging based on verbosity level.
+
+    Args:
+        verbose: Enable verbose logging (DEBUG level)
+        quiet: Enable quiet mode (ERROR level only)
+    """
     import logging
+
+    from domd.core.utils.logging_utils import setup_logging as setup_logging_util
 
     if quiet:
         level = logging.ERROR
@@ -185,9 +192,8 @@ def setup_logging(verbose: bool, quiet: bool) -> None:
     else:
         level = logging.INFO
 
-    logging.basicConfig(
-        level=level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    # Use the utility function from logging_utils
+    setup_logging_util(level=level)
 
 
 def handle_generate_ignore(detector: ProjectCommandDetector) -> int:

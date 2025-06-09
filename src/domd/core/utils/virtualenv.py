@@ -72,28 +72,11 @@ def get_environment(venv_info: Dict[str, Any]) -> Dict[str, str]:
     Returns:
         Dictionary with environment variables with virtualenv paths included
     """
-    env = os.environ.copy()
+    # Import the function from project_detection.virtualenv to avoid duplication
+    from domd.core.project_detection.virtualenv import get_virtualenv_environment
 
-    # Add virtual environment's bin/scripts to PATH if available
-    if venv_info.get("path"):
-        venv_path = venv_info["path"]
-        if sys.platform == "win32":
-            bin_path = os.path.join(venv_path, "Scripts")
-        else:
-            bin_path = os.path.join(venv_path, "bin")
-
-        if os.path.exists(bin_path):
-            # Add to the beginning of PATH to ensure virtualenv binaries take precedence
-            env["PATH"] = f"{bin_path}{os.pathsep}{env.get('PATH', '')}"
-
-            # Set VIRTUAL_ENV for Python tools that check this
-            env["VIRTUAL_ENV"] = venv_path
-
-            # On Windows, we also need to set PYTHONHOME to None to avoid conflicts
-            if sys.platform == "win32" and "PYTHONHOME" in env:
-                del env["PYTHONHOME"]
-
-    return env
+    # Call the implementation from project_detection.virtualenv
+    return get_virtualenv_environment(venv_info)
 
 
 def setup_virtualenv(venv_path: Optional[str] = None) -> Dict[str, Any]:
@@ -131,33 +114,28 @@ def get_virtualenv_info(project_path: str) -> Dict[str, Any]:
             - activate_command: Optional[str] - Command to activate the virtual environment
             - python_path: Optional[str] - Path to the Python interpreter in the virtual environment
     """
-    # Default return value when no virtual environment is found
-    default_result = {
-        "exists": False,
-        "path": None,
-        "activate_command": None,
-        "python_path": None,
-    }
+    # Import the function from project_detection.virtualenv to avoid duplication
+    from domd.core.project_detection.virtualenv import (
+        get_virtualenv_info as get_venv_info,
+    )
 
-    venv_path = find_virtualenv(project_path)
-    if not venv_path:
-        return default_result
+    # Call the implementation from project_detection.virtualenv
+    venv_info = get_venv_info(project_path)
 
-    activate_cmd = get_activate_command(venv_path)
-    python_path = None
+    # If the function doesn't return the expected format, provide defaults
+    if not isinstance(venv_info, dict):
+        return {
+            "exists": False,
+            "path": None,
+            "activate_command": None,
+            "python_path": None,
+        }
 
-    # Try to get Python interpreter path
-    if sys.platform == "win32":
-        python_path = os.path.join(venv_path, "Scripts", "python.exe")
-    else:
-        python_path = os.path.join(venv_path, "bin", "python")
+    # Ensure the returned dictionary has all expected keys
+    venv_info.setdefault(
+        "exists", "path" in venv_info and venv_info["path"] is not None
+    )
+    venv_info.setdefault("activate_command", None)
+    venv_info.setdefault("python_path", None)
 
-    if python_path and not os.path.exists(python_path):
-        python_path = None
-
-    return {
-        "exists": True,
-        "path": venv_path,
-        "activate_command": activate_cmd,
-        "python_path": python_path,
-    }
+    return venv_info

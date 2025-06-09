@@ -40,12 +40,27 @@ def create_mock_venv(venv_path: str, python_path: Optional[str] = None) -> None:
     if sys.platform != "win32":
         os.chmod(activate_script, 0o755)
 
-    # Create a Python interpreter symlink if path is provided
-    if python_path and os.path.exists(python_path):
-        if sys.platform == "win32":
-            shutil.copy(python_path, os.path.join(bin_dir, "python.exe"))
-        else:
-            os.symlink(python_path, os.path.join(bin_dir, "python"))
+    # Create a mock Python executable
+    python_exe = os.path.join(bin_dir, "python")
+    if sys.platform == "win32":
+        python_exe += ".exe"
+
+    # Create a simple Python script that returns version when called with --version
+    with open(python_exe, "w") as f:
+        f.write("#!/bin/sh\n")
+        f.write('if [ "$1" = "--version" ]; then\n')
+        f.write('    echo "Python 3.9.0"  # Mock Python version\n')
+        f.write("    exit 0\n")
+        f.write("fi\n")
+        f.write('echo "Python command not implemented in mock" >&2\n')
+        f.write("exit 1\n")
+
+    # Make the script executable
+    os.chmod(python_exe, 0o755)
+
+    # Also create a python3 symlink on Unix-like systems
+    if sys.platform != "win32":
+        os.symlink("python", os.path.join(bin_dir, "python3"))
 
 
 @pytest.fixture

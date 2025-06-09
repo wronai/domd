@@ -6,9 +6,10 @@ ProjectCommandDetector class from the new modular structure.
 
 import logging
 
+from domd.core.commands.executor import CommandExecutor
 from domd.core.project_detection import ProjectCommandDetector
 
 logger = logging.getLogger(__name__)
 
-# Re-export the ProjectCommandDetector class
-__all__ = ["ProjectCommandDetector"]
+# Re-export the ProjectCommandDetector class and CommandExecutor
+__all__ = ["ProjectCommandDetector", "CommandExecutor"]
