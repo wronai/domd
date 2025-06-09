@@ -2,16 +2,18 @@
 
 from typing import Any, Dict, List
 
-from .base import BaseParser
 from ..commands.command import Command
+from .base import BaseParser
 
 # Try to import tomli (Python 3.11+) or toml (older Python)
 try:
     import tomli as toml  # noqa: F401
+
     TOML_AVAILABLE = True
 except ImportError:
     try:
         import toml  # noqa: F401, F811
+
         TOML_AVAILABLE = True
     except ImportError:
         TOML_AVAILABLE = False

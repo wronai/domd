@@ -1,11 +1,11 @@
 """Parser for Makefiles."""
 
+import re
 from pathlib import Path
 from typing import List
-import re
 
-from .base import BaseParser
 from ..commands.command import Command
+from .base import BaseParser
 
 
 class MakefileParser(BaseParser):
@@ -19,7 +19,10 @@ class MakefileParser(BaseParser):
     @classmethod
     def can_parse(cls, file_path: Path) -> bool:
         """Check if the file is a Makefile."""
-        return file_path.name.lower() in ["makefile", "gnumakefile"] or file_path.name == "Makefile"
+        return (
+            file_path.name.lower() in ["makefile", "gnumakefile"]
+            or file_path.name == "Makefile"
+        )
 
     def parse(self) -> "List[Command]":
         """Parse Makefile and extract targets as commands.

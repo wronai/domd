@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import TYPE_CHECKING, List
+
 import yaml
 
 from .base import BaseParser

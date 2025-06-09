@@ -11,12 +11,11 @@ import shlex
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union, cast
 
-from .commands.executor import CommandExecutor
-from .parsers.base import BaseParser
-from .reporters.done_md import DoneMDReporter
-from .reporters.todo_md import TodoMDReporter
+from .command_execution import CommandExecutor, CommandResult, CommandRunner
+from .parsing import BaseParser, FileProcessor, ParserRegistry, PatternMatcher
+from .reporting import ConsoleFormatter, MarkdownFormatter, Reporter
 from .utils.virtualenv import get_virtualenv_info
 
 logger = logging.getLogger(__name__)
@@ -100,19 +99,39 @@ class ProjectCommandDetector:
         self.venv_info = self._setup_virtualenv(venv_path)
 
         # Initialize components with virtualenv support
-        self.command_executor = CommandExecutor(
-            timeout=timeout, cwd=self.project_path, env=self._get_environment()
+        self.command_executor = CommandExecutor(timeout=timeout)
+        self.command_runner = CommandRunner(
+            executor=self.command_executor,
+            cwd=self.project_path,
+            env=self._get_environment(),
         )
 
-        self.todo_reporter = TodoMDReporter(self.todo_file)
-        self.done_reporter = DoneMDReporter(self.done_file)
+        # Initialize reporting components
+        self.reporter = Reporter(
+            output_dir=self.project_path,
+            formatters={
+                "todo": MarkdownFormatter(title="TODO Commands"),
+                "done": MarkdownFormatter(title="DONE Commands"),
+            },
+        )
+
+        # For backward compatibility
+        self.todo_reporter = self.reporter
+        self.done_reporter = self.reporter
+
+        # Initialize parsing components
+        self.parser_registry = ParserRegistry()
+        self.file_processor = FileProcessor(project_root=self.project_path)
+        self.pattern_matcher = PatternMatcher()
         self.parsers = self._initialize_parsers()
 
         # Command storage and patterns
-        self.ignore_patterns = []  # Patterns for commands to ignore
-        self.failed_commands: List[Dict] = []
-        self.successful_commands: List[Dict] = []
-        self.ignored_commands: List[Dict] = []
+        self.ignore_patterns = (
+            []
+        )  # Patterns for commands to ignore (separate from file exclude patterns)
+        self.failed_commands: List[Dict[str, Any]] = []
+        self.successful_commands: List[Dict[str, Any]] = []
+        self.ignored_commands: List[Dict[str, Any]] = []
 
     def _setup_virtualenv(self, venv_path: Optional[str] = None) -> Dict[str, Any]:
         """Set up virtual environment for command execution.
@@ -233,9 +252,9 @@ class ProjectCommandDetector:
                 elif key in exec_env:
                     del exec_env[key]
 
-        # Execute the command
+        # Execute the command using the new CommandRunner
         try:
-            result = self.command_executor.execute(
+            result = self.command_runner.run(
                 command=command,
                 timeout=timeout or self.timeout,
                 cwd=cwd or self.project_path,
@@ -316,15 +335,32 @@ class ProjectCommandDetector:
                 cmd_list[0] = self.venv_info["python_path"]
 
         # Execute the command with the environment setup
-        result = self.execute_command(command=cmd_list, **kwargs)
+        # Use the command_runner directly with venv environment
+        env = kwargs.pop("env", None) or {}
+        venv_env = self._get_environment()
 
-        # Ensure the result has all expected fields
-        if "output" not in result and "stdout" in result and "stderr" in result:
-            result["output"] = (
-                result.get("stdout", "") + "\n" + result.get("stderr", "")
-            ).strip()
+        # Merge environments, with user-provided env taking precedence
+        for key, value in env.items():
+            if value is not None:
+                venv_env[str(key)] = str(value)
+            elif key in venv_env:
+                del venv_env[key]
 
-        return result
+        # Run the command using the command runner
+        result = self.command_runner.run(command=cmd_list, env=venv_env, **kwargs)
+
+        # Convert result to dictionary for backward compatibility
+        result_dict = {
+            "success": result.success,
+            "return_code": result.return_code,
+            "execution_time": result.execution_time,
+            "stdout": result.stdout or "",
+            "stderr": result.stderr or "",
+            "command": cmd_list if isinstance(cmd_list, str) else " ".join(cmd_list),
+            "output": (result.stdout or "") + "\n" + (result.stderr or ""),
+        }
+
+        return result_dict
 
     def create_llm_optimized_todo_md(self) -> None:
         """Generate a TODO.md file with failed commands and fix suggestions.
@@ -367,18 +403,42 @@ class ProjectCommandDetector:
         Returns:
             List of parser instances initialized with the project root
         """
-        parser_classes = get_available_parsers()
-        parsers = []
-        for parser_class in parser_classes:
-            try:
-                # Initialize each parser with the project root as a Path object
-                parser = parser_class(project_root=self.project_path)
-                parsers.append(parser)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to initialize parser {parser_class.__name__}: {e}"
-                )
-        return parsers
+        parser_instances = []
+
+        # First try to use the new parser registry
+        try:
+            # Auto-discover and register parsers
+            self.parser_registry.discover_parsers()
+
+            # Get all registered parsers and instantiate them
+            for parser_class in self.parser_registry.get_all_parsers():
+                try:
+                    parser = parser_class(project_root=self.project_path)
+                    parser_instances.append(parser)
+                    logger.debug(
+                        f"Initialized parser from registry: {parser.__class__.__name__}"
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to initialize parser {parser_class.__name__}: {e}"
+                    )
+        except Exception as e:
+            logger.warning(f"Failed to use parser registry: {e}")
+
+            # Fallback to the old method for backward compatibility
+            for parser_class in get_available_parsers():
+                try:
+                    parser = parser_class(project_root=self.project_path)
+                    parser_instances.append(parser)
+                    logger.debug(
+                        f"Initialized parser (legacy): {parser.__class__.__name__}"
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to initialize parser {parser_class.__name__}: {e}"
+                    )
+
+        return parser_instances
 
     def scan_project(self) -> List[Dict]:
         """Scan the project for commands in various configuration files.
@@ -396,7 +456,7 @@ class ProjectCommandDetector:
             "Available parsers: %s", [p.__class__.__name__ for p in self.parsers]
         )
 
-        # Find all configuration files
+        # Find all configuration files using the new FileProcessor
         config_files = self._find_config_files()
         logger.debug("Found %d config files: %s", len(config_files), config_files)
 
@@ -404,10 +464,31 @@ class ProjectCommandDetector:
         for file_path in config_files:
             try:
                 logger.debug("Processing file: %s", file_path)
-                parser = self._get_parser_for_file(file_path)
-                logger.debug("Found parser for %s: %s", file_path, parser)
+
+                # Try to get a parser from the registry first
+                parser = None
+                try:
+                    # Get file extension without the dot
+                    ext = file_path.suffix.lstrip(".")
+                    if ext:
+                        parser = self.parser_registry.get_parser_for_extension(
+                            ext, file_path=file_path
+                        )
+                        if parser:
+                            logger.debug(
+                                f"Using parser from registry for {file_path}: {parser.__class__.__name__}"
+                            )
+                except Exception as e:
+                    logger.debug(f"Error getting parser from registry: {e}")
+
+                # Fall back to legacy method if no parser found
+                if not parser:
+                    parser = self._get_parser_for_file(file_path)
+                    logger.debug(
+                        f"Using legacy parser for {file_path}: {parser.__class__.__name__ if parser else None}"
+                    )
+
                 if parser and hasattr(parser, "parse"):
-                    logger.debug("Parser has parse method")
                     # Check if parse method accepts a file_path parameter
                     parse_method = parser.parse
                     import inspect
@@ -417,10 +498,8 @@ class ProjectCommandDetector:
                     try:
                         # Try calling with file_path if the method accepts it
                         if "file_path" in sig.parameters:
-                            logger.debug("Calling parse with file_path parameter")
                             file_commands = parser.parse(file_path=file_path)
                         else:
-                            logger.debug("Calling parse without parameters")
                             file_commands = parser.parse()
 
                         if file_commands:
@@ -432,7 +511,6 @@ class ProjectCommandDetector:
                             logger.debug("No commands found in %s", file_path)
                     except Exception as e:
                         logger.error("Error calling parse method: %s", e, exc_info=True)
-                        raise
                 else:
                     logger.debug("No suitable parser found for %s", file_path)
             except Exception as e:
@@ -449,63 +527,50 @@ class ProjectCommandDetector:
             List of Path objects to configuration files
         """
         logger.debug("Finding config files in: %s", self.project_path)
-        logger.debug(
-            "Available parsers: %s", [p.__class__.__name__ for p in self.parsers]
+
+        # Build exclude patterns
+        exclude_patterns = [
+            "**/.*",  # Hidden files and directories
+            "**/__pycache__/**",
+            "**/*.py[cod]",
+            "**/*.so",
+            "**/*.egg-info/**",
+            "**/build/**",
+            "**/dist/**",
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/.tox/**",
+            "**/.venv/**",
+            "**/venv/**",
+            "**/env/**",
+            *self.exclude_patterns,
+        ]
+
+        # Add patterns from .doignore if it exists
+        if self.ignore_file.exists():
+            with open(self.ignore_file) as f:
+                ignore_patterns = [
+                    line.strip()
+                    for line in f
+                    if line.strip() and not line.startswith("#")
+                ]
+                exclude_patterns.extend(ignore_patterns)
+
+        # Use the new FileProcessor to find files
+        all_files = self.file_processor.find_files(
+            include=self.include_patterns if self.include_patterns else None,
+            exclude=exclude_patterns,
         )
 
-        # Get all supported file patterns from parsers
-        supported_patterns = set()
-        for parser in self.parsers:
-            try:
-                # Get the patterns safely, handling both properties and attributes
-                patterns = []
-                if hasattr(parser, "supported_file_patterns"):
-                    patterns = parser.supported_file_patterns
-                    if callable(patterns):
-                        patterns = patterns()  # Call if it's a property
+        # Filter files that have a parser
+        config_files = []
+        for file_path in all_files:
+            if self._get_parser_for_file(file_path):
+                config_files.append(file_path)
+                logger.debug(f"Found config file: {file_path}")
 
-                    # Convert to list if it's not already iterable
-                    if isinstance(patterns, (list, tuple, set)):
-                        patterns = list(patterns)
-                    else:
-                        patterns = [str(patterns)]
-
-                    logger.debug(
-                        "Parser %s supports patterns: %s",
-                        parser.__class__.__name__,
-                        patterns,
-                    )
-                    supported_patterns.update(patterns)
-                else:
-                    # If no patterns, use a default pattern
-                    logger.debug(
-                        "No patterns found for parser %s, using default",
-                        parser.__class__.__name__,
-                    )
-                    supported_patterns.add("*")
-            except Exception as e:
-                logger.warning(
-                    f"Failed to get patterns from {parser.__class__.__name__}: {e}",
-                    exc_info=True,
-                )
-
-        logger.debug("Supported patterns: %s", supported_patterns)
-
-        # Find all matching files in the project
-        found_files = set()
-        for pattern in supported_patterns:
-            try:
-                logger.debug("Searching for pattern: %s", pattern)
-                for file_path in self.project_path.rglob(pattern):
-                    if self._should_process_file(file_path):
-                        resolved = file_path.resolve()
-                        found_files.add(resolved)
-                        logger.debug("Found file: %s", resolved)
-            except Exception as e:
-                logger.warning("Error searching for pattern %s: %s", pattern, e)
-
-        logger.debug("Found %d config files: %s", len(found_files), found_files)
-        return list(found_files)
+        logger.debug(f"Found {len(config_files)} config files")
+        return config_files
 
     def _get_parser_for_file(self, file_path: Path) -> Optional[BaseParser]:
         """Get the appropriate parser for a file.
@@ -593,19 +658,18 @@ class ProjectCommandDetector:
         if not file_path.exists() or not file_path.is_file():
             return False
 
+        # Use FileProcessor to check if file should be processed
         relative_path = str(file_path.relative_to(self.project_path))
 
         # Check exclude patterns
-        for pattern in self.exclude_patterns:
-            if self._match_pattern(relative_path, pattern):
-                return False
+        if self.pattern_matcher.match_any_pattern(relative_path, self.exclude_patterns):
+            return False
 
         # Check include patterns (if any)
         if self.include_patterns:
-            for pattern in self.include_patterns:
-                if self._match_pattern(relative_path, pattern):
-                    return True
-            return False
+            return self.pattern_matcher.match_any_pattern(
+                relative_path, self.include_patterns
+            )
 
         return True
 
@@ -620,20 +684,8 @@ class ProjectCommandDetector:
             bool: True if the path matches the pattern
         """
         try:
-            # Handle directory patterns with trailing /*
-            if pattern.endswith("/*"):
-                dir_pattern = pattern[:-2]
-                return path.startswith(dir_pattern + "/")
-
-            # Handle glob patterns
-            if "*" in pattern or "?" in pattern or "[" in pattern:
-                import fnmatch
-
-                return fnmatch.fnmatch(path, pattern)
-
-            # Simple string match
-            return pattern in path
-
+            # Use the new PatternMatcher
+            return self.pattern_matcher.match_pattern(path, pattern)
         except Exception as e:
             logger.warning("Error matching pattern '%s': %s", pattern, e)
             return False
@@ -684,21 +736,25 @@ class ProjectCommandDetector:
         """Generate TODO.md and DONE.md reports."""
         # Generate TODO.md with failed commands
         if self.failed_commands:
-            self.todo_reporter.write_report(
+            # Use the new unified reporter with 'todo' formatter
+            self.reporter.write_report(
+                "todo",
                 {
                     "failed_commands": self.failed_commands,
                     "successful_commands": self.successful_commands,
                     "project_path": str(self.project_path),
-                }
+                },
             )
 
         # Generate DONE.md with successful commands
         if self.successful_commands:
-            self.done_reporter.write_report(
+            # Use the new unified reporter with 'done' formatter
+            self.reporter.write_report(
+                "done",
                 {
                     "successful_commands": self.successful_commands,
                     "project_path": str(self.project_path),
-                }
+                },
             )
 
     def _execute_command(self, cmd_info) -> bool:
@@ -714,17 +770,19 @@ class ProjectCommandDetector:
             command = cmd_info.command
             cwd = getattr(cmd_info, "cwd", self.project_path)
             timeout = getattr(cmd_info, "timeout", self.timeout)
+            env = getattr(cmd_info, "env", None)
         else:  # It's a dictionary
             command = cmd_info.get("command", "")
             cwd = str(cmd_info.get("cwd", self.project_path))
             timeout = cmd_info.get("timeout", self.timeout)
+            env = cmd_info.get("env", None)
 
         logger.info("Executing command: %s", command)
 
         try:
-            # Execute the command through the command executor
-            result = self.command_executor.execute(
-                command=command, timeout=timeout, cwd=cwd, env=cmd_info.get("env")
+            # Execute the command through the command runner
+            result = self.command_runner.run(
+                command=command, timeout=timeout, cwd=cwd, env=env
             )
 
             # Update command info with results
@@ -733,6 +791,7 @@ class ProjectCommandDetector:
                 setattr(cmd_info, "stdout", result.stdout)
                 setattr(cmd_info, "stderr", result.stderr)
                 setattr(cmd_info, "return_code", result.return_code)
+                setattr(cmd_info, "success", result.success)
                 if not result.success:
                     setattr(cmd_info, "error", result.stderr or "Command failed")
             else:  # Dictionary
@@ -788,12 +847,12 @@ class ProjectCommandDetector:
         else:
             cmd_dict = cmd
 
-        # Check ignore patterns
+        # Check ignore patterns using PatternMatcher
         command_str = cmd_dict.get("command", "")
-        for pattern in self.ignore_patterns:
-            if self._match_pattern(command_str, pattern):
-                return True
-
-        return False
+        return (
+            self.pattern_matcher.match_any_pattern(command_str, self.ignore_patterns)
+            if self.ignore_patterns
+            else False
+        )
 
     # The execute_command method is defined above with full functionality
