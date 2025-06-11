@@ -3,16 +3,16 @@
 
 .PHONY: help install dev-install test lint format clean build publish docs serve-docs \
 	docker-build docker-run docker-shell docker-test docker-push docker-clean \
-	docker-compose-up docker-compose-down docker-logs docker-restart
+	docker-compose-up docker-compose-down docker-logs docker-restart \
+	docker-setup docker-prune docker-ls docker-cp
 
 # Docker image name and tag
 IMAGE_NAME ?= domd
 IMAGE_TAG ?= latest
 DOCKER_COMPOSE_FILE ?= docker-compose.yml
-
-# Docker runtime flags (can be overridden)
-DOCKER_RUN_FLAGS ?= --rm -it
-DOCKER_RUN_CMD ?= bash
+DOCKER_RUN_OPTS ?= --rm -it
+DOCKER_WORKDIR ?= /app
+DOCKER_USER ?= $(shell id -u):$(shell id -g)
 
 # Docker Compose project name
 COMPOSE_PROJECT_NAME ?= domd
@@ -26,15 +26,15 @@ help: ## Show this help message
 	@echo "================================="
 	@echo "Available commands:"
 	@echo "\nInstallation:"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /install/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /install/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\nDevelopment:"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /(test|lint|format|mypy|run)/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /(test|lint|format|mypy|run)/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\nDocker:"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /docker/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /docker/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\nDocumentation:"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /(docs|serve)/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /(docs|serve)/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\nBuild & Publish:"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && ($$0 ~ /(build|publish|clean)/) && !($$0 ~ /docker/) {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && ($$0 ~ /(build|publish|clean)/) && !($$0 ~ /docker/) {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 # Installation targets
 install: ## Install the package
@@ -186,17 +186,48 @@ docs-clean: ## Clean documentation build
 	rm -rf site/
 
 # Docker targets
-docker-build: ## Build Docker image
+docker-build: ## Build Docker image with current user permissions
 	@echo "Building Docker image ${IMAGE_NAME}:${IMAGE_TAG}..."
-	docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+	docker build \
+		--build-arg USER_ID=$(shell id -u) \
+		--build-arg GROUP_ID=$(shell id -g) \
+		-t ${IMAGE_NAME}:${IMAGE_TAG} .
 
-docker-run: ## Run Docker container
+docker-run: ## Run Docker container with current directory mounted
 	@echo "Running Docker container from ${IMAGE_NAME}:${IMAGE_TAG}..."
-	docker run ${DOCKER_RUN_FLAGS} ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_RUN_CMD}
+	docker run ${DOCKER_RUN_OPTS} \
+		-v $(CURDIR):${DOCKER_WORKDIR} \
+		-w ${DOCKER_WORKDIR} \
+		${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_RUN_CMD}
 
-docker-shell: ## Start a shell in the Docker container
+docker-shell: ## Start an interactive shell in the container
 	@echo "Starting shell in ${IMAGE_NAME}:${IMAGE_TAG}..."
-	docker run ${DOCKER_RUN_FLAGS} --entrypoint /bin/bash ${IMAGE_NAME}:${IMAGE_TAG}
+	docker run ${DOCKER_RUN_OPTS} \
+		-v $(CURDIR):${DOCKER_WORKDIR} \
+		-w ${DOCKER_WORKDIR} \
+		--entrypoint /bin/bash \
+		${IMAGE_NAME}:${IMAGE_TAG}
+
+docker-setup: ## Set up development environment in container
+	@echo "Setting up development environment in ${IMAGE_NAME}:${IMAGE_TAG}..."
+	docker run ${DOCKER_RUN_OPTS} \
+		-v $(CURDIR):${DOCKER_WORKDIR} \
+		-w ${DOCKER_WORKDIR} \
+		${IMAGE_NAME}:${IMAGE_TAG} \
+		poetry install --with dev,test,lint,docs
+
+docker-prune: ## Clean up unused Docker resources
+	@echo "Pruning Docker resources..."
+	docker system prune -f
+
+docker-ls: ## List all containers and images
+	@echo "=== Running Containers ==="
+	docker ps -a
+	@echo "\n=== Available Images ==="
+	docker images
+
+docker-cp: ## Copy files between host and container
+	@echo "Usage: make DOCKER_CONTAINER=container_id SRC=/path/to/src DEST=/path/to/dest docker-cp"
 
 docker-test: ## Run tests inside Docker container
 	@echo "Running tests in Docker container..."

@@ -57,7 +57,7 @@ class CommandExecutor:
                 else docker_image
             )
             return self._execute_in_docker(
-                command,  # Pass as positional arg to match test expectation
+                command=command,  # Pass as keyword arg to match test expectation
                 cwd=cwd,
                 env=env,
                 image=image,

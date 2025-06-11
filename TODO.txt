@@ -5,6 +5,21 @@
    - [x] Poprawić funkcję print_summary w cli.py, aby używała rzeczywistej liczby przetestowanych komend
    - [x] Zaktualizować typy w CommandHandler, aby odzwierciedlały mieszane typy (Command i Dict)
 
+2. [x] Poprawić obsługę błędów w parserach plików konfiguracyjnych
+   - [x] Obsłużyć wyjątki podczas parsowania TOML/JSON/YAML
+   - [x] Kontynuować działanie po napotkaniu błędu w pliku konfiguracyjnym
+   - [x] Zalogować błędy i dodać je do raportu
+   - [x] Przeprowadzić testowanie pozostałych komend, nawet jeśli niektóre się nie powiodły
+   - [x] Dodać czytelne komunikaty o błędach do wyjścia programu
+
+3. [x] Zaimplementować integrację z Dockerem
+   - [x] Dodać obsługę pliku .dodocker
+   - [x] Zaimplementować wykrywanie środowiska Docker
+   - [x] Dodać obsługę wykonywania komend w kontenerach
+   - [x] Zaktualizować dokumentację Docker
+   - [x] Dodać testy integracyjne dla Docker
+
+
 ## Refaktoryzacja architektury (średnioterminowa)
 1. [x] Wprowadzić czystą architekturę warstwową
    - [x] Stworzyć katalog core/domain z modelami domenowymi
@@ -33,53 +48,66 @@
 1. [ ] Dodać REST API
    - [ ] Zaimplementować adapter REST
    - [ ] Dodać dokumentację API (Swagger/OpenAPI)
+   - [ ] Dodać uwierzytelnianie i autoryzację
+   - [ ] Dodać endpointy do zarządzania komendami
 
 2. [ ] Dodać interfejs webowy
    - [ ] Zaimplementować prosty interfejs webowy do zarządzania komendami
+   - [ ] Dodać podgląd wyników w czasie rzeczywistym
+   - [ ] Zaimplementować historię wykonywanych komend
 
 3. [ ] Dodać integrację z systemami CI/CD
    - [ ] Dodać adapter dla GitLab CI
    - [ ] Dodać adapter dla GitHub Actions
+   - [ ] Zaimplementować automatyczne generowanie konfiguracji CI/CD
 
 4. [ ] Dodać system wtyczek
    - [ ] Zdefiniować interfejs wtyczek
    - [ ] Dodać mechanizm ładowania wtyczek
+   - [ ] Stworzyć przykładowe wtyczki dla popularnych narzędzi
+
+5. [ ] Rozszerzyć wsparcie dla Docker Compose
+   - [ ] Dodać wykrywanie plików docker-compose.yml
+   - [ ] Zaimplementować wykonywanie komend w usługach zdefiniowanych w Compose
+   - [ ] Dodać obsługę zmiennych środowiskowych z plików .env
 
 ## Testy
-1. [ ] Dodać testy jednostkowe dla każdej warstwy
-   - [ ] Testy modeli domenowych
-   - [ ] Testy usług biznesowych
-   - [ ] Testy adapterów
+1. [x] Dodać testy jednostkowe dla każdej warstwy
+   - [x] Testy modeli domenowych
+   - [x] Testy usług biznesowych
+   - [x] Testy adapterów
+   - [x] Testy integracji z Dockerem
 
 2. [ ] Dodać testy integracyjne
-   - [ ] Testy przepływu komend od wykrycia do raportu
-   - [ ] Testy CLI
+   - [x] Testy przepływu komend od wykrycia do raportu
+   - [x] Testy CLI
+   - [ ] Testy integracji z systemem plików
+   - [ ] Testy integracji z Docker API
 
 3. [ ] Dodać testy wydajnościowe
    - [ ] Benchmark wykrywania komend
    - [ ] Benchmark wykonywania komend
+   - [ ] Testy obciążeniowe dla REST API
 
-TodoMD v0.1.1 - Project Command Detector with .doignore
-🔍 Project: /home/tom/github/coboarding/chat
-📝 TODO file: TODO.md
-🔧 Script file: todo.sh
-🚫 Ignore file: .doignore
-2025-06-11 22:14:37 - domd.core.project_detection.detector - WARNING - No parsers found in registry, using legacy parsers
-2025-06-11 22:14:37 - domd.core.project_detection.detector - INFO - Initialized 11 parsers
-2025-06-11 22:14:37 - domd.core.project_detection.detector - INFO - Scanning project: /home/tom/github/coboarding/chat
-2025-06-11 22:14:37 - domd.core.project_detection.detector - INFO - Found 50 configuration files
-2025-06-11 22:14:37 - domd.core.parsers.pyproject_toml - ERROR - Error parsing /home/tom/github/coboarding/chat/pyproject.toml: What? mypy already exists?{'mypy': {'python_version': '3.12', 'warn_return_any': True, 'warn_unused_configs': True, 'disallow_untyped_defs': True, 'disallow_incomplete_defs': True, 'check_untyped_defs': True, 'disallow_untyped_decorators': True, 'no_implicit_optional': True, 'warn_redundant_casts': True, 'warn_unused_ignores': True, 'warn_no_return': True, 'warn_unreachable': True, 'overrides': [{'module': ['pydantic.*', 'sqlalchemy.*', 'alembic.*', 'uvicorn.*', 'fastapi.*'], 'disallow_untyped_defs': False}]}, 'black': {'line-length': 88, 'target-version': ['py312'], 'include': '\\.pyi?$'}, 'isort': {'profile': 'black', 'line_length': 88, 'multi_line_output': 3, 'include_trailing_comma': True, 'force_grid_wrap': 0, 'use_parentheses': True, 'ensure_newline_before_comments': True}} (line 116 column 1 char 2693)
-Traceback (most recent call last):
-  File "/home/tom/github/coboarding/chat/venv/lib/python3.12/site-packages/domd/core/parsers/pyproject_toml.py", line 88, in parse
-    data = toml_lib.loads(content)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/tom/github/coboarding/chat/venv/lib/python3.12/site-packages/toml/decoder.py", line 478, in loads
-    raise TomlDecodeError("What? " + group +
-toml.decoder.TomlDecodeError: What? mypy already exists?{'mypy': {'python_version': '3.12', 'warn_return_any': True, 'warn_unused_configs': True, 'disallow_untyped_defs': True, 'disallow_incomplete_defs': True, 'check_untyped_defs': True, 'disallow_untyped_decorators': True, 'no_implicit_optional': True, 'warn_redundant_casts': True, 'warn_unused_ignores': True, 'warn_no_return': True, 'warn_unreachable': True, 'overrides': [{'module': ['pydantic.*', 'sqlalchemy.*', 'alembic.*', 'uvicorn.*', 'fastapi.*'], 'disallow_untyped_defs': False}]}, 'black': {'line-length': 88, 'target-version': ['py312'], 'include': '\\.pyi?$'}, 'isort': {'profile': 'black', 'line_length': 88, 'multi_line_output': 3, 'include_trailing_comma': True, 'force_grid_wrap': 0, 'use_parentheses': True, 'ensure_newline_before_comments': True}} (line 116 column 1 char 2693)
-2025-06-11 22:14:37 - domd.core.project_detection.detector - INFO - Found 77 commands in total
+4. [ ] Ulepszyć pokrycie testowe
+   - [ ] Osiągnąć >90% pokrycia kodu
+   - [ ] Dodać testy dla przypadków brzegowych
+   - [ ] Zaimplementować testy mutacyjne
 
-🧪 Testing 77 commands...
-📊 Progress will be updated in TODO.md
-2025-06-11 22:14:37 - domd.core.services.command_service - INFO - Executing command: ansible all -i .pre-commit-config.yaml -m ping
-2025-06-11 22:14:38 - domd.core.services.command_service - INFO - Executing command: docker build -t chat .
+## Optymalizacje
+1. [ ] Optymalizacja wydajności
+   - [ ] Zoptymalizować wykrywanie komend
+   - [ ] Dodać buforowanie wyników
+   - [ ] Zaimplementować równoległe wykonywanie komend
 
+2. [ ] Poprawa użyteczności
+   - [ ] Dodać podpowiedzi do CLI
+   - [ ] Zaimplementować autouzupełnianie
+   - [ ] Dodać więcej przykładów konfiguracji
+
+## Dokumentacja
+1. [x] Zaktualizować dokumentację Docker
+2. [ ] Dodać przewodniki krok po kroku
+3. [ ] Stworzyć tutoriale wideo
+4. [ ] Dodać przykłady użycia dla różnych przypadków
+5. [ ] Dodać sekcję często zadawanych pytań (FAQ)
