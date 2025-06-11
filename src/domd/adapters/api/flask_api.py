@@ -686,8 +686,8 @@ class DomdFlaskApi:
             "error": command.error,
             "execution_time": command.execution_time,
             # Format dates using the helper method
-            "created_at": self._format_date(command.created_at),
-            "updated_at": self._format_date(command.updated_at),
+            "created_at": self._format_date(command.created_at),  # noqa: E231
+            "updated_at": self._format_date(command.updated_at),  # noqa: E231
             "last_run": self._format_date(command.last_run),
             "tags": getattr(command, "tags", []),
             "metadata": getattr(command, "metadata", {}),

@@ -45,6 +45,8 @@
    - Generate a report of the results
    - Create a TODO.md with any issues found
 
+![DoMD](domd.png)
+
 ### Common Commands
 
 - List available commands:
