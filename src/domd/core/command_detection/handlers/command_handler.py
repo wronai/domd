@@ -14,6 +14,20 @@ logger = logging.getLogger(__name__)
 class CommandHandler:
     """Handler for executing and managing project commands."""
 
+    # Common non-command patterns that should be filtered out
+    NON_COMMAND_PATTERNS = [
+        r"^#",  # Comments
+        r"^\s*$",  # Empty lines
+        r"^source\s+",  # Shell source commands
+        r"^\.\s+",  # Shell source alternative
+        r"^exec\s+",  # Shell exec commands
+        r"^export\s+",  # Environment exports
+        r"^unset\s+",  # Environment unset
+        r"^cd\s+",  # Directory changes
+        r"^echo\s+",  # Echo statements
+        r"^\s*(true|false|:)\s*$",  # No-op commands
+    ]
+
     def __init__(
         self,
         project_path: Path,
@@ -33,11 +47,15 @@ class CommandHandler:
         self.command_runner = command_runner
         self.timeout = timeout
         self.ignore_patterns = ignore_patterns or []
+        self._compiled_non_command_patterns = [
+            re.compile(pattern) for pattern in self.NON_COMMAND_PATTERNS
+        ]
 
         # Command storage - can contain both Command objects and dictionaries
         self.failed_commands: List[Union[Command, Dict[str, Any]]] = []
         self.successful_commands: List[Union[Command, Dict[str, Any]]] = []
         self.ignored_commands: List[Union[Command, Dict[str, Any]]] = []
+        self.skipped_commands: List[Dict[str, Any]] = []
 
     def test_commands(self, commands: List[Union[Command, Dict]]) -> None:
         """Test a list of commands and update internal state.
@@ -48,12 +66,31 @@ class CommandHandler:
         self.failed_commands = []
         self.successful_commands = []
         self.ignored_commands = []
+        self.skipped_commands = []
 
         for cmd in commands:
             try:
-                # Handle both Command objects and dictionaries
+                # Skip None or empty commands
+                if not cmd:
+                    continue
+
+                # Extract command string for logging
+                cmd_str = self._extract_command_string(cmd)
+                if not cmd_str or not cmd_str.strip():
+                    continue
+
+                # Check if command should be ignored
                 if self.should_ignore_command(cmd):
                     self._handle_ignored_command(cmd)
+                    continue
+
+                # Validate command format and content
+                is_valid, reason = self.is_valid_command(cmd)
+                if not is_valid:
+                    logger.debug(
+                        f"Skipping invalid command: {cmd_str[:100]}... Reason: {reason}"
+                    )
+                    self._handle_skipped_command(cmd, reason)
                     continue
 
                 # Execute the command
@@ -66,8 +103,12 @@ class CommandHandler:
                     self._handle_failed_command(cmd, result)
 
             except Exception as e:
-                logger.error(f"Error testing command: {e}", exc_info=True)
-                self._handle_error(cmd, str(e))
+                # Log the full error but don't expose internal details to the user
+                logger.debug(f"Internal error processing command: {e}", exc_info=True)
+                error_msg = "An internal error occurred while processing this command"
+                if isinstance(e, (PermissionError, FileNotFoundError)):
+                    error_msg = str(e)  # These are usually safe to show
+                self._handle_error(cmd, error_msg)
 
     def execute_single_command(self, cmd_info: Union[Command, Dict]) -> Dict[str, Any]:
         """Execute a single command and return the result.
@@ -117,6 +158,38 @@ class CommandHandler:
                 "execution_time": 0,
             }
 
+    def is_valid_command(self, command: Union[str, Dict, Command]) -> bool:
+        """Check if a command is valid and should be executed.
+
+        Args:
+            command: Command to validate (string, dict, or Command object)
+
+        Returns:
+            Tuple of (is_valid, reason) where is_valid is a boolean and reason is a string
+        """
+        cmd_str = self._extract_command_string(command)
+        if not cmd_str or not cmd_str.strip():
+            return False, "Empty command"
+
+        # Check against non-command patterns
+        for pattern in self._compiled_non_command_patterns:
+            if pattern.search(cmd_str):
+                return False, f"Matches non-command pattern: {pattern.pattern}"
+
+        # Check for common error patterns
+        if "error:" in cmd_str.lower() or "warning:" in cmd_str.lower():
+            return False, "Command appears to be an error or warning message"
+
+        # Check for suspicious patterns that might indicate internal errors
+        if any(s in cmd_str.lower() for s in ["traceback", "exception", "stacktrace"]):
+            return False, "Command appears to contain error output"
+
+        # Check for internal tool paths that shouldn't be executed
+        if any(s in cmd_str for s in ["/tmp/", "/var/", "/usr/local/", "~/.cache/"]):
+            return False, "Command references internal tool paths"
+
+        return True, ""
+
     def should_ignore_command(self, command: Union[str, Dict, Command]) -> bool:
         """Check if a command should be ignored based on ignore patterns.
 
@@ -131,7 +204,7 @@ class CommandHandler:
 
         cmd_str = self._extract_command_string(command)
         if not cmd_str:
-            return False
+            return True
 
         return any(pattern in cmd_str for pattern in self.ignore_patterns)
 
@@ -170,8 +243,44 @@ class CommandHandler:
         self.failed_commands.append(command)
         logger.warning(f"Command failed: {self._extract_command_string(command)}")
 
+    def _handle_skipped_command(
+        self, command: Union[Command, Dict], reason: str
+    ) -> None:
+        """Handle a command that was skipped during validation."""
+        if isinstance(command, dict):
+            command.update(
+                {
+                    "skipped": True,
+                    "skip_reason": reason,
+                    "success": False,
+                    "return_code": -2,  # Special code for skipped commands
+                }
+            )
+            self.skipped_commands.append(command)
+        else:
+            # For Command objects, we'll create a dict representation
+            cmd_dict = {
+                "command": command.command,
+                "skipped": True,
+                "skip_reason": reason,
+                "success": False,
+                "return_code": -2,
+                "source": getattr(command, "source", ""),
+                "metadata": getattr(command, "metadata", {}),
+            }
+            self.skipped_commands.append(cmd_dict)
+
+        logger.debug(
+            f"Skipped command: {self._extract_command_string(command)}. Reason: {reason}"
+        )
+
     def _handle_error(self, command: Union[Command, Dict], error: str) -> None:
-        """Handle an error during command execution."""
+        """Handle an error during command execution.
+
+        Args:
+            command: The command that failed
+            error: User-friendly error message (not the raw exception)
+        """
         result = {
             "success": False,
             "error": error,
@@ -181,7 +290,8 @@ class CommandHandler:
         }
         self._update_command_result(command, result, success=False)
         self.failed_commands.append(command)
-        logger.error(f"Error executing command: {error}")
+        # Log at debug level to avoid cluttering user output with internal errors
+        logger.debug(f"Command execution failed: {error}")
 
     def _update_command_result(
         self, command: Union[Command, Dict], result: Dict[str, Any], success: bool
