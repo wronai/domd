@@ -3,10 +3,23 @@ Implementacja wykonawcy komend powłoki systemowej.
 """
 
 import logging
+import shlex
 import subprocess
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Tuple
+
+# List of common shell built-in commands
+SHELL_BUILTINS = {
+    'source', '.', 'cd', 'alias', 'bg', 'bind', 'break', 'builtin', 'caller',
+    'command', 'compgen', 'complete', 'compopt', 'continue', 'declare', 'dirs',
+    'disown', 'echo', 'enable', 'eval', 'exec', 'exit', 'export', 'false',
+    'fc', 'fg', 'getopts', 'hash', 'help', 'history', 'jobs', 'kill', 'let',
+    'local', 'logout', 'mapfile', 'popd', 'printf', 'pushd', 'pwd', 'read',
+    'readarray', 'readonly', 'return', 'set', 'shift', 'shopt', 'suspend',
+    'test', 'times', 'trap', 'true', 'type', 'typeset', 'ulimit', 'umask',
+    'unalias', 'unset', 'wait'
+}
 
 from ...core.domain.command import Command, CommandResult
 from ...core.ports.command_executor import CommandExecutor
@@ -61,28 +74,63 @@ class ShellCommandExecutor(CommandExecutor):
         Returns:
             Wynik wykonania komendy
         """
-        cmd_str = command.command
-        cmd_args = self._parse_command(cmd_str)
+        cmd_str = command.command.strip()
+        if not cmd_str:
+            return CommandResult(
+                success=False,
+                return_code=1,
+                execution_time=0,
+                stdout="",
+                stderr="Error: Empty command"
+            )
+            
+        cmd_args, needs_shell = self._parse_command(cmd_str)
 
-        # Przygotuj środowisko wykonania
+        # Prepare execution environment
         execution_env = None
         if env:
             execution_env = dict(os.environ)
             execution_env.update(env)
 
-        # Wykonaj komendę z możliwością ponownych prób
+        # Execute command with retries
         for attempt in range(1, self.max_retries + 1):
             try:
                 start_time = time.time()
+                
+                # Special handling for 'cd' command
+                if cmd_str.startswith('cd '):
+                    try:
+                        new_dir = cmd_str[3:].strip()
+                        if not new_dir:
+                            new_dir = str(Path.home())
+                        new_dir = str(Path(directory) / new_dir)
+                        Path(new_dir).resolve(strict=True)  # Validate path exists
+                        return CommandResult(
+                            success=True,
+                            return_code=0,
+                            execution_time=0,
+                            stdout=f"Changed directory to {new_dir}",
+                            stderr=""
+                        )
+                    except Exception as e:
+                        return CommandResult(
+                            success=False,
+                            return_code=1,
+                            execution_time=0,
+                            stdout="",
+                            stderr=f"cd: {str(e)}"
+                        )
 
-                # Wykonaj komendę
+                # Execute the command
                 process = subprocess.run(
                     cmd_args,
                     cwd=str(directory),
+                    shell=needs_shell,
                     capture_output=True,
                     text=True,
                     env=execution_env,
                     timeout=timeout,
+                    executable="/bin/bash" if needs_shell else None,
                 )
 
                 execution_time = time.time() - start_time
@@ -128,16 +176,51 @@ class ShellCommandExecutor(CommandExecutor):
             success=False, return_code=-1, error="Unexpected error in command execution"
         )
 
-    def _parse_command(self, command: str) -> List[str]:
+    def _needs_shell(self, command_str: str) -> bool:
         """
-        Parsuje komendę do listy argumentów.
+        Check if a command needs to be run in a shell.
 
         Args:
-            command: Komenda do sparsowania
+            command_str: The command string to check
 
         Returns:
-            Lista argumentów komendy
+            bool: True if the command should be run in a shell
         """
-        import shlex
+        # Check for shell built-ins
+        first_word = command_str.strip().split(maxsplit=1)[0].lower()
+        if first_word in SHELL_BUILTINS:
+            return True
+            
+        # Check for shell operators
+        shell_operators = {'|', '>', '>>', '<', '<<', '&&', '||', ';', '&', '`', '$', '(', ')'}
+        if any(op in command_str for op in shell_operators):
+            return True
+            
+        # Check for environment variable assignments
+        if '=' in first_word and ' ' not in first_word.split('=')[0]:
+            return True
+            
+        return False
+        
+    def _parse_command(self, command_str: str) -> Tuple[List[str], bool]:
+        """
+        Parses a command string into a list of arguments and determines if it needs a shell.
 
-        return shlex.split(command)
+        Args:
+            command_str: The command string to parse
+
+        Returns:
+            Tuple of (command_args, needs_shell)
+        """
+        needs_shell = self._needs_shell(command_str)
+        
+        if needs_shell:
+            # For shell commands, return the full command as a single string
+            return [command_str], True
+            
+        # For non-shell commands, use shlex for proper argument splitting
+        try:
+            return shlex.split(command_str), False
+        except Exception as e:
+            logger.warning(f"Error parsing command with shlex, falling back to simple split: {e}")
+            return command_str.split(), False
