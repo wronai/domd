@@ -76,25 +76,45 @@ class CommandHandler:
         cwd: Optional[Union[str, Path]] = None,
     ) -> Dict[str, Any]:
         """Format a command result into a dictionary with proper path handling."""
-        base_path = Path(cwd) if cwd else self.project_path
+        base_path = Path(cwd).resolve() if cwd else self.project_path.resolve()
+        project_root = self.project_path.resolve()
 
         # Format paths in stdout/stderr to be relative
         stdout = result.stdout or ""
         stderr = result.stderr or ""
 
-        # Simple helper to replace absolute paths in text
+        def make_path_relative(path_str: str) -> str:
+            """Convert an absolute path to a relative path if it's under the project root."""
+            try:
+                path = Path(path_str).resolve()
+                if path.is_relative_to(project_root):
+                    return str(path.relative_to(project_root))
+                # If not under project root, return the last two components of the path
+                return "/".join(path.parts[-2:]) if len(path.parts) > 1 else path_str
+            except (ValueError, RuntimeError):
+                return path_str
+
         def replace_paths(text: str) -> str:
+            """Replace absolute paths with relative ones in text."""
             if not text:
                 return text
 
-            # Replace absolute paths with relative ones
             lines = []
             for line in text.splitlines():
-                # This is a simple implementation - you might want to enhance it
-                # to handle different path formats and edge cases
-                if str(base_path) in line:
-                    line = line.replace(str(base_path), ".")
-                lines.append(line)
+                # Handle paths that might be in the line
+                parts = line.split()
+                for i, part in enumerate(parts):
+                    # Check if part looks like a path
+                    if part.startswith("/") and any(sep in part for sep in ("/", "\\")):
+                        parts[i] = make_path_relative(part)
+                    # Handle paths that might be in error messages
+                    elif ":" in part and any(sep in part for sep in ("/", "\\")):
+                        # Handle cases like "File "/path/to/file", line X"
+                        prefix, sep, path = part.partition('"')
+                        if sep and '"' in path:
+                            path, suffix = path.split('"', 1)
+                            parts[i] = f'{prefix}"{make_path_relative(path)}"{suffix}'
+                lines.append(" ".join(parts))
             return "\n".join(lines)
 
         return {
