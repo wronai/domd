@@ -21,9 +21,10 @@ class EnvironmentDetector:
         """
         self.project_root = Path(project_root).resolve()
         self.docker_client = None
+        self._dodocker_config = {}
         self._init_docker_client()
         self._dodocker_path = self.project_root / ".dodocker"
-        self._load_dodocker_config()
+        self._dodocker_config = self._load_dodocker_config()
 
     def _init_docker_client(self):
         """Initialize Docker client if Docker is available."""
@@ -44,8 +45,32 @@ class EnvironmentDetector:
 
         import yaml
 
-        with open(self._dodocker_path, "r") as f:
-            return yaml.safe_load(f) or {}
+        try:
+            with open(self._dodocker_path, "r") as f:
+                config = yaml.safe_load(f) or {}
+                # Convert to a dictionary with string keys
+                return {str(k): v for k, v in config.items()}
+        except (yaml.YAMLError, IOError):
+            return {}
+
+    def get_docker_config(self, command: str) -> Optional[Dict]:
+        """Get Docker configuration for a command.
+
+        Args:
+            command: The command to get Docker config for
+
+        Returns:
+            Optional[Dict]: Docker configuration if command should run in Docker, None otherwise
+        """
+        if not self.docker_client:
+            return None
+
+        # Check if command matches any pattern in .dodocker
+        for pattern, config in self._dodocker_config.items():
+            if pattern in command:
+                return config
+
+        return None
 
     def should_use_docker(self, command: str) -> bool:
         """Determine if a command should run in Docker.
@@ -56,16 +81,31 @@ class EnvironmentDetector:
         Returns:
             bool: True if the command should run in Docker
         """
-        if not self.docker_client:
-            return False
+        return self.get_docker_config(command) is not None
 
-        # Check if command matches any pattern in .dodocker
-        for pattern in self._dodocker_config:
-            if pattern in command:
-                return True
+    def _expand_paths(self, config: Dict) -> Dict:
+        """Expand paths in Docker configuration.
 
-        # Default: don't use Docker unless specified
-        return False
+        Args:
+            config: Docker configuration dictionary
+
+        Returns:
+            Dict: Configuration with expanded paths
+        """
+        if not config:
+            return config
+
+        expanded = config.copy()
+
+        # Handle volumes
+        if "volumes" in expanded and isinstance(expanded["volumes"], dict):
+            expanded_volumes = {}
+            for host_path, container_path in expanded["volumes"].items():
+                # Handle both string and dict formats
+                expanded_volumes[os.path.expanduser(host_path)] = container_path
+            expanded["volumes"] = expanded_volumes
+
+        return expanded
 
     def execute_in_docker(
         self,
