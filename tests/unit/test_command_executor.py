@@ -116,12 +116,14 @@ class TestCommandExecutor:
 
         assert exit_code == 0
         mock_execute_in_docker.assert_called_once()
-        args, kwargs = mock_execute_in_docker.call_args
 
-        # Verify the command and docker_config are passed correctly
-        assert args[0] == "run-tests"  # command
-        assert kwargs["docker_config"] == docker_config
-        assert kwargs["image"] == "custom-image:latest"
+        # Get the call arguments
+        call_args = mock_execute_in_docker.call_args
+
+        # The command is passed as a keyword argument, not positional
+        assert call_args[1]["command"] == "run-tests"
+        assert call_args[1]["docker_config"] == docker_config
+        assert call_args[1]["image"] == "custom-image:latest"
 
     def test_force_local_execution(self, mock_environment_detector):
         """Test forcing local execution even when Docker is available."""

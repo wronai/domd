@@ -51,9 +51,13 @@ class CommandExecutor:
 
         if use_docker:
             # Use image from docker config if available, otherwise use default
-            image = (docker_config or {}).get("image", docker_image)
+            image = (
+                docker_config.get("image", docker_image)
+                if docker_config
+                else docker_image
+            )
             return self._execute_in_docker(
-                command=command,
+                command,  # Pass as positional arg to match test expectation
                 cwd=cwd,
                 env=env,
                 image=image,
