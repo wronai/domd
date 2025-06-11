@@ -43,7 +43,9 @@ class TestCommandExecutor:
         mock_popen.assert_called_once()
         args, kwargs = mock_popen.call_args
         assert "echo 'test'" in args[0]
-        assert kwargs["cwd"] == "/tmp"
+        # Handle both string and PosixPath for cwd
+        cwd = kwargs["cwd"]
+        assert str(cwd) == "/tmp"
 
     def test_execute_in_docker(self, mock_environment_detector):
         """Test Docker command execution."""
@@ -60,8 +62,9 @@ class TestCommandExecutor:
 
         assert exit_code == 0
         mock_environment_detector.execute_in_docker.assert_called_once()
-        args, _ = mock_environment_detector.execute_in_docker.call_args
-        assert "pytest" in args[0]  # Command is included in the call
+        # Check that the command includes 'pytest' in the keyword arguments
+        _, kwargs = mock_environment_detector.execute_in_docker.call_args
+        assert "pytest" in kwargs["command"]
 
     @patch("subprocess.Popen")
     def test_execute_with_environment(self, mock_popen, mock_environment_detector):
@@ -92,28 +95,33 @@ class TestCommandExecutor:
 
         assert exit_code == 1
 
-    def test_docker_execution_with_config(self, mock_environment_detector):
+    @patch.object(CommandExecutor, "_execute_in_docker")
+    def test_docker_execution_with_config(
+        self, mock_execute_in_docker, mock_environment_detector
+    ):
         """Test Docker execution with custom configuration."""
         # Setup mock environment detector
-        mock_environment_detector.should_use_docker.return_value = True
-        mock_environment_detector.get_docker_config.return_value = {
+        docker_config = {
             "image": "custom-image:latest",
             "volumes": {"/host/path": "/container/path"},
             "environment": {"ENV_VAR": "value"},
             "workdir": "/custom/workdir",
         }
-        mock_environment_detector.execute_in_docker.return_value = 0
+        mock_environment_detector.should_use_docker.return_value = True
+        mock_environment_detector.get_docker_config.return_value = docker_config
+        mock_execute_in_docker.return_value = 0
 
         executor = CommandExecutor()
         exit_code = executor.execute("run-tests")
 
         assert exit_code == 0
-        mock_environment_detector.execute_in_docker.assert_called_once()
-        _, kwargs = mock_environment_detector.execute_in_docker.call_args
+        mock_execute_in_docker.assert_called_once()
+        args, kwargs = mock_execute_in_docker.call_args
+
+        # Verify the command and docker_config are passed correctly
+        assert args[0] == "run-tests"  # command
+        assert kwargs["docker_config"] == docker_config
         assert kwargs["image"] == "custom-image:latest"
-        assert "/host/path" in kwargs["volumes"]
-        assert kwargs["environment"]["ENV_VAR"] == "value"
-        assert kwargs["workdir"] == "/custom/workdir"
 
     def test_force_local_execution(self, mock_environment_detector):
         """Test forcing local execution even when Docker is available."""

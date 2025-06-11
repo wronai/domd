@@ -21,9 +21,9 @@ class EnvironmentDetector:
         """
         self.project_root = Path(project_root).resolve()
         self.docker_client = None
+        self._dodocker_path = self.project_root / ".dodocker"
         self._dodocker_config = {}
         self._init_docker_client()
-        self._dodocker_path = self.project_root / ".dodocker"
         self._dodocker_config = self._load_dodocker_config()
 
     def _init_docker_client(self):
@@ -43,12 +43,12 @@ class EnvironmentDetector:
         if not self._dodocker_path.exists():
             return {}
 
-        import yaml
-
         try:
+            import yaml
+
             with open(self._dodocker_path, "r") as f:
                 config = yaml.safe_load(f) or {}
-                # Convert to a dictionary with string keys
+                # Ensure all keys are strings
                 return {str(k): v for k, v in config.items()}
         except (yaml.YAMLError, IOError):
             return {}
@@ -62,14 +62,13 @@ class EnvironmentDetector:
         Returns:
             Optional[Dict]: Docker configuration if command should run in Docker, None otherwise
         """
-        if not self.docker_client:
+        if not self.docker_client or not self._dodocker_config:
             return None
 
         # Check if command matches any pattern in .dodocker
         for pattern, config in self._dodocker_config.items():
             if pattern in command:
                 return config
-
         return None
 
     def should_use_docker(self, command: str) -> bool:
