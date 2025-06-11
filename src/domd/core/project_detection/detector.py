@@ -213,6 +213,47 @@ class ProjectCommandDetector:
         """
         return get_virtualenv_environment(self.venv_info)
 
+    def _process_directory_readme(
+        self, directory: Path, all_commands: list, parent_dir: str = None
+    ) -> None:
+        """Process a README.md file in a directory and update command metadata.
+
+        Args:
+            directory: Directory containing the README.md
+            all_commands: List to append found commands to
+            parent_dir: Name of parent directory (for second-level directories)
+        """
+        readme_path = directory / "README.md"
+        if not readme_path.exists() or not readme_path.is_file():
+            return
+
+        # Determine display path for logging and source
+        if parent_dir:
+            display_path = f"{parent_dir}/{directory.name}/README.md"
+        else:
+            display_path = f"{directory.name}/README.md"
+
+        logger.info(f"Found README.md: {display_path}")
+
+        # Process README.md in directory
+        commands = self._process_file_commands(readme_path)
+
+        # Update command metadata with directory context
+        for cmd in commands:
+            if isinstance(cmd, dict):
+                cmd_metadata = cmd.setdefault("metadata", {})
+                cmd_metadata["cwd"] = str(directory)
+                cmd_metadata["source"] = display_path
+            elif hasattr(cmd, "metadata"):
+                if not hasattr(cmd.metadata, "get") or not callable(cmd.metadata.get):
+                    cmd.metadata = {"original_metadata": cmd.metadata}
+                cmd.metadata["cwd"] = str(directory)
+                if not getattr(cmd, "source", None):
+                    cmd.source = display_path
+
+        all_commands.extend(commands)
+        logger.info(f"Found {len(commands)} commands in {display_path}")
+
     def _process_file_commands(self, file_path: Path) -> List[Dict]:
         """Process a single file and extract commands.
 
@@ -309,37 +350,32 @@ class ProjectCommandDetector:
         for file_path in config_files:
             all_commands.extend(self._process_file_commands(file_path))
 
-        # 2. Scan first-level subdirectories for README.md files
+        # 2. Scan first and second level subdirectories for README.md files
         try:
-            for item in self.project_path.iterdir():
-                if item.is_dir() and not item.name.startswith("."):
-                    readme_path = item / "README.md"
-                    if readme_path.exists() and readme_path.is_file():
-                        logger.info(f"Found README.md in subdirectory: {item.name}")
-                        # Process README.md in subdirectory
-                        commands = self._process_file_commands(readme_path)
+            # First level directories
+            for level1_item in self.project_path.iterdir():
+                if not level1_item.is_dir() or level1_item.name.startswith("."):
+                    continue
 
-                        # Update command metadata with subdirectory context
-                        for cmd in commands:
-                            if isinstance(cmd, dict):
-                                cmd_metadata = cmd.setdefault("metadata", {})
-                                cmd_metadata["cwd"] = str(item)
-                                cmd_metadata["source"] = f"{item.name}/README.md"
-                            elif hasattr(cmd, "metadata"):
-                                if not hasattr(cmd.metadata, "get") or not callable(
-                                    cmd.metadata.get
-                                ):
-                                    cmd.metadata = {"original_metadata": cmd.metadata}
-                                cmd.metadata["cwd"] = str(item)
-                                if not getattr(cmd, "source", None):
-                                    cmd.source = f"{item.name}/README.md"
+                # Process level 1 README
+                self._process_directory_readme(level1_item, all_commands)
 
-                        all_commands.extend(commands)
-                        logger.info(
-                            f"Found {len(commands)} commands in {item.name}/README.md"
+                # Scan second level
+                try:
+                    for level2_item in level1_item.iterdir():
+                        if not level2_item.is_dir() or level2_item.name.startswith("."):
+                            continue
+
+                        # Process level 2 README
+                        self._process_directory_readme(
+                            level2_item, all_commands, level1_item.name
                         )
+                except Exception as e:
+                    logger.error(
+                        f"Error scanning subdirectory {level1_item}: {e}", exc_info=True
+                    )
         except Exception as e:
-            logger.error(f"Error scanning subdirectories: {e}", exc_info=True)
+            logger.error(f"Error scanning directories: {e}", exc_info=True)
 
         logger.info(f"Found {len(all_commands)} commands in total")
 
@@ -654,7 +690,9 @@ class ProjectCommandDetector:
                         source = cmd_dict.get("source", "Unknown")
 
                         f.write(f"### 🔧 Fix: {command}\n")  # noqa: E231
-                        f.write(f"- [ ] **Command**: `{command}`  \n")  # noqa: E231
+                        f.write(
+                            f"- [ ] **Command**: `{command}`  \n"
+                        )  # noqa: E201,E231
                         f.write(f"- **Error**: {error}  \n")  # noqa: E231
                         f.write(f"- **Source**: `{source}`\n")  # noqa: E231
                         f.write("- **Fix Suggestion**: \n\n")  # noqa: E231
@@ -680,7 +718,7 @@ class ProjectCommandDetector:
                         source = cmd_dict.get("source", "Unknown")
 
                         f.write(f"- [x] `{command}`  \n")  # noqa: E231
-                        f.write(f"  - Source: `{source}`\n")  # noqa: E231
+                        f.write(f"  - Source: `{source}`\n")  # noqa: E221,E231
                 else:
                     f.write("No commands were executed successfully.\n")
 
