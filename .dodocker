@@ -1,22 +1,33 @@
-# Commands to be executed during testing
-# Lines starting with 'docker:' will be executed in a Docker container
-# All other commands will be executed in the local shell
+# Docker command patterns
+# Commands matching these patterns will be executed in Docker
+# Format:
+# command_pattern:
+#   image: docker-image-name  # Optional, defaults to python:3.9-slim
+#   description: Description of what this command does
 
-# Install dependencies (runs in local shell)
-pip install -e .
+# Python test commands
+pytest:
+  image: python:3.9-slim
+  description: Run Python tests
 
-# Run tests (runs in local shell)
-pytest -v
+# Python linters
+black:
+  image: python:3.9-slim
+  description: Python code formatter
 
-# Run linters (runs in local shell)
-black --check .
-isort --check-only .
-flake8
-mypy .
+isort:
+  image: python:3.9-slim
+  description: Python import sorter
 
-# Test the CLI (runs in local shell)
-python -m domd --help
-python -m domd --version
+flake8:
+  image: python:3.9-slim
+  description: Python linter
 
-# Example of a command that should run in Docker
-# docker: some-command-that-needs-docker
+mypy:
+  image: python:3.9-slim
+  description: Python type checker
+
+# Example of a custom command pattern
+# "npm run":
+#   image: node:16
+#   description: Run Node.js commands

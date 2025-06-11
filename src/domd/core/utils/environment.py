@@ -1,0 +1,143 @@
+"""
+Environment detection and Docker execution utilities for command execution.
+"""
+import os
+import subprocess
+from pathlib import Path
+from typing import Dict, List, Optional, Union
+
+import docker
+from docker.models.containers import Container
+
+
+class EnvironmentDetector:
+    """Detects the execution environment and manages Docker operations."""
+
+    def __init__(self, project_root: Union[str, Path] = "."):
+        """Initialize the environment detector.
+
+        Args:
+            project_root: Root directory of the project
+        """
+        self.project_root = Path(project_root).resolve()
+        self.docker_client = None
+        self._init_docker_client()
+        self._dodocker_path = self.project_root / ".dodocker"
+        self._load_dodocker_config()
+
+    def _init_docker_client(self):
+        """Initialize Docker client if Docker is available."""
+        try:
+            self.docker_client = docker.from_env()
+            self.docker_client.ping()  # Verify connection
+        except Exception:
+            self.docker_client = None
+
+    def _load_dodocker_config(self) -> Dict[str, dict]:
+        """Load commands that should run in Docker from .dodocker file.
+
+        Returns:
+            Dictionary mapping command patterns to their Docker configurations
+        """
+        if not self._dodocker_path.exists():
+            return {}
+
+        import yaml
+
+        with open(self._dodocker_path, "r") as f:
+            return yaml.safe_load(f) or {}
+
+    def should_use_docker(self, command: str) -> bool:
+        """Determine if a command should run in Docker.
+
+        Args:
+            command: The command string to check
+
+        Returns:
+            bool: True if the command should run in Docker
+        """
+        if not self.docker_client:
+            return False
+
+        # Check if command matches any pattern in .dodocker
+        for pattern in self._dodocker_config:
+            if pattern in command:
+                return True
+
+        # Default: don't use Docker unless specified
+        return False
+
+    def execute_in_docker(
+        self,
+        command: str,
+        image: str = "python:3.9-slim",
+        volumes: Optional[Dict[str, dict]] = None,
+        environment: Optional[Dict[str, str]] = None,
+        workdir: Optional[str] = None,
+    ) -> int:
+        """Execute a command in a Docker container.
+
+        Args:
+            command: Command to execute
+            image: Docker image to use
+            volumes: Volume mappings
+            environment: Environment variables
+            workdir: Working directory in container
+
+        Returns:
+            int: Exit code of the command
+        """
+        if not self.docker_client:
+            raise RuntimeError("Docker is not available")
+
+        # Default volumes: mount project directory
+        volumes = volumes or {str(self.project_root): {"bind": "/app", "mode": "rw"}}
+
+        # Default working directory
+        workdir = workdir or "/app"
+
+        try:
+            container: Container = self.docker_client.containers.run(
+                image=image,
+                command=["/bin/sh", "-c", command],
+                volumes=volumes,
+                environment=environment,
+                working_dir=workdir,
+                detach=True,
+                tty=True,
+                remove=True,
+                stdout=True,
+                stderr=True,
+            )
+
+            # Stream logs
+            for line in container.logs(stream=True, follow=True):
+                print(line.decode().strip())
+
+            # Wait for container to finish and get exit code
+            result = container.wait()
+            return result.get("StatusCode", 1)
+
+        except docker.errors.ContainerError as e:
+            print(f"Docker container failed: {e}")
+            return e.exit_status
+        except docker.errors.ImageNotFound:
+            print(f"Docker image not found: {image}")
+            return 1
+        except Exception as e:
+            print(f"Error running Docker container: {e}")
+            return 1
+
+
+def detect_environment() -> dict:
+    """Detect the current execution environment.
+
+    Returns:
+        dict: Environment information
+    """
+    return {
+        "is_docker": os.path.exists("/.dockerenv"),
+        "is_ci": os.environ.get("CI", "false").lower() == "true",
+        "platform": os.name,
+        "python_version": ".".join(map(str, sys.version_info[:3])),
+    }
