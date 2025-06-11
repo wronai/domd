@@ -58,3 +58,32 @@
 3. [ ] Dodać testy wydajnościowe
    - [ ] Benchmark wykrywania komend
    - [ ] Benchmark wykonywania komend
+
+
+
+(venv) tom@nvidia:~/github/coboarding/chat$ domd
+TodoMD v0.1.1 - Project Command Detector with .doignore
+🔍 Project: /home/tom/github/coboarding/chat
+📝 TODO file: TODO.md
+🔧 Script file: todo.sh
+🚫 Ignore file: .doignore
+2025-06-11 21:04:58 - domd.core.project_detection.detector - WARNING - No parsers found in registry, using legacy parsers
+2025-06-11 21:04:58 - domd.core.project_detection.detector - INFO - Initialized 11 parsers
+2025-06-11 21:04:58 - domd.core.project_detection.detector - INFO - Scanning project: /home/tom/github/coboarding/chat
+2025-06-11 21:04:58 - domd.core.project_detection.detector - INFO - Found 49 configuration files
+2025-06-11 21:04:58 - domd.core.parsers.pyproject_toml - ERROR - Error parsing /home/tom/github/coboarding/chat/pyproject.toml: Invalid group name 'coverage:run'. Try quoting it. (line 123 column 1 char 2874)
+Traceback (most recent call last):
+  File "/home/tom/github/coboarding/chat/venv/lib/python3.13/site-packages/domd/core/parsers/pyproject_toml.py", line 88, in parse
+    data = toml_lib.loads(content)
+  File "/home/tom/github/coboarding/chat/venv/lib/python3.13/site-packages/toml/decoder.py", line 455, in loads
+    raise TomlDecodeError("Invalid group name '" +
+                          groups[i] + "'. Try quoting it.",
+                          original, pos)
+toml.decoder.TomlDecodeError: Invalid group name 'coverage:run'. Try quoting it. (line 123 column 1 char 2874)
+2025-06-11 21:04:58 - domd.core.project_detection.detector - INFO - Found 74 commands in total
+
+🧪 Testing 74 commands...
+📊 Progress will be updated in TODO.md
+2025-06-11 21:04:58 - domd.core.services.command_service - INFO - Executing command: ansible all -i .pre-commit-config.yaml -m ping
+2025-06-11 21:04:59 - domd.core.services.command_service - INFO - Executing command: docker build -t chat .
+
