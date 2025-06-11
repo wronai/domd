@@ -95,7 +95,7 @@ def test_execute_cd_command():
         if Path(test_dir).exists():
             Path(test_dir).rmdir()
     # Test with non-existent directory
-    result = executor.execute(Command("cd /nonexistent/directory"))
+    result = executor.execute(create_test_command("cd /nonexistent/directory"))
     assert not result.success
     assert "No such file or directory" in result.stderr
 

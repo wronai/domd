@@ -149,17 +149,26 @@ class ShellCommandExecutor(CommandExecutor):
                 start_time = time.time()
 
                 # Special handling for 'cd' command
-                if cmd_str.startswith("cd "):
+                if cmd_str.strip().startswith("cd"):
                     try:
-                        new_dir = cmd_str[3:].strip()
-                        if not new_dir:
+                        # Get the target directory (everything after 'cd ')
+                        target_dir = cmd_str[2:].strip()
+
+                        # If no directory specified, use home directory
+                        if not target_dir:
                             new_dir = str(Path.home())
-                        new_dir = str(Path(directory) / new_dir)
-                        Path(new_dir).resolve(strict=True)  # Validate path exists
+                        else:
+                            # Resolve the path relative to current directory
+                            new_dir = str((directory / target_dir).resolve())
+
+                        # Validate the directory exists
+                        Path(new_dir).resolve(strict=True)
+
+                        # Return success with the directory path in stdout
                         return CommandResult(
                             success=True,
                             return_code=0,
-                            execution_time=0,
+                            execution_time=time.time() - start_time,
                             stdout=f"Changed directory to {new_dir}",
                             stderr="",
                         )
@@ -167,7 +176,7 @@ class ShellCommandExecutor(CommandExecutor):
                         return CommandResult(
                             success=False,
                             return_code=1,
-                            execution_time=0,
+                            execution_time=time.time() - start_time,
                             stdout="",
                             stderr=f"cd: {str(e)}",
                         )

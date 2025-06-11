@@ -101,10 +101,10 @@ def test_to_relative_path_relative_to_cwd(tmp_path, monkeypatch):
     target.parent.mkdir(exist_ok=True)
     target.touch()
 
-    # Test with use_cwd=True (default)
+    # Test with default base (should use cwd)
     result = to_relative_path(str(target))
     assert result == "subdir/file.txt"
 
-    # Test with use_cwd=False
-    result = to_relative_path(str(target), use_cwd=False)
-    assert result == str(target)
+    # Test with explicit base
+    result = to_relative_path(str(target), base=cwd)
+    assert result == "subdir/file.txt"
