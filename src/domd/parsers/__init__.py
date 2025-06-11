@@ -26,6 +26,7 @@ PARSER_MODULES = [
     "domd.parsers.docker",
     "domd.parsers.javascript",  # This now includes package.json parser
     "domd.parsers.python",
+    "domd.parsers.markdown_parser",  # Markdown file parser
 ]
 
 logger.debug(f"Parser modules to load: {PARSER_MODULES}")
