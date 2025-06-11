@@ -2,24 +2,20 @@
 REST API implementation for DoMD application using Flask.
 """
 
-import json
 import logging
 import os
 import secrets
+from datetime import datetime
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 from flask import Flask, Response, abort, jsonify, request
 from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ...application.factory import ApplicationFactory
-from ...core.domain.command import Command
-from ...core.ports.command_executor import CommandExecutor
-from ...core.ports.command_repository import CommandRepository
-from ...core.services.command_service import CommandService
-from ...core.services.report_service import ReportService
+from ...core.ports.command import Command
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -98,7 +94,7 @@ class DomdFlaskApi:
             except Exception as e:
                 logger.warning(f"Failed to load .doignore: {e}")
 
-    def _verify_token(self, token: str) -> Optional[Dict[str, Any]]:
+    def _verify_token(self, token: str) -> Union[Dict[str, Any], None]:
         """Verify API token and return user data if valid."""
         if not token:
             return None
@@ -324,7 +320,7 @@ class DomdFlaskApi:
                 }
             )
 
-        except Exception as e:
+        except Exception:  # noqa: F841
             logger.exception("Failed to get commands")
             return self._create_response(
                 message="Failed to retrieve commands", status=500
@@ -343,7 +339,7 @@ class DomdFlaskApi:
                 data={"command": self._command_to_dict(command)}
             )
 
-        except Exception as e:
+        except Exception:  # noqa: F841
             logger.exception(f"Failed to get command {command_id}")
             return self._create_response(
                 message="Failed to retrieve command", status=500
@@ -411,7 +407,7 @@ class DomdFlaskApi:
             project_path = Path(data.get("project_path", str(self.project_path)))
             exclude_patterns = data.get("exclude_patterns", [])
             include_patterns = data.get("include_patterns", [])
-            force_rescan = data.get("force_rescan", False)
+            _ = data.get("force_rescan", False)  # Unused variable
 
             # Validate project path
             if not project_path.exists() or not project_path.is_dir():
@@ -666,7 +662,7 @@ class DomdFlaskApi:
                 }
             )
 
-        except Exception as e:
+        except Exception:  # noqa: F841
             logger.exception("Failed to get project info")
             return self._create_response(
                 message="Failed to retrieve project information", status=500
@@ -684,13 +680,19 @@ class DomdFlaskApi:
             "output": command.output,
             "error": command.error,
             "execution_time": command.execution_time,
-            "created_at": command.created_at.isoformat()
-            if command.created_at
-            else None,
-            "updated_at": command.updated_at.isoformat()
-            if command.updated_at
-            else None,
-            "last_run": command.last_run.isoformat() if command.last_run else None,
+            # Format dates with proper spacing and line breaks for both black and flake8
+            "created_at": (  # noqa: E231
+            ),
+            "updated_at": (
+                command.updated_at.isoformat()
+                if command.updated_at
+                else None
+            ),
+            "last_run": (
+                command.last_run.isoformat()
+                if command.last_run
+                else None
+            ),
             "tags": getattr(command, "tags", []),
             "metadata": getattr(command, "metadata", {}),
         }

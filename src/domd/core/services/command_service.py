@@ -3,9 +3,10 @@ Usługi biznesowe do zarządzania komendami w aplikacji DoMD.
 """
 
 import logging
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+import subprocess
+from typing import List, Optional
 
+from ..command_execution.command_recorder import CommandRecorder
 from ..domain.command import Command, CommandResult
 from ..ports.command_executor import CommandExecutor
 from ..ports.command_repository import CommandRepository
@@ -27,6 +28,7 @@ class CommandService:
         executor: CommandExecutor,
         timeout: int = 60,
         ignore_patterns: Optional[List[str]] = None,
+        dodocker_path: str = ".dodocker",
     ):
         """
         Inicjalizuje usługę CommandService.
@@ -36,11 +38,13 @@ class CommandService:
             executor: Wykonawca komend
             timeout: Domyślny limit czasu wykonania w sekundach
             ignore_patterns: Lista wzorców komend do ignorowania
+            dodocker_path: Ścieżka do pliku .dodocker
         """
         self.repository = repository
         self.executor = executor
         self.timeout = timeout
         self.ignore_patterns = ignore_patterns or []
+        self.command_recorder = CommandRecorder(config_path=dodocker_path)
 
     def execute_command(self, command: Command) -> CommandResult:
         """
@@ -149,6 +153,7 @@ class CommandService:
     def test_commands(self, commands: List[Command]) -> None:
         """
         Testuje listę komend i aktualizuje repozytorium.
+        Automatycznie dodaje komendy przekraczające limit czasu do pliku .dodocker.
 
         Args:
             commands: Lista komend do przetestowania
@@ -166,8 +171,41 @@ class CommandService:
 
                 # Wykonaj komendę
                 self.execute_command(command)
+
+            except subprocess.TimeoutExpired:
+                # Handle command timeout
+                error_msg = f"Command timed out after {self.timeout} seconds"
+                logger.warning(f"{error_msg}: {command.command}")
+
+                # Record the command to .dodocker for future Docker execution
+                self.command_recorder.record_command(
+                    command=command.command,
+                    reason=f"Command timed out after {self.timeout} seconds",
+                    timeout=self.timeout,
+                    metadata={
+                        "source": command.source,
+                        "description": command.description,
+                        "type": command.type,
+                    },
+                )
+
+                # Update command result
+                result = CommandResult(
+                    success=False,
+                    return_code=-1,
+                    error=error_msg,
+                    execution_time=self.timeout,
+                )
+                command.result = result
+                self.repository.mark_as_failed(command)
+
             except Exception as e:
-                logger.error(f"Error testing command: {e}", exc_info=True)
-                result = CommandResult(success=False, return_code=-1, error=str(e))
+                # Handle other exceptions
+                error_msg = str(e)
+                logger.error(
+                    f"Error testing command '{command.command}': {error_msg}",
+                    exc_info=True,
+                )
+                result = CommandResult(success=False, return_code=-1, error=error_msg)
                 command.result = result
                 self.repository.mark_as_failed(command)

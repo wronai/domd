@@ -7,97 +7,65 @@
 [![Docker Support](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker)](https://www.docker.com/)
 [![Documentation](https://img.shields.io/badge/Docs-Read%20the%20Docs-blue)](https://wronai.github.io/domd/)
 
-**DoMD** (DoM Detector) is a powerful tool for automatically detecting, executing, and managing commands in development projects. It intelligently identifies available commands from various configuration files (e.g., `package.json`, `Makefile`, `pyproject.toml`) and provides a unified interface to run them, with optional Docker support for consistent environments.
+**DoMD** (DoM Detector) is a powerful tool for automatically detecting, executing, and managing commands in development projects. It intelligently identifies available commands from various configuration files (e.g., `package.json`, `Makefile`, `pyproject.toml`) and provides a unified interface to run them.
 
-## 🚀 Features
+## ✨ Key Features
 
 - **Automatic Command Detection** - Discovers commands from various project files
-- **Docker Integration** - Run commands in isolated containers with automatic environment detection
-- **Smart Command Filtering** - Skip specific commands using `.doignore`
+- **Docker Integration** - Run commands in isolated containers
+- **Smart Command Filtering** - Skip specific commands using `.doingore`
 - **Cross-Platform** - Works on Linux, macOS, and Windows
 - **Extensible** - Add support for new command types and tools
-- **Comprehensive Reporting** - Detailed output and error reporting
-
-
-## 📦 Installation
-
-### Using pip
-
-```bash
-# Install via pip
-pip install domd
-
-# Or from the repository
-pip install git+https://github.com/wronai/domd.git
-```
-
-
-### Using Poetry
-
-```bash
-poetry add domd
-```
-
-
-### Using Docker
-
-```bash
-docker pull ghcr.io/wronai/domd:latest
-docker run -v $(pwd):/app ghcr.io/wronai/domd domd
-```
-
 
 ## 🚀 Quick Start
 
-1. **Navigate to your project directory**
+### Installation
 
-   ```bash
-   cd your-project
-   ```
+```bash
+# Install using pip
+pip install domd
 
-2. **Run DoMD**
+# Or using Docker
+docker run -v $(pwd):/app ghcr.io/wronai/domd domd
+```
 
-   ```bash
-   domd
-   ```
+### Basic Usage
 
-3. **View available commands**
-
+1. **List available commands** in your project:
    ```bash
    domd --list
    ```
 
-4. **Run a specific command**
-
+2. **Run a command**:
    ```bash
    domd run test
    ```
 
-5. **Generate a report**
-
+3. **Generate a report** of available commands:
    ```bash
    domd report
    ```
 
+## 📖 Documentation
 
-## 🐳 Docker Integration
+For detailed documentation, please visit our [documentation site](https://wronai.github.io/domd/) or check the [docs](./docs) directory.
 
-DoMD can automatically run commands in Docker containers using the `.dodocker` configuration file:
+- [Installation Guide](./docs/installation.md)
+- [Usage Guide](./docs/usage.md)
+- [Docker Integration](./docs/docker.md)
+- [Advanced Configuration](./docs/features/core.md)
 
-1. **Create a `.dodocker` file** in your project root:
+## 🤝 Contributing
 
-   ```yaml
-   # .dodocker
-   pytest:
-     image: python:3.9-slim
-     description: Run Python tests
-     volumes:
-       ~/.cache/pip:/.cache/pip
-   ```
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
 
-2. **Run commands with Docker**
+## 📄 License
 
-   ```bash
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
+
+## 💡 Need Help?
+
+Open an [issue](https://github.com/wronai/domd/issues) if you need help or have questions.
    # Will run in Docker if configured in .dodocker
    domd run pytest
    ```
