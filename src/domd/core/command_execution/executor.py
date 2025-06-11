@@ -2,7 +2,7 @@
 import os
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 from ..utils.environment import EnvironmentDetector
 

@@ -4,10 +4,24 @@
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Tests](https://github.com/wronai/domd/workflows/Tests/badge.svg)](https://github.com/wronai/domd/actions)
+[![Docker Support](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker)](https://www.docker.com/)
+[![Documentation](https://img.shields.io/badge/Docs-Read%20the%20Docs-blue)](https://wronai.github.io/domd/)
 
-**DoMD** (DoM Detector) is a tool for automatically detecting and executing commands in development projects. It automatically detects available commands from configuration files (e.g., `package.json`, `Makefile`, `pyproject.toml`) and executes them, generating detailed reports.
+**DoMD** (DoM Detector) is a powerful tool for automatically detecting, executing, and managing commands in development projects. It intelligently identifies available commands from various configuration files (e.g., `package.json`, `Makefile`, `pyproject.toml`) and provides a unified interface to run them, with optional Docker support for consistent environments.
+
+## 🚀 Features
+
+- **Automatic Command Detection** - Discovers commands from various project files
+- **Docker Integration** - Run commands in isolated containers with automatic environment detection
+- **Smart Command Filtering** - Skip specific commands using `.doignore`
+- **Cross-Platform** - Works on Linux, macOS, and Windows
+- **Extensible** - Add support for new command types and tools
+- **Comprehensive Reporting** - Detailed output and error reporting
+
 
 ## 📦 Installation
+
+### Using pip
 
 ```bash
 # Install via pip
@@ -17,41 +31,228 @@ pip install domd
 pip install git+https://github.com/wronai/domd.git
 ```
 
-## 🚀 Quick Start
+
+### Using Poetry
 
 ```bash
-# Przejdź do katalogu projektu
-cd twój-projekt
-
-# Uruchom DoMD
-domd
+poetry add domd
 ```
 
-## 🔍 Co potrafi DoMD?
 
-- Automatycznie wykrywa komendy z plików konfiguracyjnych
-- Wykonuje komendy i generuje raporty
-- Obsługuje wiele języków i narzędzi (Python, Node.js, Make itp.)
-- Integracja z Dockerem
-- Generuje plik TODO.md z błędami i sugerowanymi rozwiązaniami
+### Using Docker
 
-## 📚 Dokumentacja
+```bash
+docker pull ghcr.io/wronai/domd:latest
+docker run -v $(pwd):/app ghcr.io/wronai/domd domd
+```
 
-Pełna dokumentacja dostępna jest w katalogu [docs/](docs/):
 
-- [Instalacja](docs/installation.md)
-- [Użycie](docs/usage.md)
-- [Funkcje](docs/features/)
-- [API](docs/api.md)
-- [Rozwój](docs/development/)
+## 🚀 Quick Start
 
-## 🤝 Wsparcie
+1. **Navigate to your project directory**
 
-Masz pytania lub problemy? [Zgłoś issue](https://github.com/wronai/domd/issues)
+   ```bash
+   cd your-project
+   ```
 
-## 📜 Licencja
+2. **Run DoMD**
 
-[Apache 2.0](LICENSE) @ 2023 WronAI
+   ```bash
+   domd
+   ```
+
+3. **View available commands**
+
+   ```bash
+   domd --list
+   ```
+
+4. **Run a specific command**
+
+   ```bash
+   domd run test
+   ```
+
+5. **Generate a report**
+
+   ```bash
+   domd report
+   ```
+
+
+## 🐳 Docker Integration
+
+DoMD can automatically run commands in Docker containers using the `.dodocker` configuration file:
+
+1. **Create a `.dodocker` file** in your project root:
+
+   ```yaml
+   # .dodocker
+   pytest:
+     image: python:3.9-slim
+     description: Run Python tests
+     volumes:
+       ~/.cache/pip:/.cache/pip
+   ```
+
+2. **Run commands with Docker**
+
+   ```bash
+   # Will run in Docker if configured in .dodocker
+   domd run pytest
+   ```
+
+3. **Force local execution**
+
+   ```bash
+   domd run --no-docker pytest
+   ```
+
+
+## 🔧 Command Filtering with .doignore
+
+Skip specific commands by creating a `.doignore` file:
+
+```text
+# .doignore
+*test*
+*serve*
+*deploy*
+```
+
+
+## 📊 Example Workflow
+
+```bash
+# Initialize a new project
+domd init
+
+# Scan for available commands
+domd scan
+
+# Run tests (in Docker if configured)
+domd run test
+
+# Generate a report
+domd report --output report.html
+```
+
+
+## 📚 Documentation
+
+Full documentation is available in the [docs/](docs/) directory:
+
+- [Installation](docs/installation.md)
+- [Usage Guide](docs/usage.md)
+- [Configuration](docs/configuration.md)
+- [API Reference](docs/api.md)
+- [Development](docs/development/)
+- [Contributing](docs/CONTRIBUTING.md)
+
+## 🛠️ Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DOMD_CONFIG` | Path to config file | `~/.config/domd/config.yaml` |
+| `DOMD_LOG_LEVEL` | Logging level | `INFO` |
+| `DOCKER_HOST` | Docker daemon URL | `unix:///var/run/docker.sock` |
+
+
+### Configuration File
+
+Example `~/.config/domd/config.yaml`:
+
+```yaml
+defaults:
+  docker_image: python:3.9-slim
+  timeout: 300
+  workdir: /app
+
+commands:
+  test:
+    description: Run tests
+    docker: true
+    image: python:3.9-slim
+    volumes:
+      - ~/.cache/pip:/.cache/pip
+
+  lint:
+    description: Run linters
+    docker: true
+    image: node:16-slim
+```
+
+
+## 🌟 Features in Detail
+
+### Smart Command Detection
+
+- Automatically discovers commands from:
+  - `package.json` (npm, yarn, pnpm)
+  - `Makefile`
+  - `pyproject.toml` (Poetry, PDM)
+  - `setup.py`
+  - `docker-compose.yml`
+  - And many more...
+
+### Advanced Docker Integration
+
+- Automatic container creation and management
+- Volume mounting for persistent data
+- Environment variable support
+- Custom Docker network configuration
+- Resource limits and constraints
+
+### Extensible Architecture
+
+- Plugin system for adding custom command detectors
+- Hooks for pre/post command execution
+- Custom formatters for output
+- Event system for extensibility
+
+
+## 🚀 Getting Started Guide
+
+### Prerequisites
+- Python 3.8+
+- Docker (optional but recommended)
+- Git
+
+### Installation Options
+
+#### From PyPI
+```bash
+pip install domd
+```
+
+#### From Source
+```bash
+git clone https://github.com/wronai/domd.git
+cd domd
+pip install -e .
+```
+
+#### Using Docker
+```bash
+docker run --rm -v $(pwd):/app ghcr.io/wronai/domd:latest domd
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## 📜 License
+
+[Apache 2.0](LICENSE) © 2023 WronAI
+
+## 📚 Resources
+
+- [Documentation](https://wronai.github.io/domd/)
+- [Issue Tracker](https://github.com/wronai/domd/issues)
+- [Changelog](CHANGELOG.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## 🔧 Zaawansowane użycie
 

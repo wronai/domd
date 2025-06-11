@@ -1,14 +1,40 @@
 # DoMD Project Makefile
-# Development and build automation
+# Development, build, and Docker automation
 
-.PHONY: help install dev-install test lint format clean build publish docs serve-docs
+.PHONY: help install dev-install test lint format clean build publish docs serve-docs \
+	docker-build docker-run docker-shell docker-test docker-push docker-clean \
+	docker-compose-up docker-compose-down docker-logs docker-restart
+
+# Docker image name and tag
+IMAGE_NAME ?= domd
+IMAGE_TAG ?= latest
+DOCKER_COMPOSE_FILE ?= docker-compose.yml
+
+# Docker runtime flags (can be overridden)
+DOCKER_RUN_FLAGS ?= --rm -it
+DOCKER_RUN_CMD ?= bash
+
+# Docker Compose project name
+COMPOSE_PROJECT_NAME ?= domd
+
+# Docker network (for container communication)
+DOCKER_NETWORK ?= domd-network
 
 # Default target
 help: ## Show this help message
 	@echo "DoMD - Project Command Detector"
 	@echo "================================="
 	@echo "Available commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@echo "\nInstallation:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /install/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "\nDevelopment:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /(test|lint|format|mypy|run)/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "\nDocker:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /docker/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "\nDocumentation:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /(docs|serve)/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "\nBuild & Publish:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && ($$0 ~ /(build|publish|clean)/) && !($$0 ~ /docker/) {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 # Installation targets
 install: ## Install the package
@@ -159,8 +185,47 @@ run-api-port: ## Run the REST API server on a specific port
 docs-clean: ## Clean documentation build
 	rm -rf site/
 
+# Docker targets
+docker-build: ## Build Docker image
+	@echo "Building Docker image ${IMAGE_NAME}:${IMAGE_TAG}..."
+	docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+
+docker-run: ## Run Docker container
+	@echo "Running Docker container from ${IMAGE_NAME}:${IMAGE_TAG}..."
+	docker run ${DOCKER_RUN_FLAGS} ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_RUN_CMD}
+
+docker-shell: ## Start a shell in the Docker container
+	@echo "Starting shell in ${IMAGE_NAME}:${IMAGE_TAG}..."
+	docker run ${DOCKER_RUN_FLAGS} --entrypoint /bin/bash ${IMAGE_NAME}:${IMAGE_TAG}
+
+docker-test: ## Run tests inside Docker container
+	@echo "Running tests in Docker container..."
+	docker run ${DOCKER_RUN_FLAGS} ${IMAGE_NAME}:${IMAGE_TAG} make test
+
+docker-push: ## Push Docker image to registry
+	@echo "Pushing ${IMAGE_NAME}:${IMAGE_TAG} to registry..."
+	docker push ${IMAGE_NAME}:${IMAGE_TAG}
+
+docker-clean: ## Remove Docker containers and images
+	@echo "Removing containers..."
+	docker ps -aq --filter "name=domd" | xargs -r docker rm -f 2>/dev/null || true
+	@echo "Removing images..."
+	docker images -q ${IMAGE_NAME} | xargs -r docker rmi -f 2>/dev/null || true
+
+docker-logs: ## View container logs
+	docker-compose -f ${DOCKER_COMPOSE_FILE} logs -f
+
+docker-restart: ## Restart containers
+	docker-compose -f ${DOCKER_COMPOSE_FILE} restart
+
+docker-compose-up: ## Start containers using docker-compose
+	docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
+
+docker-compose-down: ## Stop and remove containers
+	docker-compose -f ${DOCKER_COMPOSE_FILE} down
+
 # Build and publish targets
-clean: ## Clean build artifacts
+clean: ## Clean build artifacts and Docker resources
 	@echo "Cleaning build artifacts..."
 	rm -rf dist/ build/ *.egg-info/ || true
 	@echo "Cleaning Python cache files..."
@@ -168,6 +233,31 @@ clean: ## Clean build artifacts
 	find . -path './.venv' -prune -o -type f -name '*.py[co]' -delete 2>/dev/null || true
 	find . -path './.venv' -prune -o -type d -name '*.egg-info' -exec rm -rf {} + 2>/dev/null || true
 	@echo "Clean complete."
+
+# Combined targets
+dev: dev-install pre-commit ## Set up development environment
+	@echo "Development environment ready!"
+
+pre-commit: ## Install pre-commit hooks
+	poetry run pre-commit install
+
+# Utility targets
+version: ## Show current version
+	@poetry version
+
+update: ## Update dependencies
+	poetry update
+
+upgrade: update ## Alias for update
+
+# Helper targets
+.PHONY: check-docker check-docker-compose
+
+check-docker:
+	@command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but not installed. Aborting."; exit 1; }
+
+check-docker-compose:
+	@command -v docker-compose >/dev/null 2>&1 || { echo >&2 "Docker Compose is required but not installed. Aborting."; exit 1; }
 
 build: clean ## Build the package
 	poetry version patch

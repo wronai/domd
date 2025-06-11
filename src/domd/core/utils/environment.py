@@ -2,9 +2,9 @@
 Environment detection and Docker execution utilities for command execution.
 """
 import os
-import subprocess
+import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 import docker
 from docker.models.containers import Container
@@ -74,6 +74,8 @@ class EnvironmentDetector:
         volumes: Optional[Dict[str, dict]] = None,
         environment: Optional[Dict[str, str]] = None,
         workdir: Optional[str] = None,
+        privileged: bool = False,
+        ports: Optional[Dict[str, str]] = None,
     ) -> int:
         """Execute a command in a Docker container.
 
@@ -96,19 +98,29 @@ class EnvironmentDetector:
         # Default working directory
         workdir = workdir or "/app"
 
+        # Initialize ports if not provided
+        ports = ports or {}
+
+        container_kwargs = {
+            "image": image,
+            "command": ["/bin/sh", "-c", command],
+            "volumes": volumes or {},
+            "environment": environment or {},
+            "working_dir": workdir or "/app",
+            "detach": True,
+            "tty": True,
+            "remove": True,
+            "stdout": True,
+            "stderr": True,
+            "privileged": privileged,
+        }
+
+        # Add port mappings if specified
+        if ports:
+            container_kwargs["ports"] = ports
+
         try:
-            container: Container = self.docker_client.containers.run(
-                image=image,
-                command=["/bin/sh", "-c", command],
-                volumes=volumes,
-                environment=environment,
-                working_dir=workdir,
-                detach=True,
-                tty=True,
-                remove=True,
-                stdout=True,
-                stderr=True,
-            )
+            container: Container = self.docker_client.containers.run(**container_kwargs)
 
             # Stream logs
             for line in container.logs(stream=True, follow=True):
@@ -133,7 +145,7 @@ def detect_environment() -> dict:
     """Detect the current execution environment.
 
     Returns:
-        dict: Environment information
+        dict: Environment information with keys: is_docker, is_ci, platform, python_version
     """
     return {
         "is_docker": os.path.exists("/.dockerenv"),

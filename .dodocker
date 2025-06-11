@@ -1,16 +1,22 @@
-# Docker command patterns
+# Docker command patterns configuration
 # Commands matching these patterns will be executed in Docker
 # Format:
 # command_pattern:
 #   image: docker-image-name  # Optional, defaults to python:3.9-slim
 #   description: Description of what this command does
+#   workdir: /custom/workdir  # Optional working directory in container
+#   volumes:  # Additional volume mounts
+#     /host/path: /container/path
+#   environment:  # Additional environment variables
+#     KEY: value
 
-# Python test commands
+# ===== Python Tools =====
+# Testing
 pytest:
   image: python:3.9-slim
   description: Run Python tests
 
-# Python linters
+# Formatting and Linting
 black:
   image: python:3.9-slim
   description: Python code formatter
@@ -27,7 +33,102 @@ mypy:
   image: python:3.9-slim
   description: Python type checker
 
-# Example of a custom command pattern
-# "npm run":
-#   image: node:16
-#   description: Run Node.js commands
+bandit:
+  image: python:3.9-slim
+  description: Python security linter
+
+pylint:
+  image: python:3.9-slim
+  description: Python code analysis
+
+# Package Management
+"pip install":
+  image: python:3.9-slim
+  description: Install Python packages
+
+poetry:
+  image: python:3.9-slim
+  description: Python dependency management
+  volumes:
+    ~/.cache/pypoetry:/.cache/pypoetry
+
+# ===== Node.js Tools =====
+npm:
+  image: node:18-slim
+  description: Node.js package manager
+
+"npm run":
+  image: node:18-slim
+  description: Run Node.js scripts
+
+yarn:
+  image: node:18-slim
+  description: Yarn package manager
+
+# ===== Build Tools =====
+"make docker":
+  image: docker:20.10-dind
+  description: Docker build commands
+  privileged: true
+  volumes:
+    /var/run/docker.sock:/var/run/docker.sock
+
+docker-compose:
+  image: docker/compose:latest
+  description: Docker Compose commands
+  volumes:
+    /var/run/docker.sock:/var/run/docker.sock
+
+# ===== Database Tools =====
+psql:
+  image: postgres:14
+  description: PostgreSQL client
+  environment:
+    PGPASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    PGHOST: ${POSTGRES_HOST:-postgres}
+    PGDATABASE: ${POSTGRES_DB:-postgres}
+    PGUSER: ${POSTGRES_USER:-postgres}
+
+mysql:
+  image: mysql:8.0
+  description: MySQL client
+  environment:
+    MYSQL_PWD: ${MYSQL_PASSWORD:-password}
+    MYSQL_HOST: ${MYSQL_HOST:-mysql}
+    MYSQL_DATABASE: ${MYSQL_DATABASE:-test}
+    MYSQL_USER: ${MYSQL_USER:-root}
+
+# ===== Other Tools =====
+ansible:
+  image: quay.io/ansible/ansible-runner:latest
+  description: Ansible automation
+  volumes:
+    ~/.ssh:/root/.ssh:ro
+
+terraform:
+  image: hashicorp/terraform:latest
+  description: Infrastructure as code
+  volumes:
+    ~/.aws:/root/.aws:ro
+
+# ===== Custom Project Commands =====
+# Example for a custom script
+"scripts/build.sh":
+  image: python:3.9-slim
+  description: Run build script
+
+# ===== Development Servers =====
+"python -m http.server":
+  image: python:3.9-slim
+  description: Simple HTTP server
+  ports:
+    - "8000:8000"
+
+"python -m flask run":
+  image: python:3.9-slim
+  description: Flask development server
+  ports:
+    - "5000:5000"
+  environment:
+    FLASK_APP: app.py
+    FLASK_ENV: development
