@@ -223,9 +223,18 @@ class ProjectCommandDetector:
             all_commands: List to append found commands to
             parent_dir: Name of parent directory (for second-level directories)
         """
+        logger.debug(f"Checking for README.md in: {directory}")
         readme_path = directory / "README.md"
-        if not readme_path.exists() or not readme_path.is_file():
+
+        if not readme_path.exists():
+            logger.debug(f"  README.md not found in {directory}")
             return
+
+        if not readme_path.is_file():
+            logger.debug(f"  README.md exists but is not a file in {directory}")
+            return
+
+        logger.info(f"Found README.md in directory: {directory}")
 
         # Determine display path for logging and source
         if parent_dir:
@@ -261,54 +270,41 @@ class ProjectCommandDetector:
             file_path: Path to the file to process
 
         Returns:
-            List of command dictionaries
+            List of command dictionaries with metadata
         """
+        logger.debug(f"Processing file: {file_path}")
         commands = []
+
         try:
-            # Try to get parser from registry first
-            parser = self.parser_registry.get_parser_for_file(file_path)
-
-            # If no parser found in registry, try legacy method
-            if not parser:
-                parser = self._get_parser_for_file(file_path)
-
-            if not parser:
-                logger.warning(f"No parser found for {file_path}")
+            if not file_path.exists():
+                logger.warning(f"File not found: {file_path}")
                 return commands
 
-            logger.debug(f"Parsing {file_path} with {parser.__class__.__name__}")
-
-            # Read file content
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-            except Exception as e:
-                logger.error(f"Error reading file {file_path}: {e}")
+            # Get the appropriate parser for the file
+            parser = self._get_parser_for_file(file_path)
+            if not parser:
+                logger.debug(f"No parser found for file: {file_path}")
                 return commands
 
-            # Set the file_path on the parser if it has that attribute
-            if hasattr(parser, "file_path"):
-                parser.file_path = file_path
-
-            # Try different ways to call the parse method
             try:
-                import inspect
+                # Read file content
+                content = file_path.read_text(encoding="utf-8")
 
-                sig = inspect.signature(parser.parse)
-
-                if "file_path" in sig.parameters and "content" in sig.parameters:
-                    file_commands = parser.parse(content=content, file_path=file_path)
-                elif "content" in sig.parameters:
-                    file_commands = parser.parse(content=content)
-                elif "file_path" in sig.parameters:
-                    file_commands = parser.parse(file_path=file_path)
-                else:
-                    # Last resort - try passing content as the first argument
-                    file_commands = parser.parse(content)
+                # Parse commands from file content
+                file_commands = []
+                if hasattr(parser, "parse_file") and callable(parser.parse_file):
+                    file_commands = parser.parse_file(file_path)
+                elif hasattr(parser, "parse") and callable(parser.parse):
+                    # Try with content as string
+                    try:
+                        file_commands = parser.parse(content)
+                    except TypeError:
+                        # Last resort - try passing content as the first argument
+                        file_commands = parser.parse(content)
 
                 # Add file path to commands if not already present
                 for cmd in file_commands:
-                    if isinstance(cmd, dict) and "file" not in cmd:
+                    if isinstance(cmd, dict):
                         cmd["file"] = str(file_path)
                         # Add relative path as source if not present
                         if "source" not in cmd:
@@ -352,20 +348,31 @@ class ProjectCommandDetector:
 
         # 2. Scan first and second level subdirectories for README.md files
         try:
+            logger.debug(f"Starting directory scan in: {self.project_path}")
             # First level directories
-            for level1_item in self.project_path.iterdir():
+            for level1_item in sorted(self.project_path.iterdir()):
+                logger.debug(f"Checking first level item: {level1_item}")
                 if not level1_item.is_dir() or level1_item.name.startswith("."):
+                    logger.debug(f"Skipping (not a directory or hidden): {level1_item}")
                     continue
 
+                logger.info(f"Processing first level directory: {level1_item.name}")
                 # Process level 1 README
                 self._process_directory_readme(level1_item, all_commands)
 
                 # Scan second level
                 try:
-                    for level2_item in level1_item.iterdir():
+                    for level2_item in sorted(level1_item.iterdir()):
+                        logger.debug(f"  Checking second level item: {level2_item}")
                         if not level2_item.is_dir() or level2_item.name.startswith("."):
+                            logger.debug(
+                                f"  Skipping (not a directory or hidden): {level2_item}"
+                            )
                             continue
 
+                        logger.info(
+                            f"  Processing second level directory: {level1_item.name}/{level2_item.name}"
+                        )
                         # Process level 2 README
                         self._process_directory_readme(
                             level2_item, all_commands, level1_item.name
@@ -376,6 +383,10 @@ class ProjectCommandDetector:
                     )
         except Exception as e:
             logger.error(f"Error scanning directories: {e}", exc_info=True)
+
+        logger.debug(
+            f"Finished directory scan. Found {len(all_commands)} commands total."
+        )
 
         logger.info(f"Found {len(all_commands)} commands in total")
 
