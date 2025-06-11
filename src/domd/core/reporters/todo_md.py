@@ -1,8 +1,9 @@
 """Markdown reporter for TODO.md generation."""
 
 import datetime
+import os
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from .base import BaseReporter
 
@@ -18,6 +19,58 @@ class TodoMDReporter(BaseReporter):
         """
         super().__init__(output_file or "TODO.md")
 
+    def _get_relative_path(
+        self, path: str, base_path: Optional[Union[str, Path]] = None
+    ) -> str:
+        """Convert absolute path to relative path for display.
+
+        Args:
+            path: The path to convert
+            base_path: Base path to make relative to (defaults to current directory)
+
+        Returns:
+            Relative path as string
+        """
+        if not path:
+            return "unknown"
+
+        try:
+            path_obj = Path(path)
+            base_path = Path(base_path) if base_path else Path.cwd()
+
+            # If it's already a relative path, return as is
+            if not path_obj.is_absolute():
+                return str(path_obj)
+
+            # Try to make it relative to the project
+            rel_path = path_obj.relative_to(base_path)
+            return str(rel_path)
+        except (ValueError, TypeError):
+            # If we can't make it relative, return just the filename
+            return str(Path(path).name) if path else "unknown"
+
+    def _format_source_link(
+        self, source: str, base_path: Optional[Union[str, Path]] = None
+    ) -> str:
+        """Format source as a markdown link if it's a markdown file.
+
+        Args:
+            source: Source path to format
+            base_path: Base path for relative paths
+
+        Returns:
+            Formatted source string with markdown link if applicable
+        """
+        if not source or source == "unknown":
+            return source
+
+        rel_path = self._get_relative_path(source, base_path)
+
+        # Only create links for markdown files
+        if str(rel_path).lower().endswith(".md"):
+            return f"[{rel_path}]({rel_path})"
+        return rel_path
+
     def generate_report(self, data: Dict) -> str:
         """Generate the TODO.md content.
 
@@ -29,6 +82,7 @@ class TodoMDReporter(BaseReporter):
         """
         failed_commands = data.get("failed_commands", [])
         successful_commands = data.get("successful_commands", [])
+        project_path = data.get("project_path")
 
         content = [
             "# 🤖 TODO - LLM Task List for Command Fixes",
@@ -47,7 +101,7 @@ class TodoMDReporter(BaseReporter):
             "**📝 TASK FORMAT:**",
             "Each task has:",
             "- ❌ **Command** that failed",
-            "- 📁 **Source file** where the command is defined",
+            "- 📁 **Source file** where the command is defined (clickable for .md files)",
             "- 🔴 **Error output** with full details",
             "- 💡 **Suggested actions** for fixing",
             "",
@@ -61,9 +115,8 @@ class TodoMDReporter(BaseReporter):
             "---",
             "",
             "**📊 Current Status:**",
-            f"- **Project Path:** `{data.get('project_path', 'Unknown')}`",
             f"- **Failed Commands:** {len(failed_commands)}",
-            f"- **Working Commands:** {len(successful_commands)} (see DONE.md)",
+            f"- **Working Commands:** {len(successful_commands)} (see [DONE.md](DONE.md))",
             f"- **Last Updated:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "---",
@@ -98,7 +151,7 @@ class TodoMDReporter(BaseReporter):
                         f"### [ ] Task {i}: {cmd.get('description', 'Unnamed command')}",
                         "",
                         f"**📋 Command:** `{cmd.get('command', '')}`",
-                        f"**📁 Source:** `{cmd.get('source', 'unknown')}`",
+                        f"**📁 Source:** {self._format_source_link(cmd.get('source'), project_path)}",
                         f"**⏱️ Timeout:** {cmd.get('timeout', 'N/A')}s",
                         f"**🔴 Return Code:** {cmd.get('return_code', 'N/A')}",
                         f"**⚡ Execution Time:** {cmd.get('execution_time', 0):.2f}s",
