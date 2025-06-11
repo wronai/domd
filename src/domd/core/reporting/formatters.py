@@ -2,10 +2,13 @@
 
 import json
 import logging
+import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
+from domd.utils.path_utils import safe_path_display, to_relative_path
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +63,77 @@ class BaseFormatter(ABC):
 class MarkdownFormatter(BaseFormatter):
     """Formatter for Markdown output."""
 
+    def _format_path(
+        self, path: Optional[str], base_path: Optional[Path] = None
+    ) -> str:
+        """Format a path for display in the report.
+
+        Args:
+            path: The path to format
+            base_path: Base path to make relative to
+
+        Returns:
+            Formatted path string
+        """
+        if not path:
+            return ""
+
+        try:
+            # If it's already a relative path, return as is
+            if not os.path.isabs(path):
+                return path
+
+            # Make path relative to base_path if provided
+            if base_path and base_path.exists():
+                try:
+                    return str(Path(path).relative_to(base_path))
+                except ValueError:
+                    pass
+
+            # Fall back to safe display
+            return safe_path_display(path, base_path)
+        except Exception as e:
+            logger.debug(f"Error formatting path '{path}': {e}")
+            return str(path)
+
+    def _format_command(
+        self, cmd: Dict[str, Any], base_path: Optional[Path] = None
+    ) -> Dict[str, Any]:
+        """Format command data for display.
+
+        Args:
+            cmd: Command data dictionary
+            base_path: Base path for making paths relative
+
+        Returns:
+            Formatted command data
+        """
+        if not cmd:
+            return {}
+
+        # Create a copy to avoid modifying the original
+        formatted = dict(cmd)
+
+        # Format paths in command output
+        for field in ["stdout", "stderr", "output"]:
+            if field in formatted and formatted[field]:
+                formatted[field] = self._format_path(str(formatted[field]), base_path)
+
+        # Format source and cwd if they exist
+        for field in ["source", "cwd"]:
+            if field in formatted and formatted[field]:
+                formatted[field] = self._format_path(str(formatted[field]), base_path)
+
+        # Format metadata paths if present
+        if "metadata" in formatted and formatted["metadata"]:
+            metadata = dict(formatted["metadata"])
+            for key, value in metadata.items():
+                if isinstance(value, str) and os.path.isabs(value):
+                    metadata[key] = self._format_path(value, base_path)
+            formatted["metadata"] = metadata
+
+        return formatted
+
     def format_report(self, data: Dict[str, Any], **kwargs: Any) -> str:
         """Format the report as Markdown.
 
@@ -71,6 +145,7 @@ class MarkdownFormatter(BaseFormatter):
                 - include_successful: Include successful commands (default: True)
                 - include_failed: Include failed commands (default: True)
                 - include_ignored: Include ignored commands (default: False)
+                - base_path: Base path for making paths relative
 
         Returns:
             Formatted Markdown report
@@ -80,6 +155,9 @@ class MarkdownFormatter(BaseFormatter):
         include_successful = kwargs.get("include_successful", True)
         include_failed = kwargs.get("include_failed", True)
         include_ignored = kwargs.get("include_ignored", False)
+        base_path = kwargs.get("base_path")
+        if base_path and not isinstance(base_path, Path):
+            base_path = Path(base_path)
 
         lines = [f"# {title}", ""]
 
@@ -87,11 +165,28 @@ class MarkdownFormatter(BaseFormatter):
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             lines.extend([f"*Generated on {timestamp}*", ""])
 
-        # Summary section
-        total = len(data.get("commands", []))
-        successful = len(data.get("successful_commands", []))
-        failed = len(data.get("failed_commands", []))
-        ignored = len(data.get("ignored_commands", []))
+        # Format command data
+        commands = [
+            self._format_command(cmd, base_path) for cmd in data.get("commands", [])
+        ]
+        successful_commands = [
+            self._format_command(cmd, base_path)
+            for cmd in data.get("successful_commands", [])
+        ]
+        failed_commands = [
+            self._format_command(cmd, base_path)
+            for cmd in data.get("failed_commands", [])
+        ]
+        ignored_commands = [
+            self._format_command(cmd, base_path)
+            for cmd in data.get("ignored_commands", [])
+        ]
+
+        # Update counts after formatting
+        total = len(commands)
+        successful = len(successful_commands)
+        failed = len(failed_commands)
+        ignored = len(ignored_commands)
 
         lines.extend(
             [
@@ -168,19 +263,116 @@ class JsonFormatter(BaseFormatter):
             data: Report data to format
             **kwargs: Additional formatting options
                 - pretty: Whether to pretty-print the JSON (default: True)
+                - base_path: Base path for making paths relative
 
         Returns:
             Formatted JSON report
         """
+        # Make a deep copy to avoid modifying the original data
+        import copy
+
+        formatted_data = copy.deepcopy(data)
+
+        # Get base path for relative paths
+        base_path = kwargs.get("base_path")
+        if base_path and not isinstance(base_path, Path):
+            base_path = Path(base_path)
+
+        # Format all commands in the report
+        command_sections = [
+            "commands",
+            "successful_commands",
+            "failed_commands",
+            "ignored_commands",
+        ]
+        for section in command_sections:
+            if section in formatted_data and formatted_data[section]:
+                formatted_data[section] = [
+                    self._format_command(cmd, base_path)
+                    for cmd in formatted_data[section]
+                ]
+
+        # Format any other paths in the data
+        if "metadata" in formatted_data and "paths" in formatted_data["metadata"]:
+            formatted_data["metadata"]["paths"] = {
+                k: self._format_path(v, base_path)
+                for k, v in formatted_data["metadata"]["paths"].items()
+            }
+
         pretty = kwargs.get("pretty", True)
+        indent = 2 if pretty else None
+        return json.dumps(formatted_data, indent=indent, ensure_ascii=False)
 
-        # Add timestamp if not present
-        if "timestamp" not in data:
-            data["timestamp"] = datetime.now().isoformat()
+    def _format_path(
+        self, path: Optional[str], base_path: Optional[Path] = None
+    ) -> str:
+        """Format a path for display in the report.
 
-        if pretty:
-            return json.dumps(data, indent=2, ensure_ascii=False)
-        return json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+        Args:
+            path: The path to format
+            base_path: Base path to make relative to
+
+        Returns:
+            Formatted path string
+        """
+        if not path:
+            return ""
+
+        try:
+            # If it's already a relative path, return as is
+            if not os.path.isabs(path):
+                return path
+
+            # Make path relative to base_path if provided
+            if base_path and base_path.exists():
+                try:
+                    return str(Path(path).relative_to(base_path))
+                except ValueError:
+                    pass
+
+            # Fall back to safe display
+            return safe_path_display(path, base_path)
+        except Exception as e:
+            logger.debug(f"Error formatting path '{path}': {e}")
+            return str(path)
+
+    def _format_command(
+        self, cmd: Dict[str, Any], base_path: Optional[Path] = None
+    ) -> Dict[str, Any]:
+        """Format command data for display.
+
+        Args:
+            cmd: Command data dictionary
+            base_path: Base path for making paths relative
+
+        Returns:
+            Formatted command data
+        """
+        if not cmd:
+            return {}
+
+        # Create a copy to avoid modifying the original
+        formatted = dict(cmd)
+
+        # Format paths in command output
+        for field in ["stdout", "stderr", "output"]:
+            if field in formatted and formatted[field]:
+                formatted[field] = self._format_path(str(formatted[field]), base_path)
+
+        # Format source and cwd if they exist
+        for field in ["source", "cwd"]:
+            if field in formatted and formatted[field]:
+                formatted[field] = self._format_path(str(formatted[field]), base_path)
+
+        # Format metadata paths if present
+        if "metadata" in formatted and formatted["metadata"]:
+            metadata = dict(formatted["metadata"])
+            for key, value in metadata.items():
+                if isinstance(value, str) and os.path.isabs(value):
+                    metadata[key] = self._format_path(value, base_path)
+            formatted["metadata"] = metadata
+
+        return formatted
 
 
 class ConsoleFormatter(BaseFormatter):

@@ -4,11 +4,12 @@ import logging
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 
 from domd.command_execution import CommandRunner
 from domd.core.commands import Command
 from domd.parsing import PatternMatcher
+from domd.utils.path_utils import safe_path_display, to_relative_path
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,45 @@ class CommandHandler:
         self.successful_commands: List[Union[Command, Dict[str, Any]]] = []
         self.ignored_commands: List[Union[Command, Dict[str, Any]]] = []
 
+    def _format_command_result(
+        self,
+        result: Any,
+        command_str: str,
+        cwd: Optional[Union[str, Path]] = None,
+    ) -> Dict[str, Any]:
+        """Format a command result into a dictionary with proper path handling."""
+        base_path = Path(cwd) if cwd else self.project_path
+
+        # Format paths in stdout/stderr to be relative
+        stdout = result.stdout or ""
+        stderr = result.stderr or ""
+
+        # Simple helper to replace absolute paths in text
+        def replace_paths(text: str) -> str:
+            if not text:
+                return text
+
+            # Replace absolute paths with relative ones
+            lines = []
+            for line in text.splitlines():
+                # This is a simple implementation - you might want to enhance it
+                # to handle different path formats and edge cases
+                if str(base_path) in line:
+                    line = line.replace(str(base_path), ".")
+                lines.append(line)
+            return "\n".join(lines)
+
+        return {
+            "success": result.success,
+            "return_code": result.return_code,
+            "execution_time": result.execution_time,
+            "output": f"{stdout}\n{stderr}".strip(),
+            "stdout": replace_paths(stdout),
+            "stderr": replace_paths(stderr),
+            "command": command_str,
+            "cwd": str(to_relative_path(base_path, self.project_path)),
+        }
+
     def execute_command(
         self,
         command: Union[str, List[str]],
@@ -81,7 +121,7 @@ class CommandHandler:
         Args:
             command: Command to execute (string or list of args)
             timeout: Optional timeout in seconds
-            cwd: Working directory for the command
+            cwd: Working directory for the command (relative to project root)
             env: Additional environment variables to include
             check: If True, raises an exception on non-zero exit code
 
@@ -89,39 +129,53 @@ class CommandHandler:
             Dictionary with command execution results
         """
         # Ensure command is a string for logging
-        command_str = command if isinstance(command, str) else " ".join(command)
-        logger.info(f"Executing command: {command_str}")
+        command_str = (
+            command if isinstance(command, str) else " ".join(map(str, command))
+        )
+
+        # Convert relative cwd to absolute if needed
+        work_dir = Path(cwd).resolve() if cwd else self.project_path
+        if not work_dir.is_absolute():
+            work_dir = self.project_path / work_dir
+
+        logger.info(
+            "Executing command: %s in %s",
+            command_str,
+            safe_path_display(work_dir, self.project_path),
+        )
 
         # Execute the command using the CommandRunner
         try:
             result = self.command_runner.run(
                 command=command,
                 timeout=timeout or self.timeout,
-                cwd=cwd or self.project_path,
+                cwd=work_dir,
                 env=env,
                 check=check,
             )
 
-            # Convert result to dictionary for backward compatibility
-            result_dict = {
-                "success": result.success,
-                "return_code": result.return_code,
-                "execution_time": result.execution_time,
-                "output": (result.stdout or "") + "\n" + (result.stderr or ""),
-                "stdout": result.stdout or "",
-                "stderr": result.stderr or "",
-                "command": command_str,
-            }
+            # Format the result with proper path handling
+            result_dict = self._format_command_result(result, command_str, work_dir)
 
             # Log the result
             if result.success:
-                logger.info(f"Command succeeded in {result.execution_time:.2f} s")
+                logger.info(
+                    "Command succeeded in %.2f s (exit code: %d)",
+                    result.execution_time,
+                    result.return_code,
+                )
                 self.successful_commands.append(result_dict)
             else:
-                logger.error(f"Command failed with code {result.return_code}")
+                logger.error(
+                    "Command failed with code %d in %.2f s",
+                    result.return_code,
+                    result.execution_time,
+                )
                 if result.stderr:
                     logger.error(
-                        f"Error output: {result.stderr[:500]}{'...' if len(result.stderr) > 500 else ''}"  # noqa: E231
+                        "Error output: %s",
+                        result.stderr[:500]
+                        + ("..." if len(result.stderr) > 500 else ""),
                     )
                 self.failed_commands.append(result_dict)
 
@@ -130,7 +184,7 @@ class CommandHandler:
         except Exception as e:
             # Handle any exceptions and return a consistent result dictionary
             error_msg = str(e)
-            logger.error(f"Error executing command: {error_msg}")
+            logger.error("Error executing command: %s", error_msg, exc_info=True)
 
             result_dict = {
                 "success": False,
@@ -140,6 +194,7 @@ class CommandHandler:
                 "stdout": "",
                 "stderr": error_msg,
                 "command": command_str,
+                "cwd": str(to_relative_path(work_dir, self.project_path)),
             }
 
             self.failed_commands.append(result_dict)
