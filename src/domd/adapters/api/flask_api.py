@@ -668,10 +668,15 @@ class DomdFlaskApi:
                 message="Failed to retrieve project information", status=500
             )
 
+    def _format_date(self, date_obj):
+        """Helper method to format date objects for JSON serialization."""
+        return date_obj.isoformat() if date_obj else None
+
     def _command_to_dict(self, command: Command) -> Dict[str, Any]:
-        """Convert Command object to dictionary."""
+        """Convert a Command object to a dictionary for JSON serialization."""
         return {
-            "id": command.id,
+            "id": str(command.id) if command.id else None,
+            "name": command.name,
             "command": command.command,
             "description": command.description,
             "working_dir": str(command.working_dir) if command.working_dir else None,
@@ -680,19 +685,10 @@ class DomdFlaskApi:
             "output": command.output,
             "error": command.error,
             "execution_time": command.execution_time,
-            # Format dates with proper spacing and line breaks for both black and flake8
-            "created_at": (  # noqa: E231
-            ),
-            "updated_at": (
-                command.updated_at.isoformat()
-                if command.updated_at
-                else None
-            ),
-            "last_run": (
-                command.last_run.isoformat()
-                if command.last_run
-                else None
-            ),
+            # Format dates using the helper method
+            "created_at": self._format_date(command.created_at),
+            "updated_at": self._format_date(command.updated_at),
+            "last_run": self._format_date(command.last_run),
             "tags": getattr(command, "tags", []),
             "metadata": getattr(command, "metadata", {}),
         }
