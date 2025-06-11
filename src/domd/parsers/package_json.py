@@ -30,12 +30,15 @@ class PackageJsonParser(BaseParser):
     supported_file_patterns = ["package.json"]
 
     def parse(
-        self, file_path: Optional[Union[str, Path]] = None
+        self,
+        file_path: Optional[Union[str, Path]] = None,
+        content: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Parse package.json and extract npm scripts.
 
         Args:
             file_path: Path to the file to parse (overrides self.file_path if provided)
+            content: Optional content to parse instead of reading from file
 
         Returns:
             List of command dictionaries with 'command', 'description', 'source', and 'type' keys
@@ -43,15 +46,24 @@ class PackageJsonParser(BaseParser):
         if file_path is not None:
             self.file_path = Path(file_path).resolve()
 
-        if self.file_path is None or not self.file_path.exists():
-            logging.warning(f"File not found: {self.file_path}")
-            return []
+        if content is None:
+            if self.file_path is None or not self.file_path.exists():
+                logging.warning(f"File not found: {self.file_path}")
+                return []
+            try:
+                content = self.file_path.read_text(encoding="utf-8")
+            except Exception as e:
+                logging.error(f"Error reading file {self.file_path}: {e}")
+                return []
 
         self.initialize()
-        return self._parse_commands()
+        return self._parse_commands(content)
 
-    def _parse_commands(self) -> List[Dict[str, Any]]:
-        """Parse commands from package.json.
+    def _parse_commands(self, content: str) -> List[Dict[str, Any]]:
+        """Parse commands from package.json content.
+
+        Args:
+            content: The content of the package.json file
 
         Returns:
             List of command dictionaries with 'command', 'description', 'source', and 'type' keys
@@ -59,8 +71,7 @@ class PackageJsonParser(BaseParser):
         commands = []
 
         try:
-            with open(self.file_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            data = json.loads(content)
 
             # Extract scripts
             scripts = data.get("scripts", {})

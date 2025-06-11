@@ -287,20 +287,32 @@ class ProjectCommandDetector:
                 return commands
 
             try:
-                # Read file content
-                content = file_path.read_text(encoding="utf-8")
+                # Set the file_path on the parser if it has that attribute
+                if hasattr(parser, "file_path"):
+                    parser.file_path = str(file_path)
 
-                # Parse commands from file content
+                # Parse commands from file
                 file_commands = []
                 if hasattr(parser, "parse_file") and callable(parser.parse_file):
-                    file_commands = parser.parse_file(file_path)
+                    file_commands = parser.parse_file(str(file_path))
                 elif hasattr(parser, "parse") and callable(parser.parse):
-                    # Try with content as string
+                    # First try without arguments (parser will handle file reading)
                     try:
-                        file_commands = parser.parse(content)
-                    except TypeError:
-                        # Last resort - try passing content as the first argument
-                        file_commands = parser.parse(content)
+                        file_commands = parser.parse()
+                    except (TypeError, AttributeError):
+                        # If that fails, try with file path
+                        try:
+                            file_commands = parser.parse(str(file_path))
+                        except (TypeError, AttributeError):
+                            # As a last resort, try with file content
+                            try:
+                                content = file_path.read_text(encoding="utf-8")
+                                file_commands = parser.parse(content)
+                            except Exception as e:
+                                logger.error(
+                                    f"Error parsing {file_path} with content: {e}"
+                                )
+                                return []
 
                 # Add file path to commands if not already present
                 for cmd in file_commands:
