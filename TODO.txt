@@ -59,31 +59,29 @@
    - [ ] Benchmark wykrywania komend
    - [ ] Benchmark wykonywania komend
 
-
-
-(venv) tom@nvidia:~/github/coboarding/chat$ domd
 TodoMD v0.1.1 - Project Command Detector with .doignore
 🔍 Project: /home/tom/github/coboarding/chat
 📝 TODO file: TODO.md
 🔧 Script file: todo.sh
 🚫 Ignore file: .doignore
-2025-06-11 21:04:58 - domd.core.project_detection.detector - WARNING - No parsers found in registry, using legacy parsers
-2025-06-11 21:04:58 - domd.core.project_detection.detector - INFO - Initialized 11 parsers
-2025-06-11 21:04:58 - domd.core.project_detection.detector - INFO - Scanning project: /home/tom/github/coboarding/chat
-2025-06-11 21:04:58 - domd.core.project_detection.detector - INFO - Found 49 configuration files
-2025-06-11 21:04:58 - domd.core.parsers.pyproject_toml - ERROR - Error parsing /home/tom/github/coboarding/chat/pyproject.toml: Invalid group name 'coverage:run'. Try quoting it. (line 123 column 1 char 2874)
+2025-06-11 22:10:58 - domd.core.project_detection.detector - WARNING - No parsers found in registry, using legacy parsers
+2025-06-11 22:10:58 - domd.core.project_detection.detector - INFO - Initialized 11 parsers
+2025-06-11 22:10:58 - domd.core.project_detection.detector - INFO - Scanning project: /home/tom/github/coboarding/chat
+2025-06-11 22:10:58 - domd.core.project_detection.detector - INFO - Found 50 configuration files
+2025-06-11 22:10:58 - domd.core.parsers.pyproject_toml - ERROR - Error parsing /home/tom/github/coboarding/chat/pyproject.toml: What? mypy already exists?{'mypy': {'python_version': '3.12', 'warn_return_any': True, 'warn_unused_configs': True, 'disallow_untyped_defs': True, 'disallow_incomplete_defs': True, 'check_untyped_defs': True, 'disallow_untyped_decorators': True, 'no_implicit_optional': True, 'warn_redundant_casts': True, 'warn_unused_ignores': True, 'warn_no_return': True, 'warn_unreachable': True, 'overrides': [{'module': ['pydantic.*', 'sqlalchemy.*', 'alembic.*', 'uvicorn.*', 'fastapi.*'], 'disallow_untyped_defs': False}]}, 'black': {'line-length': 88, 'target-version': ['py312'], 'include': '\\.pyi?$'}, 'isort': {'profile': 'black', 'line_length': 88, 'multi_line_output': 3, 'include_trailing_comma': True, 'force_grid_wrap': 0, 'use_parentheses': True, 'ensure_newline_before_comments': True}} (line 116 column 1 char 2693)
 Traceback (most recent call last):
-  File "/home/tom/github/coboarding/chat/venv/lib/python3.13/site-packages/domd/core/parsers/pyproject_toml.py", line 88, in parse
+  File "/home/tom/github/coboarding/chat/venv/lib/python3.12/site-packages/domd/core/parsers/pyproject_toml.py", line 88, in parse
     data = toml_lib.loads(content)
-  File "/home/tom/github/coboarding/chat/venv/lib/python3.13/site-packages/toml/decoder.py", line 455, in loads
-    raise TomlDecodeError("Invalid group name '" +
-                          groups[i] + "'. Try quoting it.",
-                          original, pos)
-toml.decoder.TomlDecodeError: Invalid group name 'coverage:run'. Try quoting it. (line 123 column 1 char 2874)
-2025-06-11 21:04:58 - domd.core.project_detection.detector - INFO - Found 74 commands in total
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tom/github/coboarding/chat/venv/lib/python3.12/site-packages/toml/decoder.py", line 478, in loads
+    raise TomlDecodeError("What? " + group +
+toml.decoder.TomlDecodeError: What? mypy already exists?{'mypy': {'python_version': '3.12', 'warn_return_any': True, 'warn_unused_configs': True, 'disallow_untyped_defs': True, 'disallow_incomplete_defs': True, 'check_untyped_defs': True, 'disallow_untyped_decorators': True, 'no_implicit_optional': True, 'warn_redundant_casts': True, 'warn_unused_ignores': True, 'warn_no_return': True, 'warn_unreachable': True, 'overrides': [{'module': ['pydantic.*', 'sqlalchemy.*', 'alembic.*', 'uvicorn.*', 'fastapi.*'], 'disallow_untyped_defs': False}]}, 'black': {'line-length': 88, 'target-version': ['py312'], 'include': '\\.pyi?$'}, 'isort': {'profile': 'black', 'line_length': 88, 'multi_line_output': 3, 'include_trailing_comma': True, 'force_grid_wrap': 0, 'use_parentheses': True, 'ensure_newline_before_comments': True}} (line 116 column 1 char 2693)
+2025-06-11 22:10:58 - domd.core.project_detection.detector - INFO - Found 77 commands in total
 
-🧪 Testing 74 commands...
+🧪 Testing 77 commands...
 📊 Progress will be updated in TODO.md
-2025-06-11 21:04:58 - domd.core.services.command_service - INFO - Executing command: ansible all -i .pre-commit-config.yaml -m ping
-2025-06-11 21:04:59 - domd.core.services.command_service - INFO - Executing command: docker build -t chat .
+2025-06-11 22:10:58 - domd.core.services.command_service - INFO - Executing command: ansible all -i .pre-commit-config.yaml -m ping
+2025-06-11 22:10:58 - domd.core.services.command_service - INFO - Executing command: docker build -t chat .
+2025-06-11 22:11:14 - domd.adapters.persistence.shell_command_executor - ERROR - Command failed after 1 attempts
+
 
