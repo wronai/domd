@@ -7,18 +7,69 @@ import shlex
 import subprocess
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # List of common shell built-in commands
 SHELL_BUILTINS = {
-    'source', '.', 'cd', 'alias', 'bg', 'bind', 'break', 'builtin', 'caller',
-    'command', 'compgen', 'complete', 'compopt', 'continue', 'declare', 'dirs',
-    'disown', 'echo', 'enable', 'eval', 'exec', 'exit', 'export', 'false',
-    'fc', 'fg', 'getopts', 'hash', 'help', 'history', 'jobs', 'kill', 'let',
-    'local', 'logout', 'mapfile', 'popd', 'printf', 'pushd', 'pwd', 'read',
-    'readarray', 'readonly', 'return', 'set', 'shift', 'shopt', 'suspend',
-    'test', 'times', 'trap', 'true', 'type', 'typeset', 'ulimit', 'umask',
-    'unalias', 'unset', 'wait'
+    "source",
+    ".",
+    "cd",
+    "alias",
+    "bg",
+    "bind",
+    "break",
+    "builtin",
+    "caller",
+    "command",
+    "compgen",
+    "complete",
+    "compopt",
+    "continue",
+    "declare",
+    "dirs",
+    "disown",
+    "echo",
+    "enable",
+    "eval",
+    "exec",
+    "exit",
+    "export",
+    "false",
+    "fc",
+    "fg",
+    "getopts",
+    "hash",
+    "help",
+    "history",
+    "jobs",
+    "kill",
+    "let",
+    "local",
+    "logout",
+    "mapfile",
+    "popd",
+    "printf",
+    "pushd",
+    "pwd",
+    "read",
+    "readarray",
+    "readonly",
+    "return",
+    "set",
+    "shift",
+    "shopt",
+    "suspend",
+    "test",
+    "times",
+    "trap",
+    "true",
+    "type",
+    "typeset",
+    "ulimit",
+    "umask",
+    "unalias",
+    "unset",
+    "wait",
 }
 
 from ...core.domain.command import Command, CommandResult
@@ -81,9 +132,9 @@ class ShellCommandExecutor(CommandExecutor):
                 return_code=1,
                 execution_time=0,
                 stdout="",
-                stderr="Error: Empty command"
+                stderr="Error: Empty command",
             )
-            
+
         cmd_args, needs_shell = self._parse_command(cmd_str)
 
         # Prepare execution environment
@@ -96,9 +147,9 @@ class ShellCommandExecutor(CommandExecutor):
         for attempt in range(1, self.max_retries + 1):
             try:
                 start_time = time.time()
-                
+
                 # Special handling for 'cd' command
-                if cmd_str.startswith('cd '):
+                if cmd_str.startswith("cd "):
                     try:
                         new_dir = cmd_str[3:].strip()
                         if not new_dir:
@@ -110,7 +161,7 @@ class ShellCommandExecutor(CommandExecutor):
                             return_code=0,
                             execution_time=0,
                             stdout=f"Changed directory to {new_dir}",
-                            stderr=""
+                            stderr="",
                         )
                     except Exception as e:
                         return CommandResult(
@@ -118,7 +169,7 @@ class ShellCommandExecutor(CommandExecutor):
                             return_code=1,
                             execution_time=0,
                             stdout="",
-                            stderr=f"cd: {str(e)}"
+                            stderr=f"cd: {str(e)}",
                         )
 
                 # Execute the command
@@ -190,18 +241,32 @@ class ShellCommandExecutor(CommandExecutor):
         first_word = command_str.strip().split(maxsplit=1)[0].lower()
         if first_word in SHELL_BUILTINS:
             return True
-            
+
         # Check for shell operators
-        shell_operators = {'|', '>', '>>', '<', '<<', '&&', '||', ';', '&', '`', '$', '(', ')'}
+        shell_operators = {
+            "|",
+            ">",
+            ">>",
+            "<",
+            "<<",
+            "&&",
+            "||",
+            ";",
+            "&",
+            "`",
+            "$",
+            "(",
+            ")",
+        }
         if any(op in command_str for op in shell_operators):
             return True
-            
+
         # Check for environment variable assignments
-        if '=' in first_word and ' ' not in first_word.split('=')[0]:
+        if "=" in first_word and " " not in first_word.split("=")[0]:
             return True
-            
+
         return False
-        
+
     def _parse_command(self, command_str: str) -> Tuple[List[str], bool]:
         """
         Parses a command string into a list of arguments and determines if it needs a shell.
@@ -212,15 +277,28 @@ class ShellCommandExecutor(CommandExecutor):
         Returns:
             Tuple of (command_args, needs_shell)
         """
+        if not command_str.strip():
+            return [], False
+
+        # Check if this is a shell built-in or needs shell features
         needs_shell = self._needs_shell(command_str)
-        
-        if needs_shell:
-            # For shell commands, return the full command as a single string
+
+        # Special handling for 'source' command
+        if command_str.strip().startswith("source ") or command_str.strip().startswith(
+            ". "
+        ):
+            # For 'source' command, we need to use the shell to execute it
             return [command_str], True
-            
+
+        if needs_shell:
+            # For other shell commands, return the full command as a single string
+            return [command_str], True
+
         # For non-shell commands, use shlex for proper argument splitting
         try:
             return shlex.split(command_str), False
         except Exception as e:
-            logger.warning(f"Error parsing command with shlex, falling back to simple split: {e}")
+            logger.warning(
+                f"Error parsing command with shlex, falling back to simple split: {e}"
+            )
             return command_str.split(), False

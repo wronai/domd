@@ -4,7 +4,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -18,29 +18,30 @@ def create_test_command(command_str: str) -> Command:
         command=command_str,
         type="shell",
         description=f"Test command: {command_str}",
-        source="test_shell_command_executor.py"
+        source="test_shell_command_executor.py",
     )
 
 
 def test_execute_shell_builtin():
     """Test that shell built-in commands work with shell=True."""
     executor = ShellCommandExecutor()
-    
+
     # Test with 'source' command which is a shell built-in
     result = executor.execute(create_test_command("source /dev/null"))
+    # Should succeed because we detect it needs a shell
     assert result.success
-    
-    # Test with 'cd' command - in the current implementation, this will fail
-    # because we're not in a shell context
+
+    # Test with 'cd' command - has special handling in the executor
     result = executor.execute(create_test_command("cd"))
-    assert not result.success
-    assert "No such file or directory" in result.stderr
+    # Should succeed because of special handling
+    assert result.success
+    assert "Changed directory to" in result.stdout
 
 
 def test_execute_with_environment_variables():
     """Test that environment variables are handled correctly."""
     executor = ShellCommandExecutor()
-    
+
     # Test with environment variable assignment
     # Note: This requires shell=True to work properly
     result = executor.execute(create_test_command("echo $HOME"))
@@ -51,14 +52,14 @@ def test_execute_with_environment_variables():
 def test_execute_with_shell_operators():
     """Test that shell operators work correctly."""
     executor = ShellCommandExecutor()
-    
+
     # Test with pipe operator
     # Note: This requires shell=True to work properly
     result = executor.execute(create_test_command("echo hello | tr a-z A-Z"))
     assert result.success
     # The actual output might have newlines, so we'll just check for HELLO in the output
     assert "HELLO" in result.stdout.strip()
-    
+
     # Test with output redirection
     # Note: This requires shell=True to work properly
     test_file = "test_output.txt"
@@ -76,23 +77,23 @@ def test_execute_with_shell_operators():
 def test_execute_cd_command():
     """Test special handling of cd command."""
     executor = ShellCommandExecutor()
-    
-    # Test changing to home directory - this will fail without shell=True
+
+    # Test changing to home directory - has special handling
+    home = str(Path.home())
     result = executor.execute(create_test_command("cd"))
-    assert not result.success
-    assert "No such file or directory" in result.stderr
-    
+    assert result.success
+    assert home in result.stdout
+
     # Test changing to a specific directory
     test_dir = "/tmp/test_dir"
     try:
         Path(test_dir).mkdir(exist_ok=True)
-        result = executor.execute(Command(f"cd {test_dir}"))
+        result = executor.execute(create_test_command(f"cd {test_dir}"))
         assert result.success
         assert test_dir in result.stdout
     finally:
         if Path(test_dir).exists():
             Path(test_dir).rmdir()
-    
     # Test with non-existent directory
     result = executor.execute(Command("cd /nonexistent/directory"))
     assert not result.success
@@ -102,20 +103,20 @@ def test_execute_cd_command():
 def test_needs_shell():
     """Test the _needs_shell method."""
     executor = ShellCommandExecutor()
-    
+
     # Shell built-ins
     assert executor._needs_shell("source file") is True
     assert executor._needs_shell("cd /tmp") is True
     assert executor._needs_shell("export VAR=value") is True
-    
+
     # Shell operators
     assert executor._needs_shell("cmd1 | cmd2") is True
     assert executor._needs_shell("cmd > file") is True
     assert executor._needs_shell("cmd1 && cmd2") is True
-    
+
     # Environment variables
     assert executor._needs_shell("VAR=value cmd") is True
-    
+
     # Regular commands
     assert executor._needs_shell("ls -la") is False
     assert executor._needs_shell("python --version") is False
@@ -124,42 +125,46 @@ def test_needs_shell():
 def test_parse_command():
     """Test the _parse_command method."""
     executor = ShellCommandExecutor()
-    
-    # Regular command
+
+    # Regular command - should be split into args without needing shell
     args, needs_shell = executor._parse_command("ls -la")
     assert args == ["ls", "-la"]
     assert needs_shell is False
-    
-    # Command with quotes - the current implementation doesn't handle quotes specially
+
+    # Command with quotes - should be kept as is and need shell
     args, needs_shell = executor._parse_command('echo "hello world"')
     assert args == ['echo "hello world"']
-    assert needs_shell is False
-    
-    # Shell built-in
+    assert needs_shell is True
+
+    # Shell built-in - should need shell
     args, needs_shell = executor._parse_command("source file")
     assert args == ["source file"]
     assert needs_shell is True
-    
-    # Command with shell operators
+
+    # Command with shell operators - should need shell
     args, needs_shell = executor._parse_command("cmd1 | cmd2")
     assert args == ["cmd1 | cmd2"]
+    assert needs_shell is True
+
+    # Environment variable assignment - should need shell
+    args, needs_shell = executor._parse_command("VAR=value command")
+    assert args == ["VAR=value command"]
     assert needs_shell is True
 
 
 def test_execute_in_directory(tmp_path):
     """Test executing commands in a specific directory."""
     executor = ShellCommandExecutor()
-    
+
     # Create a test file in the temp directory
     test_file = tmp_path / "test.txt"
     test_file.write_text("test")
-    
+
     # Execute command in the temp directory
     result = executor.execute_in_directory(
-        create_test_command("cat test.txt"),
-        directory=tmp_path
+        create_test_command("cat test.txt"), directory=tmp_path
     )
-    
+
     assert result.success
     assert result.stdout.strip() == "test"
 
@@ -167,10 +172,10 @@ def test_execute_in_directory(tmp_path):
 def test_command_timeout():
     """Test command timeout handling."""
     executor = ShellCommandExecutor()
-    
+
     # This command should time out quickly
     result = executor.execute(create_test_command("sleep 10"), timeout=0.1)
-    
+
     assert not result.success
     # The error message is in the error field, not stderr
     assert result.error and "timed out" in result.error.lower()
@@ -179,17 +184,17 @@ def test_command_timeout():
 def test_max_retries():
     """Test command retry logic."""
     # Mock subprocess.run to fail twice then succeed
-    with patch('subprocess.run') as mock_run:
+    with patch("subprocess.run") as mock_run:
         # First two calls fail, third succeeds
         mock_run.side_effect = [
             MagicMock(returncode=1, stdout=b"", stderr=b"Error"),
             MagicMock(returncode=1, stdout=b"", stderr=b"Error"),
             MagicMock(returncode=0, stdout=b"Success", stderr=b""),
         ]
-        
+
         executor = ShellCommandExecutor(max_retries=3)
         result = executor.execute(create_test_command("flaky_command"))
-        
+
         assert result.success
         # The stdout is returned as bytes, not string
         assert result.stdout == b"Success"
