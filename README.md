@@ -88,6 +88,38 @@ Open an [issue](https://github.com/wronai/domd/issues) if you need help or have 
 - Patterns support glob-style wildcards (`*` matches any sequence of characters)
 - Matches are case-insensitive
 
+### 📂 Subdirectory README.md Support
+
+DoMD can automatically scan first-level subdirectories for additional `README.md` files and execute commands found within them. This is particularly useful for monorepos or projects with multiple components.
+
+#### How It Works
+
+- DoMD scans all first-level subdirectories in your project
+- For each subdirectory containing a `README.md` file:
+  - Commands are extracted from the `README.md`
+  - Commands are executed with the subdirectory as the working directory
+  - Command output and results are included in the main report
+
+#### Example Project Structure
+
+```text
+my-project/
+├── README.md           # Commands run from project root
+├── frontend/
+│   └── README.md      # Commands run from frontend/
+├── backend/
+│   └── README.md      # Commands run from backend/
+└── docs/
+    └── README.md      # Commands run from docs/
+```
+
+#### Benefits
+
+- Keep commands close to the code they relate to
+- Maintain separate command sets for different project components
+- Simplify complex project automation
+- Commands run in their proper context
+
 ### 🐳 Running Commands in Docker with `.dodocker`
 
 For better isolation and consistency, you can specify commands that should be executed inside a Docker container using a `.dodocker` file.

@@ -115,7 +115,7 @@ class CommandHandler:
 
             # Log the result
             if result.success:
-                logger.info(f"Command succeeded in {result.execution_time:.2f}s")
+                logger.info(f"Command succeeded in {result.execution_time:.2f} s")
                 self.successful_commands.append(result_dict)
             else:
                 logger.error(f"Command failed with code {result.return_code}")
@@ -266,14 +266,33 @@ class CommandHandler:
         """
         if hasattr(cmd_info, "command"):  # It's a Command object
             command = cmd_info.command
-            cwd = getattr(cmd_info, "cwd", self.project_path)
+            # Get cwd from metadata if available, otherwise fall back to project_path
+            cwd = (
+                Path(cmd_info.metadata.get("cwd"))
+                if hasattr(cmd_info, "metadata")
+                and hasattr(cmd_info.metadata, "get")
+                and callable(cmd_info.metadata.get)
+                and cmd_info.metadata.get("cwd")
+                else getattr(cmd_info, "cwd", self.project_path)
+            )
             timeout = getattr(cmd_info, "timeout", self.timeout)
             env = getattr(cmd_info, "env", None)
         else:  # It's a dictionary
             command = cmd_info.get("command", "")
-            cwd = str(cmd_info.get("cwd", self.project_path))
+            # Get cwd from metadata if available, otherwise fall back to project_path
+            cwd = (
+                Path(cmd_info.get("metadata", {}).get("cwd", self.project_path))
+                if isinstance(cmd_info.get("metadata"), dict)
+                else Path(self.project_path)
+            )
             timeout = cmd_info.get("timeout", self.timeout)
             env = cmd_info.get("env", None)
+
+        # Ensure cwd is a Path object and resolve it relative to project_path if it's relative
+        cwd = Path(cwd)
+        if not cwd.is_absolute():
+            cwd = self.project_path / cwd
+        cwd = cwd.resolve()
 
         # Sprawdź, czy komenda powinna być wykonana w kontenerze Docker
         use_docker = self.should_run_in_docker(command)
@@ -358,16 +377,27 @@ class CommandHandler:
             try:
                 # Check if command should be ignored
                 if self.should_ignore_command(cmd):
-                    logger.info("Ignoring command: %s", cmd)
+                    cmd_source = (
+                        cmd.source
+                        if hasattr(cmd, "source")
+                        else cmd.get("source", "unknown")
+                    )
+                    logger.info("Ignoring command from %s: %s", cmd_source, cmd)
                     self.ignored_commands.append(cmd)
                     continue
 
                 # Make a copy of the command to avoid modifying the original
                 if isinstance(cmd, dict):
                     cmd_copy = cmd.copy()
+                    # Ensure metadata exists
+                    if "metadata" not in cmd_copy:
+                        cmd_copy["metadata"] = {}
                 else:
                     # For Command objects, create a shallow copy
                     cmd_copy = type(cmd)(**cmd.__dict__)
+                    # Ensure metadata exists
+                    if not hasattr(cmd_copy, "metadata") or cmd_copy.metadata is None:
+                        setattr(cmd_copy, "metadata", {})
 
                 # Execute the command and get the full result
                 success = self.execute_single_command(cmd_copy)
@@ -377,6 +407,11 @@ class CommandHandler:
                     # Ensure we have all required fields for the test
                     if "source" not in cmd_copy:
                         cmd_copy["source"] = cmd_copy.get("file", "unknown")
+
+                    # Preserve the cwd in the output for reference
+                    cwd = cmd_copy.get("metadata", {}).get("cwd", self.project_path)
+                    if cwd != self.project_path:
+                        cmd_copy["source"] = f"{cwd}/{cmd_copy['source']}"
 
                     # If command failed but no error was set, set a default error message
                     if not success and not cmd_copy.get("error"):
@@ -390,6 +425,17 @@ class CommandHandler:
                         setattr(
                             cmd_copy, "source", getattr(cmd_copy, "file", "unknown")
                         )
+
+                    # Preserve the cwd in the output for reference
+                    cwd = (
+                        cmd_copy.metadata.get("cwd")
+                        if hasattr(cmd_copy, "metadata")
+                        and hasattr(cmd_copy.metadata, "get")
+                        and callable(cmd_copy.metadata.get)
+                        else self.project_path
+                    )
+                    if cwd != self.project_path:
+                        setattr(cmd_copy, "source", f"{cwd}/{cmd_copy.source}")
 
                     # If command failed but no error was set, set a default error message
                     if not success and not hasattr(cmd_copy, "error"):

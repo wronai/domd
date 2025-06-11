@@ -213,82 +213,133 @@ class ProjectCommandDetector:
         """
         return get_virtualenv_environment(self.venv_info)
 
+    def _process_file_commands(self, file_path: Path) -> List[Dict]:
+        """Process a single file and extract commands.
+
+        Args:
+            file_path: Path to the file to process
+
+        Returns:
+            List of command dictionaries
+        """
+        commands = []
+        try:
+            # Try to get parser from registry first
+            parser = self.parser_registry.get_parser_for_file(file_path)
+
+            # If no parser found in registry, try legacy method
+            if not parser:
+                parser = self._get_parser_for_file(file_path)
+
+            if not parser:
+                logger.warning(f"No parser found for {file_path}")
+                return commands
+
+            logger.debug(f"Parsing {file_path} with {parser.__class__.__name__}")
+
+            # Read file content
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except Exception as e:
+                logger.error(f"Error reading file {file_path}: {e}")
+                return commands
+
+            # Set the file_path on the parser if it has that attribute
+            if hasattr(parser, "file_path"):
+                parser.file_path = file_path
+
+            # Try different ways to call the parse method
+            try:
+                import inspect
+
+                sig = inspect.signature(parser.parse)
+
+                if "file_path" in sig.parameters and "content" in sig.parameters:
+                    file_commands = parser.parse(content=content, file_path=file_path)
+                elif "content" in sig.parameters:
+                    file_commands = parser.parse(content=content)
+                elif "file_path" in sig.parameters:
+                    file_commands = parser.parse(file_path=file_path)
+                else:
+                    # Last resort - try passing content as the first argument
+                    file_commands = parser.parse(content)
+
+                # Add file path to commands if not already present
+                for cmd in file_commands:
+                    if isinstance(cmd, dict) and "file" not in cmd:
+                        cmd["file"] = str(file_path)
+                        # Add relative path as source if not present
+                        if "source" not in cmd:
+                            cmd["source"] = str(
+                                file_path.relative_to(self.project_path)
+                            )
+                    elif hasattr(cmd, "file") and not cmd.file:
+                        cmd.file = str(file_path)
+                        if not hasattr(cmd, "source") or not cmd.source:
+                            cmd.source = str(file_path.relative_to(self.project_path))
+
+                commands.extend(file_commands)
+                logger.debug(f"Found {len(file_commands)} commands in {file_path}")
+
+            except Exception as e:
+                logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
+        except Exception as e:
+            logger.error(f"Unexpected error processing {file_path}: {e}", exc_info=True)
+
+        return commands
+
     def scan_project(self) -> List[Command]:
         """Scan the project for commands in configuration files.
+
+        This will scan both the root directory and all first-level subdirectories
+        for README.md files and process commands in their respective contexts.
 
         Returns:
             List of Command objects
         """
         logger.info(f"Scanning project: {self.project_path}")
-
-        # Find configuration files
-        config_files = self.config_handler.find_config_files(self.parsers)
-        logger.info(f"Found {len(config_files)} configuration files")
-
-        # Parse files and collect commands
         all_commands = []
 
+        # 1. Scan root directory for configuration files
+        config_files = self.config_handler.find_config_files(self.parsers)
+        logger.info(f"Found {len(config_files)} configuration files in root directory")
+
+        # Process root directory files
         for file_path in config_files:
-            try:
-                # Try to get parser from registry first
-                parser = self.parser_registry.get_parser_for_file(file_path)
+            all_commands.extend(self._process_file_commands(file_path))
 
-                # If no parser found in registry, try legacy method
-                if not parser:
-                    parser = self._get_parser_for_file(file_path)
+        # 2. Scan first-level subdirectories for README.md files
+        try:
+            for item in self.project_path.iterdir():
+                if item.is_dir() and not item.name.startswith("."):
+                    readme_path = item / "README.md"
+                    if readme_path.exists() and readme_path.is_file():
+                        logger.info(f"Found README.md in subdirectory: {item.name}")
+                        # Process README.md in subdirectory
+                        commands = self._process_file_commands(readme_path)
 
-                if not parser:
-                    logger.warning(f"No parser found for {file_path}")
-                    continue
+                        # Update command metadata with subdirectory context
+                        for cmd in commands:
+                            if isinstance(cmd, dict):
+                                cmd_metadata = cmd.setdefault("metadata", {})
+                                cmd_metadata["cwd"] = str(item)
+                                cmd_metadata["source"] = f"{item.name}/README.md"
+                            elif hasattr(cmd, "metadata"):
+                                if not hasattr(cmd.metadata, "get") or not callable(
+                                    cmd.metadata.get
+                                ):
+                                    cmd.metadata = {"original_metadata": cmd.metadata}
+                                cmd.metadata["cwd"] = str(item)
+                                if not getattr(cmd, "source", None):
+                                    cmd.source = f"{item.name}/README.md"
 
-                logger.debug(f"Parsing {file_path} with {parser.__class__.__name__}")
-
-                # Odczytaj zawartość pliku
-                try:
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        content = f.read()
-                except Exception as e:
-                    logger.error(f"Error reading file {file_path}: {e}")
-                    continue
-
-                # Set the file_path on the parser if it has that attribute
-                if hasattr(parser, "file_path"):
-                    parser.file_path = file_path
-
-                # Try different ways to call the parse method
-                try:
-                    import inspect
-
-                    sig = inspect.signature(parser.parse)
-
-                    if "file_path" in sig.parameters and "content" in sig.parameters:
-                        commands = parser.parse(content=content, file_path=file_path)
-                    elif "content" in sig.parameters:
-                        commands = parser.parse(content=content)
-                    elif "file_path" in sig.parameters:
-                        commands = parser.parse(file_path=file_path)
-                    else:
-                        # Last resort - try passing content as the first argument
-                        commands = parser.parse(content)
-
-                    # Add file path to commands if not already present
-                    for cmd in commands:
-                        if isinstance(cmd, dict) and "file" not in cmd:
-                            cmd["file"] = str(file_path)
-                        elif hasattr(cmd, "file") and not cmd.file:
-                            cmd.file = str(file_path)
-
-                    all_commands.extend(commands)
-                    logger.debug(f"Found {len(commands)} commands in {file_path}")
-
-                except Exception as e:
-                    logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
-                    continue
-            except Exception as e:
-                logger.error(
-                    f"Unexpected error processing {file_path}: {e}", exc_info=True
-                )
-                continue
+                        all_commands.extend(commands)
+                        logger.info(
+                            f"Found {len(commands)} commands in {item.name}/README.md"
+                        )
+        except Exception as e:
+            logger.error(f"Error scanning subdirectories: {e}", exc_info=True)
 
         logger.info(f"Found {len(all_commands)} commands in total")
 
