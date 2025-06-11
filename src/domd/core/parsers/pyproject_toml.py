@@ -43,37 +43,19 @@ class PyProjectTomlParser(BaseParser):
         """Return supported file patterns for pyproject.toml."""
         return ["pyproject.toml"]
 
-    def parse(self, content: str = None) -> List[Command]:
-        """Parse pyproject.toml and extract project commands.
+    def _parse_toml_content(
+        self, content: str, file_path: str = None
+    ) -> Dict[str, Any]:
+        """Parse TOML content with proper error handling.
 
         Args:
-            content: Optional content of the file to parse. If not provided, will read from file_path.
+            content: TOML content to parse
+            file_path: Optional file path for better error messages
 
         Returns:
-            List of Command objects
+            Parsed TOML data or empty dict if parsing fails
         """
-        logger.debug(f"Starting to parse {self.file_path}")
-
-        if not TOML_AVAILABLE:
-            logger.error("No TOML parser available. Install 'tomli' or 'toml' package.")
-            return []
-
-        if content is None and (not self.file_path or not self.file_path.exists()):
-            logger.error(f"File not found and no content provided: {self.file_path}")
-            return []
-
-        from domd.core.commands import Command
-
-        self._commands: List[Command] = []
-
         try:
-            # If content is not provided, read from file
-            if content is None:
-                logger.debug(f"Reading content from {self.file_path}")
-                content = self.file_path.read_text(encoding="utf-8")
-            else:
-                logger.debug("Using provided content for parsing")
-
             # Try to load with the available TOML library
             if "tomli" in globals():
                 import tomli as toml_lib
@@ -90,26 +72,86 @@ class PyProjectTomlParser(BaseParser):
                 # Fallback for older versions of toml
                 data = toml_lib.loads(content)
 
-            logger.debug(
-                f"Successfully parsed TOML data: {data.keys() if data else 'empty'}"
-            )
+            if not isinstance(data, dict):
+                logger.warning(
+                    f"Unexpected TOML structure in {file_path or 'content'}, expected a dictionary"
+                )
+                return {}
 
-            # Extract Poetry scripts
-            self._extract_poetry_scripts(data)
-
-            # Extract test commands
-            self._extract_test_commands(data)
-            # Extract build commands
-            self._extract_build_commands(data)
-
-            logger.debug(
-                f"Extracted {len(self._commands)} commands from {self.file_path}"
-            )
+            logger.debug(f"Successfully parsed TOML data: {list(data.keys())}")
+            return data
 
         except Exception as e:
-            logger.error(f"Error parsing {self.file_path}: {e}", exc_info=True)
+            logger.warning(
+                f"Failed to parse TOML content from {file_path or 'provided content'}: {e}"
+            )
+            logger.debug(f"TOML parsing error details:", exc_info=True)
+            return {}
+
+    def _extract_commands_safely(self, data: Dict[str, Any]) -> None:
+        """Extract commands from parsed TOML data with error handling for each section."""
+        try:
+            self._extract_poetry_scripts(data)
+        except Exception as e:
+            logger.warning(f"Error extracting Poetry scripts: {e}", exc_info=True)
+
+        try:
+            self._extract_test_commands(data)
+        except Exception as e:
+            logger.warning(f"Error extracting test commands: {e}", exc_info=True)
+
+        try:
+            self._extract_build_commands(data)
+        except Exception as e:
+            logger.warning(f"Error extracting build commands: {e}", exc_info=True)
+
+    def parse(self, content: str = None) -> List[Command]:
+        """Parse pyproject.toml and extract project commands.
+
+        Args:
+            content: Optional content of the file to parse. If not provided, will read from file_path.
+
+        Returns:
+            List of Command objects. Returns empty list if parsing fails.
+        """
+        file_path_str = str(self.file_path) if self.file_path else "provided content"
+        logger.debug(f"Starting to parse {file_path_str}")
+
+        if not TOML_AVAILABLE:
+            logger.warning(
+                "No TOML parser available. Install 'tomli' or 'toml' package."
+            )
             return []
 
+        # Initialize commands list
+        from domd.core.commands import Command
+
+        self._commands: List[Command] = []
+
+        # Read content if not provided
+        if content is None:
+            if not self.file_path or not self.file_path.exists():
+                logger.warning(f"File not found: {file_path_str}")
+                return []
+            try:
+                logger.debug(f"Reading content from {file_path_str}")
+                content = self.file_path.read_text(encoding="utf-8")
+            except Exception as e:
+                logger.warning(f"Failed to read file {file_path_str}: {e}")
+                return []
+        else:
+            logger.debug("Using provided content for parsing")
+
+        # Parse TOML content
+        data = self._parse_toml_content(content, file_path_str)
+        if not data:
+            logger.warning(f"No valid TOML data found in {file_path_str}")
+            return []
+
+        # Extract commands from different sections
+        self._extract_commands_safely(data)
+
+        logger.debug(f"Extracted {len(self._commands)} commands from {file_path_str}")
         return self._commands
 
     def _extract_poetry_scripts(self, data: Dict[str, Any]) -> None:
