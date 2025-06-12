@@ -1,102 +1,111 @@
-# 📥 Instalacja DoMD
+# 📥 DoMD Installation Guide
 
-## Wymagania wstępne
+## Prerequisites
 
-- Python 3.8 lub nowszy
-- pip (menedżer pakietów Pythona)
-- Git (opcjonalnie, do instalacji z repozytorium)
+- Python 3.8 or newer
+- pip (Python package manager)
+- Git (optional, for installation from repository)
+- Docker (optional, for containerized execution)
 
-## Metody instalacji
+## Installation Methods
 
-### 1. Instalacja przez pip (zalecane)
+### 1. Using pip (Recommended)
 
-Najprostszy sposób na zainstalowanie DoMD:
+The easiest way to install DoMD:
 
 ```bash
 pip install domd
 ```
 
-### 2. Instalacja z repozytorium (dla najnowszej wersji)
+### 2. From Source (for latest development version)
 
-Jeśli chcesz korzystać z najnowszych zmian:
+If you want to use the latest development version:
 
 ```bash
-# Sklonuj repozytorium
+# Clone the repository
 git clone https://github.com/wronai/domd.git
 cd domd
 
-# Zainstaluj w trybie edytowalnym
+# Install in development mode
 pip install -e .
 ```
 
-### 3. Instalacja z dodatkowymi zależnościami
+### 3. With Optional Dependencies
 
-DoMD obsługuje dodatkowe zależności dla rozszerzonej funkcjonalności:
+DoMD supports optional dependencies for extended functionality:
 
 ```bash
-# Z obsługą Ansible
+# With Ansible support
 pip install "domd[ansible]"
 
-# Z dodatkami developerskimi
+# With development tools
 pip install "domd[dev]"
 
-# Wszystkie dodatki
+# All optional dependencies
 pip install "domd[all]"
 
-# Z użyciem Poetry (opcjonalnie)
+# Using Poetry (optional)
 poetry add domd
 ```
 
-## Weryfikacja instalacji
+### 4. Using Docker
 
-Sprawdź, czy DoMD został poprawnie zainstalowany:
+You can also use DoMD via Docker without installing it locally:
+
+```bash
+docker run --rm -v $(pwd):/app ghcr.io/wronai/domd domd
+```
+
+## Verifying Installation
+
+Check if DoMD is installed correctly:
 
 ```bash
 domd --version
 ```
 
-Powinieneś zobaczyć numer wersji, np. `domd 1.0.0`.
+You should see the version number, e.g., `domd 1.0.0`.
 
-## Aktualizacja
+## Updating
 
-Aby zaktualizować DoMD do najnowszej wersji:
+To update DoMD to the latest version:
 
 ```bash
 pip install --upgrade domd
 ```
 
-## Odinstalowywanie
+## Uninstalling
 
-Jeśli chcesz odinstalować DoMD:
+To uninstall DoMD:
 
 ```bash
 pip uninstall domd
 ```
 
-## Rozwiązywanie problemów
+## Troubleshooting
 
-### Błąd braku uprawnień
+### Permission Errors
 
-Jeśli wystąpi błąd uprawnień podczas instalacji, spróbuj:
+If you encounter permission errors during installation:
 
 ```bash
 pip install --user domd
 ```
-lub
+Or on Linux/macOS:
 ```bash
-sudo pip install domd  # Tylko na Linux/macOS
+sudo pip install domd
 ```
 
-### Błędy zależności
+### Dependency Issues
 
-Jeśli napotkasz problemy z zależnościami, spróbuj:
+If you have dependency conflicts:
 
 ```bash
 pip install --upgrade pip setuptools wheel
 pip install --no-cache-dir domd
 ```
 
-### Częste problemy
+### Common Issues
 
 #### 1. Błąd: "Command not found"
 

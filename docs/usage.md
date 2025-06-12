@@ -1,81 +1,81 @@
-# 🚀 Przewodnik użytkownika DoMD
+# 🚀 DoMD User Guide
 
-## Spis treści
-1. [Podstawowe użycie](#-podstawowe-użycie)
-2. [Skanowanie projektu](#-skanowanie-projektu)
-3. [Konfiguracja](#-konfiguracja)
-4. [Zaawansowane funkcje](#-zaawansowane-funkcje)
-5. [Integracja z CI/CD](#-integracja-z-cicd)
-6. [Przykłady użycia](#-przykłady-użycia)
-7. [Rozwiązywanie problemów](#-rozwiązywanie-problemów)
+## Table of Contents
+1. [Basic Usage](#-basic-usage)
+2. [Project Scanning](#-project-scanning)
+3. [Configuration](#-configuration)
+4. [Advanced Features](#-advanced-features)
+5. [CI/CD Integration](#-cicd-integration)
+6. [Usage Examples](#-usage-examples)
+7. [Troubleshooting](#-troubleshooting)
 
-## 🏁 Podstawowe użycie
+## 🏁 Basic Usage
 
-Najprostszy sposób na uruchomienie DoMD w Twoim projekcie:
+The simplest way to run DoMD in your project:
 
 ```bash
-# Przejdź do katalogu projektu
-cd /ścieżka/do/projektu
+# Navigate to your project directory
+cd /path/to/your/project
 
-# Uruchom domd
+# Run domd
 domd
 ```
 
-Domyślnie DoMD:
-1. Przeskanuje bieżący katalog w poszukiwaniu plików konfiguracyjnych
-2. Zidentyfikuje dostępne komendy (np. z `package.json`, `Makefile`, `pyproject.toml`)
-3. Wykona znalezione komendy
-4. Wygeneruje raport w pliku `TODO.md`
+By default, DoMD will:
+1. Scan the current directory for configuration files
+2. Identify available commands (e.g., from `package.json`, `Makefile`, `pyproject.toml`)
+3. Execute the found commands
+4. Generate a report in `TODO.md`
 
-## 🔍 Skanowanie projektu
+## 🔍 Project Scanning
 
-### Obsługiwane pliki konfiguracyjne
+### Supported Configuration Files
 
-DoMD automatycznie wykrywa i analizuje następujące typy plików:
+DoMD automatically detects and analyzes the following file types:
 
 - **JavaScript/TypeScript**: `package.json` (npm, yarn)
 - **Python**: `setup.py`, `pyproject.toml`, `requirements.txt`
 - **Make**: `Makefile`
 - **Docker**: `Dockerfile`, `docker-compose.yml`
-- **Ansible**: Playbooki, role, inventory
+- **Ansible**: Playbooks, roles, inventory
 - **PHP**: `composer.json`
 - **Rust**: `Cargo.toml`
-- **TOML**: Ogólna obsługa plików TOML
-- **YAML**: Ogólna obsługa plików YAML
-- **INI**: Ogólna obsługa plików INI
+- **TOML**: General TOML file support
+- **YAML**: General YAML file support
+- **INI**: General INI file support
 
-### Opcje skanowania
+### Scanning Options
 
 ```bash
-# Skanowanie konkretnego katalogu
-domd --path /ścieżka/do/projektu
+# Scan a specific directory
+domd --path /path/to/project
 
-# Pomijanie określonych plików/katalogów
+# Exclude specific files/directories
 domd --exclude "*.test.js" --exclude "node_modules/*"
 
-# Skanowanie tylko wybranych plików
+# Scan only specific files
 domd --include-only "Makefile" --include-only "package.json"
 ```
 
-## ⚙️ Konfiguracja
+## ⚙️ Configuration
 
-### Plik .domdignore
+### .domdignore File
 
-Możesz utworzyć plik `.domdignore` w głównym katalogu projektu, aby wykluczyć określone komendy:
+Create a `.domdignore` file in your project root to exclude specific commands:
 
 ```
-# Ignoruj konkretne komendy
+# Ignore specific commands
 npm run test:coverage
 pytest -xvs
 
-# Ignoruj według wzorca
+# Ignore using patterns
 *coverage*
 *test*
 ```
 
-### Plik .dodocker
+### .dodocker File
 
-Aby uruchamiać komendy w kontenerze Docker, utwórz plik `.dodocker`:
+To run commands in a Docker container, create a `.dodocker` file:
 
 ```yaml
 image: python:3.9
@@ -86,16 +86,16 @@ environment:
   - PYTHONPATH=/app
 ```
 
-## 🚀 Zaawansowane funkcje
+## 🚀 Advanced Features
 
-### Tryb podglądu (dry-run)
+### Dry Run Mode
 
 ```bash
-# Pokaż, jakie komendy zostałyby wykonane, bez faktycznego ich wykonywania
+# Show what commands would be executed without actually running them
 domd --dry-run
 ```
 
-### Różne formaty wyjściowe
+### Output Formats
 
 ```bash
 # Format JSON
