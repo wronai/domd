@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Tom Sapletta" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>📋 .doignore - Instrukcja użycia - DOMD Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/extra.css" rel="stylesheet" />
+
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\ud83d\udccb .doignore - Instrukcja u\u017cycia";
+        var mkdocs_page_input_path = "domdignore.md";
+        var mkdocs_page_url = null;
+      </script>
+
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script>
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DOMD Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../user-guide/installation.md">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../user-guide/quickstart.md">Quickstart</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/core/">Core Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/ansible/">Ansible Integration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../api/core.md">Core</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../api/parsers.md">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../api/reporters.md">Reporters</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/testing/">Testing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/ansible-tests/">Ansible Tests</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../contributing.md">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../changelog.md">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DOMD Documentation</a>
+
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">📋 .doignore - Instrukcja użycia</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+
+                <h1 id="doignore-instrukcja-uzycia">📋 .doignore - Instrukcja użycia<a class="headerlink" href="#doignore-instrukcja-uzycia" title="Permanent link">&para;</a></h1>
+<h2 id="problem-rozwiazany">✅ <strong>Problem rozwiązany!</strong><a class="headerlink" href="#problem-rozwiazany" title="Permanent link">&para;</a></h2>
+<p>Dodałem kompletny system <code>.doignore</code> do TodoMD! Teraz możesz łatwo <strong>pomijać problematyczne komendy</strong> bez ich ręcznego usuwania.</p>
+<hr />
+<h2 id="nowe-funkcje">🚀 <strong>Nowe funkcje:</strong><a class="headerlink" href="#nowe-funkcje" title="Permanent link">&para;</a></h2>
+<h3 id="1-automatyczne-filtrowanie-komend"><strong>1. Automatyczne filtrowanie komend</strong><a class="headerlink" href="#1-automatyczne-filtrowanie-komend" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># TodoMD automatycznie pominie komendy z .doignore</span>
+domd
+</code></pre></div>
+<h3 id="2-generowanie-template-doignore"><strong>2. Generowanie template .doignore</strong><a class="headerlink" href="#2-generowanie-template-doignore" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Stwórz plik .doignore z przykładami</span>
+domd<span class="w"> </span>--generate-ignore
+</code></pre></div>
+<h3 id="3-podglad-ignorowanych-komend"><strong>3. Podgląd ignorowanych komend</strong><a class="headerlink" href="#3-podglad-ignorowanych-komend" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Zobacz które komendy będą pominięte</span>
+domd<span class="w"> </span>--show-ignored
+</code></pre></div>
+<h3 id="4-wasny-plik-ignore"><strong>4. Własny plik ignore</strong><a class="headerlink" href="#4-wasny-plik-ignore" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Użyj niestandardowego pliku</span>
+domd<span class="w"> </span>--ignore-file<span class="w"> </span>my-ignores.txt
+</code></pre></div>
+<hr />
+<h2 id="skadnia-doignore">📝 <strong>Składnia .doignore:</strong><a class="headerlink" href="#skadnia-doignore" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># .doignore - TodoMD Ignore File</span>
+
+<span class="c1"># === DOKŁADNE DOPASOWANIE ===</span>
+poetry<span class="w"> </span>run<span class="w"> </span>domd<span class="w">                    </span><span class="c1"># Pominie dokładnie tę komendę</span>
+npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w">                        </span><span class="c1"># Pominie dokładnie &quot;npm run dev&quot;</span>
+
+<span class="c1"># === WZORCE (PATTERNS) ===</span>
+*serve*<span class="w">                            </span><span class="c1"># Pominie wszystkie komendy zawierające &quot;serve&quot;</span>
+poetry<span class="w"> </span>run<span class="w"> </span>*<span class="w">                       </span><span class="c1"># Pominie wszystkie komendy zaczynające się od &quot;poetry run&quot;</span>
+*test*integration*<span class="w">                 </span><span class="c1"># Pominie komendy zawierające &quot;test&quot; i &quot;integration&quot;</span>
+
+<span class="c1"># === KOMENTARZE ===</span>
+<span class="c1"># To jest komentarz - będzie zignorowany</span>
+<span class="c1"># Puste linie też są ignorowane</span>
+
+<span class="c1"># === KATEGORIE KOMEND ===</span>
+
+<span class="c1"># Komendy interaktywne/blokujące</span>
+npm<span class="w"> </span>run<span class="w"> </span>start
+*watch*
+*serve*
+
+<span class="c1"># Komendy deployment/destrukcyjne</span>
+*publish*
+*deploy*
+*release*
+
+<span class="c1"># Wolne/zasobożerne komendy</span>
+tox
+*integration*
+*docker*build*
+</code></pre></div>
+<hr />
+<h2 id="przykady-uzycia">🎯 <strong>Przykłady użycia:</strong><a class="headerlink" href="#przykady-uzycia" title="Permanent link">&para;</a></h2>
+<h3 id="1-pierwszy-raz-generowanie-template"><strong>1. Pierwszy raz - generowanie template:</strong><a class="headerlink" href="#1-pierwszy-raz-generowanie-template" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>domd<span class="w"> </span>--generate-ignore
+
+📝<span class="w"> </span>Generating<span class="w"> </span>.doignore<span class="w"> </span>template...
+✅<span class="w"> </span>Created<span class="w"> </span>.doignore<span class="w"> </span>template<span class="w"> </span>at<span class="w"> </span>/home/user/project/.doignore
+💡<span class="w"> </span>Edit<span class="w"> </span>this<span class="w"> </span>file<span class="w"> </span>to<span class="w"> </span>customize<span class="w"> </span>which<span class="w"> </span>commands<span class="w"> </span>to<span class="w"> </span>skip
+📖<span class="w"> </span>See<span class="w"> </span>examples<span class="w"> </span>and<span class="w"> </span>patterns<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>template
+</code></pre></div>
+<h3 id="2-sprawdzenie-co-bedzie-ignorowane"><strong>2. Sprawdzenie co będzie ignorowane:</strong><a class="headerlink" href="#2-sprawdzenie-co-bedzie-ignorowane" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>domd<span class="w"> </span>--show-ignored
+
+🔍<span class="w"> </span>Scanning<span class="w"> </span>commands<span class="w"> </span>and<span class="w"> </span>showing<span class="w"> </span>ignore<span class="w"> </span>status...
+
+📊<span class="w"> </span>Command<span class="w"> </span>Analysis<span class="w"> </span>Results:
+<span class="w">   </span>Total<span class="w"> </span>commands<span class="w"> </span>found:<span class="w"> </span><span class="m">64</span>
+<span class="w">   </span>🧪<span class="w"> </span>Commands<span class="w"> </span>to<span class="w"> </span>test:<span class="w"> </span><span class="m">45</span>
+<span class="w">   </span>🚫<span class="w"> </span>Commands<span class="w"> </span>to<span class="w"> </span>ignore:<span class="w"> </span><span class="m">19</span>
+
+🚫<span class="w"> </span>Commands<span class="w"> </span>that<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>IGNORED:
+<span class="w">   </span><span class="o">(</span>based<span class="w"> </span>on<span class="w"> </span>.doignore<span class="w"> </span>rules<span class="o">)</span>
+
+<span class="w">   </span>📋<span class="w"> </span>exact<span class="w"> </span>match:<span class="w"> </span>poetry<span class="w"> </span>run<span class="w"> </span>domd:
+<span class="w">      </span>🚫<span class="w"> </span>poetry<span class="w"> </span>run<span class="w"> </span>domd<span class="w"> </span><span class="o">(</span>pyproject.toml<span class="o">)</span>
+
+<span class="w">   </span>📋<span class="w"> </span>pattern<span class="w"> </span>match:<span class="w"> </span>*serve*:
+<span class="w">      </span>🚫<span class="w"> </span>make<span class="w"> </span>serve-docs<span class="w"> </span><span class="o">(</span>Makefile<span class="o">)</span>
+<span class="w">      </span>🚫<span class="w"> </span>poetry<span class="w"> </span>run<span class="w"> </span>mkdocs<span class="w"> </span>serve<span class="w"> </span><span class="o">(</span>pyproject.toml<span class="o">)</span>
+
+<span class="w">   </span>📋<span class="w"> </span>pattern<span class="w"> </span>match:<span class="w"> </span>tox:
+<span class="w">      </span>🚫<span class="w"> </span>tox<span class="w"> </span><span class="o">(</span>tox.ini<span class="o">)</span>
+<span class="w">      </span>🚫<span class="w"> </span>tox<span class="w"> </span>-e<span class="w"> </span>py38<span class="w"> </span><span class="o">(</span>tox.ini<span class="o">)</span>
+<span class="w">      </span>🚫<span class="w"> </span>tox<span class="w"> </span>-e<span class="w"> </span>py39<span class="w"> </span><span class="o">(</span>tox.ini<span class="o">)</span>
+<span class="w">      </span>🚫<span class="w"> </span>tox<span class="w"> </span>-e<span class="w"> </span>py310<span class="w"> </span><span class="o">(</span>tox.ini<span class="o">)</span>
+<span class="w">      </span>🚫<span class="w"> </span>tox<span class="w"> </span>-e<span class="w"> </span>py311<span class="w"> </span><span class="o">(</span>tox.ini<span class="o">)</span>
+<span class="w">      </span>🚫<span class="w"> </span>tox<span class="w"> </span>-e<span class="w"> </span>py312<span class="w"> </span><span class="o">(</span>tox.ini<span class="o">)</span>
+
+🧪<span class="w"> </span>Commands<span class="w"> </span>that<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>TESTED:
+
+<span class="w">     </span><span class="m">1</span>.<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest
+<span class="w">        </span>Source:<span class="w"> </span>pyproject.toml
+<span class="w">        </span>Description:<span class="w"> </span>Run<span class="w"> </span>pytest<span class="w"> </span>tests
+
+<span class="w">     </span><span class="m">2</span>.<span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
+<span class="w">        </span>Source:<span class="w"> </span>Makefile
+<span class="w">        </span>Description:<span class="w"> </span>Make<span class="w"> </span>target:<span class="w"> </span><span class="nb">test</span>
+<span class="w">   </span>...
+
+💡<span class="w"> </span>To<span class="w"> </span>modify<span class="w"> </span>ignore<span class="w"> </span>rules,<span class="w"> </span>edit:<span class="w"> </span>/home/user/project/.doignore
+</code></pre></div>
+<h3 id="3-inicjalizacja-z-doignore"><strong>3. Inicjalizacja z .doignore:</strong><a class="headerlink" href="#3-inicjalizacja-z-doignore" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>domd<span class="w"> </span>--init-only
+
+TodoMD<span class="w"> </span>v0.1.1<span class="w"> </span>-<span class="w"> </span>Project<span class="w"> </span>Command<span class="w"> </span>Detector<span class="w"> </span>with<span class="w"> </span>.doignore
+🔍<span class="w"> </span>Project:<span class="w"> </span>/home/user/my-project
+📝<span class="w"> </span>TODO<span class="w"> </span>file:<span class="w"> </span>TODO.md
+🔧<span class="w"> </span>Script<span class="w"> </span>file:<span class="w"> </span>todo.sh
+🚫<span class="w"> </span>Ignore<span class="w"> </span>file:<span class="w"> </span>.doignore
+
+🔍<span class="w"> </span>Scanning<span class="w"> </span>project:<span class="w"> </span>/home/user/my-project
+📋<span class="w"> </span>Found<span class="w"> </span>.doignore<span class="w"> </span>file<span class="w"> </span>with<span class="w"> </span>ignore<span class="w"> </span>rules
+✅<span class="w"> </span>Found<span class="w"> </span><span class="m">64</span><span class="w"> </span>total<span class="w"> </span>commands
+🚫<span class="w"> </span>Ignored<span class="w"> </span><span class="m">19</span><span class="w"> </span>commands<span class="w"> </span><span class="o">(</span>via<span class="w"> </span>.doignore<span class="o">)</span>
+🧪<span class="w"> </span>Will<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="m">45</span><span class="w"> </span>commands
+
+📝<span class="w"> </span>Created<span class="w"> </span>TODO.md<span class="w"> </span>with<span class="w"> </span><span class="nb">command</span><span class="w"> </span>status
+🔧<span class="w"> </span>Created<span class="w"> </span>todo.sh<span class="w"> </span>executable<span class="w"> </span>script
+
+✅<span class="w"> </span>Initialization<span class="w"> </span>complete!
+📋<span class="w"> </span>Created<span class="w"> </span>TODO.md<span class="w"> </span>with<span class="w"> </span><span class="m">45</span><span class="w"> </span>testable<span class="w"> </span>commands
+🔧<span class="w"> </span>Created<span class="w"> </span>executable<span class="w"> </span>todo.sh
+🚫<span class="w"> </span>Ignored<span class="w"> </span><span class="m">19</span><span class="w"> </span>commands<span class="w"> </span>via<span class="w"> </span>.doignore
+
+💡<span class="w"> </span>Next<span class="w"> </span>steps:
+<span class="w">   </span>•<span class="w"> </span>Review<span class="w"> </span>and<span class="w"> </span>edit<span class="w"> </span>.doignore<span class="w"> </span>to<span class="w"> </span>adjust<span class="w"> </span>ignored<span class="w"> </span>commands
+<span class="w">   </span>•<span class="w"> </span>Run:<span class="w"> </span>./todo.sh<span class="w"> </span>to<span class="w"> </span>execute<span class="w"> </span>commands<span class="w"> </span>manually
+<span class="w">   </span>•<span class="w"> </span>Or<span class="w"> </span>run:<span class="w"> </span>domd<span class="w"> </span>to<span class="w"> </span><span class="nb">test</span><span class="w"> </span>with<span class="w"> </span>TodoMD
+<span class="w">   </span>•<span class="w"> </span>Use:<span class="w"> </span>domd<span class="w"> </span>--show-ignored<span class="w"> </span>to<span class="w"> </span>see<span class="w"> </span>ignored<span class="w"> </span>commands
+</code></pre></div>
+<h3 id="4-pene-uruchomienie-z-filtrowaniem"><strong>4. Pełne uruchomienie z filtrowaniem:</strong><a class="headerlink" href="#4-pene-uruchomienie-z-filtrowaniem" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>domd
+
+TodoMD<span class="w"> </span>v0.1.1<span class="w"> </span>-<span class="w"> </span>Project<span class="w"> </span>Command<span class="w"> </span>Detector<span class="w"> </span>with<span class="w"> </span>.doignore
+🔍<span class="w"> </span>Project:<span class="w"> </span>/home/user/my-project
+📝<span class="w"> </span>TODO<span class="w"> </span>file:<span class="w"> </span>TODO.md
+🔧<span class="w"> </span>Script<span class="w"> </span>file:<span class="w"> </span>todo.sh
+🚫<span class="w"> </span>Ignore<span class="w"> </span>file:<span class="w"> </span>.doignore
+
+🔍<span class="w"> </span>Scanning<span class="w"> </span>project:<span class="w"> </span>/home/user/my-project
+📋<span class="w"> </span>Found<span class="w"> </span>.doignore<span class="w"> </span>file<span class="w"> </span>with<span class="w"> </span>ignore<span class="w"> </span>rules
+✅<span class="w"> </span>Found<span class="w"> </span><span class="m">64</span><span class="w"> </span>total<span class="w"> </span>commands
+🚫<span class="w"> </span>Ignored<span class="w"> </span><span class="m">19</span><span class="w"> </span>commands<span class="w"> </span><span class="o">(</span>via<span class="w"> </span>.doignore<span class="o">)</span>
+🧪<span class="w"> </span>Will<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="m">45</span><span class="w"> </span>commands
+
+📝<span class="w"> </span>Created<span class="w"> </span>TODO.md<span class="w"> </span>with<span class="w"> </span><span class="nb">command</span><span class="w"> </span>status
+🔧<span class="w"> </span>Created<span class="w"> </span>todo.sh<span class="w"> </span>executable<span class="w"> </span>script
+
+🧪<span class="w"> </span>Testing<span class="w"> </span><span class="m">45</span><span class="w"> </span>commands...
+🚫<span class="w"> </span>Ignoring<span class="w"> </span><span class="m">19</span><span class="w"> </span>commands<span class="w"> </span>via<span class="w"> </span>.doignore
+📊<span class="w"> </span>Progress<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>updated<span class="w"> </span><span class="k">in</span><span class="w"> </span>TODO.md
+
+<span class="o">[</span><span class="m">1</span>/45<span class="o">]</span><span class="w"> </span>Testing:<span class="w"> </span>Run<span class="w"> </span>pytest<span class="w"> </span>tests
+✅<span class="w"> </span>Command<span class="w"> </span>succeeded:<span class="w"> </span>Run<span class="w"> </span>pytest<span class="w"> </span>tests
+<span class="o">[</span><span class="m">2</span>/45<span class="o">]</span><span class="w"> </span>Testing:<span class="w"> </span>Make<span class="w"> </span>target:<span class="w"> </span><span class="nb">test</span>
+✅<span class="w"> </span>Command<span class="w"> </span>succeeded:<span class="w"> </span>Make<span class="w"> </span>target:<span class="w"> </span><span class="nb">test</span>
+<span class="o">[</span><span class="m">3</span>/45<span class="o">]</span><span class="w"> </span>Testing:<span class="w"> </span>Make<span class="w"> </span>target:<span class="w"> </span>build
+❌<span class="w"> </span>Command<span class="w"> </span>failed:<span class="w"> </span>Make<span class="w"> </span>target:<span class="w"> </span>build
+...
+
+<span class="o">==================================================</span>
+EXECUTION<span class="w"> </span><span class="nv">SUMMARY</span>
+<span class="o">==================================================</span>
+📊<span class="w"> </span>Results:
+<span class="w">   </span>Total<span class="w"> </span>commands<span class="w"> </span>found:<span class="w"> </span><span class="m">64</span>
+<span class="w">   </span>Commands<span class="w"> </span>tested:<span class="w"> </span><span class="m">45</span>
+<span class="w">   </span>Commands<span class="w"> </span>ignored:<span class="w"> </span><span class="m">19</span><span class="w"> </span><span class="o">(</span>via<span class="w"> </span>.doignore<span class="o">)</span>
+<span class="w">   </span>✅<span class="w"> </span>Successful:<span class="w"> </span><span class="m">42</span>
+<span class="w">   </span>❌<span class="w"> </span>Failed:<span class="w"> </span><span class="m">3</span>
+<span class="w">   </span>📈<span class="w"> </span>Success<span class="w"> </span>rate:<span class="w"> </span><span class="m">93</span>.3%
+
+📝<span class="w"> </span>Files:
+<span class="w">   </span>📋<span class="w"> </span>TODO<span class="w"> </span>file:<span class="w"> </span>TODO.md
+<span class="w">   </span>🔧<span class="w"> </span>Script<span class="w"> </span>file:<span class="w"> </span>todo.sh
+<span class="w">   </span>🚫<span class="w"> </span>Ignore<span class="w"> </span>file:<span class="w"> </span>.doignore
+
+🔧<span class="w"> </span>Next<span class="w"> </span>steps:
+<span class="w">   </span><span class="m">1</span>.<span class="w"> </span>Review<span class="w"> </span>failed<span class="w"> </span>commands<span class="w"> </span><span class="k">in</span><span class="w"> </span>TODO.md
+<span class="w">   </span><span class="m">2</span>.<span class="w"> </span>Add<span class="w"> </span>problematic<span class="w"> </span>commands<span class="w"> </span>to<span class="w"> </span>.doignore
+<span class="w">   </span><span class="m">3</span>.<span class="w"> </span>Edit<span class="w"> </span>todo.sh<span class="w"> </span><span class="k">if</span><span class="w"> </span>needed
+<span class="w">   </span><span class="m">4</span>.<span class="w"> </span>Re-run:<span class="w"> </span>domd
+
+🚫<span class="w"> </span>Ignored<span class="w"> </span>commands:
+<span class="w">   </span><span class="m">19</span><span class="w"> </span>commands<span class="w"> </span>were<span class="w"> </span>skipped<span class="w"> </span>via<span class="w"> </span>.doignore
+<span class="w">   </span>Use<span class="w"> </span>--show-ignored<span class="w"> </span>to<span class="w"> </span>see<span class="w"> </span>which<span class="w"> </span>commands<span class="w"> </span>are<span class="w"> </span>ignored
+</code></pre></div>
+<hr />
+<h2 id="todomd-z-informacjami-o-ignorowanych">📋 <strong>TODO.md z informacjami o ignorowanych:</strong><a class="headerlink" href="#todomd-z-informacjami-o-ignorowanych" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="gh"># TODO - Project Commands Status</span>
+
+<span class="gs">**🔄 INITIALIZED**</span> - Generated by TodoMD v0.1.1
+<span class="gs">**Created:**</span> 2025-06-06 15:30:00
+<span class="gs">**Project:**</span> /home/user/my-project
+<span class="gs">**Total Commands Found:**</span> 64
+<span class="gs">**Commands to Test:**</span> 45
+<span class="gs">**Ignored Commands:**</span> 19
+
+<span class="gu">## 📊 Current Status</span>
+
+<span class="k">-</span><span class="w"> </span><span class="gs">**Total Found:**</span> 64
+<span class="k">-</span><span class="w"> </span><span class="gs">**Will Test:**</span> 45
+<span class="k">-</span><span class="w"> </span><span class="gs">**Ignored:**</span> 19 (via .doignore)
+<span class="k">-</span><span class="w"> </span><span class="gs">**Tested:**</span> 0/45
+<span class="k">-</span><span class="w"> </span><span class="gs">**Successful:**</span> 0
+<span class="k">-</span><span class="w"> </span><span class="gs">**Failed:**</span> 0
+<span class="k">-</span><span class="w"> </span><span class="gs">**Progress:**</span> 0.0%
+
+<span class="gu">## 🧪 Commands To Test</span>
+
+| # | Status | Command | Source | Description |
+|---|--------|---------|--------|-------------|
+| 1 | ⏳ Pending | <span class="sb">`python -m pytest`</span> | <span class="sb">`pyproject.toml`</span> | Run pytest tests |
+| 2 | ⏳ Pending | <span class="sb">`make test`</span> | <span class="sb">`Makefile`</span> | Make target: test |
+| 3 | ⏳ Pending | <span class="sb">`make build`</span> | <span class="sb">`Makefile`</span> | Make target: build |
+...
+
+<span class="gu">## 🚫 Ignored Commands (19)</span>
+
+These commands are skipped based on .doignore rules:
+
+| Command | Source | Description | Ignore Reason |
+|---------|--------|-------------|---------------|
+| <span class="sb">`poetry run domd`</span> | <span class="sb">`pyproject.toml`</span> | Poetry script: domd | exact match: poetry run domd |
+| <span class="sb">`make serve-docs`</span> | <span class="sb">`Makefile`</span> | Make target: serve-docs | pattern match: <span class="ge">*serve*</span> |
+| <span class="sb">`tox`</span> | <span class="sb">`tox.ini`</span> | Run all tox environments | exact match: tox |
+| <span class="sb">`tox -e py38`</span> | <span class="sb">`tox.ini`</span> | Tox environment: py38 | pattern match: tox* |
+...
+
+<span class="gu">## ❌ Failed Commands</span>
+
+<span class="ge">*No failed commands yet - testing not started*</span>
+
+<span class="gu">## ✅ Successful Commands</span>
+
+<span class="ge">*No successful commands yet - testing not started*</span>
+
+---
+
+💡 <span class="gs">**Next Steps:**</span>
+<span class="k">1.</span> Run: <span class="sb">`domd`</span> to start testing commands
+<span class="k">2.</span> Or run: <span class="sb">`./todo.sh`</span> to execute all commands manually
+<span class="k">3.</span> Edit <span class="sb">`.doignore`</span> to skip additional commands
+<span class="k">4.</span> Monitor this file for real-time updates during testing
+</code></pre></div>
+<hr />
+<h2 id="zaawansowane-wzorce-w-doignore">🎨 <strong>Zaawansowane wzorce w .doignore:</strong><a class="headerlink" href="#zaawansowane-wzorce-w-doignore" title="Permanent link">&para;</a></h2>
+<h3 id="1-kategorie-problemow"><strong>1. Kategorie problemów:</strong><a class="headerlink" href="#1-kategorie-problemow" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># === REKURENCJA/SELF-REFERENCE ===</span>
+poetry<span class="w"> </span>run<span class="w"> </span>domd
+poetry<span class="w"> </span>run<span class="w"> </span>project-detector
+domd
+*self*
+
+<span class="c1"># === INTERAKTYWNE/BLOKUJĄCE ===</span>
+npm<span class="w"> </span>run<span class="w"> </span>dev
+npm<span class="w"> </span>run<span class="w"> </span>start
+*serve*
+*watch*
+*interactive*
+
+<span class="c1"># === DEPLOYMENT/DESTRUKCYJNE ===</span>
+*publish*
+*deploy*
+*release*
+git<span class="w"> </span>push*
+*production*
+
+<span class="c1"># === WOLNE/ZASOBOŻERNE ===</span>
+tox
+*integration*
+*e2e*
+*benchmark*
+*docker*build*
+*slow*
+
+<span class="c1"># === SYSTEM/UPRAWNIENIA ===</span>
+sudo<span class="w"> </span>*
+systemctl<span class="w"> </span>*
+*root*
+
+<span class="c1"># === CLEANUP/DESTRUKCYJNE ===</span>
+*clean*
+*purge*
+*delete*
+rm<span class="w"> </span>-rf*
+</code></pre></div>
+<h3 id="2-specific-project-patterns"><strong>2. Specific project patterns:</strong><a class="headerlink" href="#2-specific-project-patterns" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># === PROJEKT-SPECIFIC ===</span>
+<span class="c1"># Dostosuj do swojego projektu:</span>
+
+<span class="c1"># Django</span>
+python<span class="w"> </span>manage.py<span class="w"> </span>runserver
+*migrate*
+*collectstatic*
+
+<span class="c1"># React/Vue</span>
+npm<span class="w"> </span>run<span class="w"> </span>serve
+yarn<span class="w"> </span>serve
+*dev-server*
+
+<span class="c1"># Docker</span>
+docker-compose<span class="w"> </span>up
+*docker*run*
+*container*
+
+<span class="c1"># Database</span>
+*database*
+*db-migrate*
+*seed*
+
+<span class="c1"># Monitoring/Logs</span>
+*logs*
+*monitor*
+*metrics*
+</code></pre></div>
+<hr />
+<h2 id="instrukcja-implementacji">🔧 <strong>Instrukcja implementacji:</strong><a class="headerlink" href="#instrukcja-implementacji" title="Permanent link">&para;</a></h2>
+<h3 id="1-zamien-pliki"><strong>1. Zamień pliki:</strong><a class="headerlink" href="#1-zamien-pliki" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Zamień na nowe wersje:</span>
+<span class="c1"># - detector.py → enhanced_detector_with_ignore</span>
+<span class="c1"># - cli.py → enhanced_cli_with_ignore</span>
+</code></pre></div>
+<h3 id="2-reinstaluj"><strong>2. Reinstaluj:</strong><a class="headerlink" href="#2-reinstaluj" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</code></pre></div>
+<h3 id="3-przetestuj-nowe-funkcje"><strong>3. Przetestuj nowe funkcje:</strong><a class="headerlink" href="#3-przetestuj-nowe-funkcje" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Wygeneruj template</span>
+domd<span class="w"> </span>--generate-ignore
+
+<span class="c1"># Edytuj .doignore</span>
+nano<span class="w"> </span>.doignore
+
+<span class="c1"># Sprawdź co będzie ignorowane</span>
+domd<span class="w"> </span>--show-ignored
+
+<span class="c1"># Uruchom z filtrowaniem</span>
+domd<span class="w"> </span>--init-only
+</code></pre></div>
+<hr />
+<h2 id="twoj-konkretny-przypadek">⚡ <strong>Twój konkretny przypadek:</strong><a class="headerlink" href="#twoj-konkretny-przypadek" title="Permanent link">&para;</a></h2>
+<h3 id="problem-z-rekurencja"><strong>Problem z rekurencją:</strong><a class="headerlink" href="#problem-z-rekurencja" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Dodaj do .doignore:</span>
+poetry<span class="w"> </span>run<span class="w"> </span>domd
+poetry<span class="w"> </span>run<span class="w"> </span>project-detector
+poetry<span class="w"> </span>run<span class="w"> </span>cmd-detector
+domd
+</code></pre></div>
+<h3 id="problematyczne-tox-commands"><strong>Problematyczne tox commands:</strong><a class="headerlink" href="#problematyczne-tox-commands" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Dodaj do .doignore:</span>
+tox
+tox<span class="w"> </span>-e<span class="w"> </span>*
+*tox*
+</code></pre></div>
+<h3 id="wolneblokujace-komendy"><strong>Wolne/blokujące komendy:</strong><a class="headerlink" href="#wolneblokujace-komendy" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Dodaj do .doignore:</span>
+*serve*
+*watch*
+*dev*
+make<span class="w"> </span>serve-docs
+make<span class="w"> </span>watch-test
+</code></pre></div>
+<hr />
+<h2 id="korzysci-domdignore">🎯 <strong>Korzyści .domdignore:</strong><a class="headerlink" href="#korzysci-domdignore" title="Permanent link">&para;</a></h2>
+<h3 id="automatyczne-filtrowanie"><strong>✅ Automatyczne filtrowanie:</strong><a class="headerlink" href="#automatyczne-filtrowanie" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Brak rekurencji</strong> - nie uruchamia sam siebie</li>
+<li><strong>Pomija blokujące</strong> - żadnych hang-up na interaktywnych komendach</li>
+<li><strong>Izoluje problemy</strong> - testuje tylko co ma sens</li>
+</ul>
+<h3 id="kontrola-projektu"><strong>✅ Kontrola projektu:</strong><a class="headerlink" href="#kontrola-projektu" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Dostosowanie do projektu</strong> - każdy projekt ma swoje ignorowane komendy</li>
+<li><strong>Wzorce i dokładne dopasowania</strong> - flexibilne reguły</li>
+<li><strong>Wersjonowanie</strong> - .domdignore można commitować do repo</li>
+</ul>
+<h3 id="transparency"><strong>✅ Transparency:</strong><a class="headerlink" href="#transparency" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Podgląd przed uruchomieniem</strong> - <code>--show-ignored</code></li>
+<li><strong>Raporty w TODO.md</strong> - widać co zostało pominięte i dlaczego</li>
+<li><strong>Łatwa modyfikacja</strong> - po prostu edytuj .domdignore</li>
+</ul>
+<h3 id="zero-configuration-dla-problemow"><strong>✅ Zero-configuration dla problemów:</strong><a class="headerlink" href="#zero-configuration-dla-problemow" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Template z przykładami</strong> - gotowe wzorce dla typowych problemów</li>
+<li><strong>Smart defaults</strong> - automatycznie pomija oczywiste problemy</li>
+<li><strong>Project-specific</strong> - dostosowuje się do każdego projektu</li>
+</ul>
+<hr />
+<h2 id="podsumowanie">🎉 <strong>Podsumowanie:</strong><a class="headerlink" href="#podsumowanie" title="Permanent link">&para;</a></h2>
+<p><strong>Problem w 100% rozwiązany!</strong> Teraz TodoMD:</p>
+<ol>
+<li>✅ <strong>Automatycznie pomija</strong> problematyczne komendy via <code>.domdignore</code></li>
+<li>✅ <strong>Generuje template</strong> z typowymi ignorowanymi komendami</li>
+<li>✅ <strong>Pokazuje podgląd</strong> co będzie ignorowane przed uruchomieniem</li>
+<li>✅ <strong>Raportuje w TODO.md</strong> które komendy były pominięte i dlaczego</li>
+<li>✅ <strong>Supportuje wzorce</strong> - dokładne dopasowania i wildcards</li>
+<li>✅ <strong>Zero rekurencji</strong> - nie uruchomi sam siebie przez przypadek</li>
+</ol>
+<p><strong>Zamień 2 pliki (detector.py i cli.py) i będziesz mieć pełną kontrolę nad tym, które komendy są testowane!</strong> 🚀</p>
+
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+
+
+
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../js/extra.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

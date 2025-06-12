@@ -1,5 +1,4 @@
 # ✓ DoMD - Do Markdown Docs
-- automatically detect, run and show working commands in DONE.md and errors in TODO.md markdown files
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -8,63 +7,80 @@
 [![Docker Support](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker)](https://www.docker.com/)
 [![Documentation](https://img.shields.io/badge/Docs-Read%20the%20Docs-blue)](https://wronai.github.io/domd/)
 
-**DoMD** helps you maintain your project's documentation by generating and updating `todo.md` and `done.md` files based on command execution results.
-
-
-> 💡 **Pro Tip**: When you think everything in your project is working correctly, run `domd` to verify all commands and update your documentation!
+**DoMD** (Do Markdown Docs) is a powerful tool that helps you maintain up-to-date project documentation by automatically detecting, running, and documenting commands from your project files. It generates and updates `TODO.md` and `DONE.md` files based on command execution results, making it easier to track what works and what needs attention.
 
 ## ✨ Key Features
 
-- **Automatic Command Detection** - Discovers commands from various project files
-- **Docker Integration** - Run commands in isolated containers
-- **Smart Command Filtering** - Skip specific commands using `.doignore`
+- **Automatic Command Detection** - Discovers and extracts commands from various project files
+- **Smart Execution** - Runs commands and captures their output and status
+- **Docker Integration** - Execute commands in isolated containers for consistency
+- **Comprehensive Reporting** - Generates detailed reports in markdown format
+- **Customizable** - Configure includes, excludes, and command behavior
 - **Cross-Platform** - Works on Linux, macOS, and Windows
 - **Extensible** - Add support for new command types and tools
 
 ## 🚀 Quick Start
 
-### Installation & Basic Usage
+### Prerequisites
 
-1. **Install DoMD** (choose one method):
+- Python 3.8 or newer
+- pip (Python package manager)
+- (Optional) Docker for containerized execution
 
+### Installation
+
+Choose the installation method that works best for you:
+
+```bash
+# Using pip (recommended)
+pip install domd
+
+# Or using Docker (no installation required)
+docker run --rm -v $(pwd):/app ghcr.io/wronai/domd domd
+```
+
+### Basic Usage
+
+1. Navigate to your project directory:
    ```bash
-   # Using pip (recommended)
-   pip install domd
-
-   # Or using Docker
-   docker run -v $(pwd):/app ghcr.io/wronai/domd domd
+   cd /path/to/your/project
    ```
 
-2. **Run DoMD** in your project directory:
+2. Run DoMD:
    ```bash
-   # Simply run 'domd' to get started!
    domd
    ```
 
-   That's it! DoMD will automatically:
+   DoMD will:
    - Scan your project for available commands
-   - Run and test the commands
-   - Generate a report of the results
-   - Create a TODO.md with any issues found
-
-![DoMD](domd.png)
+   - Execute the commands in the correct context
+   - Generate a report in `TODO.md` with any issues found
+   - Update `DONE.md` with successfully executed commands
 
 ### Common Commands
 
-- List available commands:
+- **List available commands** without executing them:
   ```bash
   domd --list
   ```
 
-- Run a specific command:
+- **Run a specific command** by name or pattern:
   ```bash
   domd run test
+  domd run "test*"
   ```
 
-- Generate a report:
+- **Generate a report** without executing commands:
   ```bash
-  domd report
+  domd --dry-run
   ```
+
+- **Get help** with available options:
+  ```bash
+  domd --help
+  ```
+
+> 💡 **Pro Tip**: Run `domd` regularly to keep your project documentation in sync with your actual project state!
 
 ## 📖 Documentation
 

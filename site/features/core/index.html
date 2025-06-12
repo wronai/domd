@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Tom Sapletta" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Core Features - DOMD Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../css/extra.css" rel="stylesheet" />
+
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Core Features";
+        var mkdocs_page_input_path = "features/core.md";
+        var mkdocs_page_url = null;
+      </script>
+
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script>
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> DOMD Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../user-guide/installation.md">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../user-guide/quickstart.md">Quickstart</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Core Features</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#supported-technologies">Supported Technologies</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#build-systems">Build Systems</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#containerization">Containerization</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#configuration-management">Configuration Management</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#other">Other</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#key-features">Key Features</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#command-detection">Command Detection</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#command-execution">Command Execution</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#output-formats">Output Formats</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#integration">Integration</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ansible-integration">Ansible Integration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ansible/">Ansible Integration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../api/core.md">Core</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../api/parsers.md">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../api/reporters.md">Reporters</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../development/testing/">Testing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../development/ansible-tests/">Ansible Tests</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../contributing.md">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../changelog.md">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">DOMD Documentation</a>
+
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Features</li>
+      <li class="breadcrumb-item active">Core Features</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+
+                <h1 id="core-features">Core Features<a class="headerlink" href="#core-features" title="Permanent link">&para;</a></h1>
+<p>DoMD provides a comprehensive set of features for detecting and managing project commands across various technologies.</p>
+<h2 id="supported-technologies">Supported Technologies<a class="headerlink" href="#supported-technologies" title="Permanent link">&para;</a></h2>
+<h3 id="build-systems">Build Systems<a class="headerlink" href="#build-systems" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Make</li>
+<li>NPM/Yarn</li>
+<li>Python (setup.py, pyproject.toml, requirements.txt)</li>
+<li>Composer (PHP)</li>
+<li>Cargo (Rust)</li>
+</ul>
+<h3 id="containerization">Containerization<a class="headerlink" href="#containerization" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Docker</li>
+<li>Docker Compose</li>
+</ul>
+<h3 id="configuration-management">Configuration Management<a class="headerlink" href="#configuration-management" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ansible</strong> (Playbooks, Roles, Inventories, Vault)</li>
+<li>Terraform (coming soon)</li>
+</ul>
+<h3 id="other">Other<a class="headerlink" href="#other" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Shell scripts</li>
+<li>Generic YAML/JSON/TOML/INI files</li>
+</ul>
+<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
+<h3 id="command-detection">Command Detection<a class="headerlink" href="#command-detection" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Automatic detection of executable commands in project files</li>
+<li>Support for multiple command formats and patterns</li>
+<li>Custom command pattern matching</li>
+</ul>
+<h3 id="command-execution">Command Execution<a class="headerlink" href="#command-execution" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Configurable timeouts</li>
+<li>Environment variable support</li>
+<li>Working directory handling</li>
+<li>Output capture and processing</li>
+</ul>
+<h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Detailed error reporting</li>
+<li>Stack traces for debugging</li>
+<li>Suggestions for common issues</li>
+</ul>
+<h3 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Markdown (default)</li>
+<li>JSON</li>
+<li>Plain text</li>
+<li>Custom templates</li>
+</ul>
+<h3 id="integration">Integration<a class="headerlink" href="#integration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>CI/CD pipeline ready</li>
+<li>Docker support</li>
+<li>Plugin system for extensibility</li>
+</ul>
+<h2 id="ansible-integration">Ansible Integration<a class="headerlink" href="#ansible-integration" title="Permanent link">&para;</a></h2>
+<p>DoMD provides first-class support for Ansible projects, including:</p>
+<ul>
+<li>Playbook detection and validation</li>
+<li>Role structure analysis</li>
+<li>Inventory parsing</li>
+<li>Vault integration</li>
+<li>Galaxy requirements management</li>
+</ul>
+<p>See the <a href="../ansible/">Ansible Integration</a> documentation for more details.</p>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>DoMD can be configured using:</p>
+<ol>
+<li>Command-line arguments</li>
+<li>Configuration files (<code>.domdrc</code>, <code>pyproject.toml</code>)</li>
+<li>Environment variables</li>
+</ol>
+<p>Example configuration in <code>pyproject.toml</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[tool.domd]</span>
+<span class="n">timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span>
+<span class="n">output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;markdown&quot;</span>
+<span class="n">verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+
+<span class="k">[tool.domd.ignore]</span>
+<span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;*test*&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;*dev*&quot;</span><span class="p">]</span>
+
+<span class="k">[tool.domd.ansible]</span>
+<span class="n">inventory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;inventory/production&quot;</span>
+<span class="n">vault_password_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.vault_pass.txt&quot;</span>
+</code></pre></div>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Keep commands simple</strong>: Each command should do one thing well</li>
+<li><strong>Use meaningful names</strong>: Make command purposes clear</li>
+<li><strong>Document requirements</strong>: Note any dependencies or prerequisites</li>
+<li><strong>Test commands</strong>: Verify commands work as expected</li>
+<li><strong>Handle errors</strong>: Provide helpful error messages</li>
+<li><strong>Use configuration</strong>: Leverage config files for project-specific settings</li>
+</ol>
+
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../.." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../ansible/" class="btn btn-neutral float-right" title="Ansible Integration">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+
+
+      <span><a href="../.." style="color: #fcfcfc">&laquo; Previous</a></span>
+
+
+      <span><a href="../ansible/" style="color: #fcfcfc">Next &raquo;</a></span>
+
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../js/extra.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

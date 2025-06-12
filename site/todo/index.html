@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Tom Sapletta" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>🤖 TODO - LLM Task List for Command Fixes - DOMD Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/extra.css" rel="stylesheet" />
+
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\ud83e\udd16 TODO - LLM Task List for Command Fixes";
+        var mkdocs_page_input_path = "todo.md";
+        var mkdocs_page_url = null;
+      </script>
+
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script>
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DOMD Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../user-guide/installation.md">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../user-guide/quickstart.md">Quickstart</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/core/">Core Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/ansible/">Ansible Integration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../api/core.md">Core</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../api/parsers.md">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../api/reporters.md">Reporters</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/testing/">Testing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/ansible-tests/">Ansible Tests</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../contributing.md">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../changelog.md">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DOMD Documentation</a>
+
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">🤖 TODO - LLM Task List for Command Fixes</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+
+                <h1 id="todo-llm-task-list-for-command-fixes">🤖 TODO - LLM Task List for Command Fixes<a class="headerlink" href="#todo-llm-task-list-for-command-fixes" title="Permanent link">&para;</a></h1>
+<p><strong>📋 INSTRUCTIONS FOR LLM:</strong>
+This file contains a list of broken commands that need to be fixed.
+Each task is a separate command that failed during testing.</p>
+<p><strong>🎯 YOUR MISSION:</strong>
+1. <strong>Analyze each failed command</strong> and its error output
+2. <strong>Identify the root cause</strong> of the failure
+3. <strong>Implement the fix</strong> by modifying source code, config files, or dependencies
+4. <strong>Test the fix</strong> by running the command manually
+5. <strong>Update progress</strong> - when a command starts working, it will be moved to DONE.md automatically</p>
+<p><strong>📝 TASK FORMAT:</strong>
+Each task has:
+- ❌ <strong>Command</strong> that failed
+- 📁 <strong>Source file</strong> where the command is defined
+- 🔴 <strong>Error output</strong> with full details
+- 💡 <strong>Suggested actions</strong> for fixing</p>
+<p><strong>🔄 WORKFLOW:</strong>
+1. Pick a task from the list below
+2. Read the error details carefully
+3. Implement the fix
+4. Run <code>domd</code> to retest all commands
+5. Fixed commands will automatically move to DONE.md</p>
+<hr />
+<p><strong>📊 Current Status:</strong>
+- <strong>Failed Commands:</strong> 6
+- <strong>Working Commands:</strong> 18 (see DONE.md)
+- <strong>Last Updated:</strong> 2025-06-06 16:45:23</p>
+<hr />
+<h2 id="tasks-to-fix-6-commands">🔧 Tasks to Fix (6 commands)<a class="headerlink" href="#tasks-to-fix-6-commands" title="Permanent link">&para;</a></h2>
+<p>Each section below is a separate task. Fix them one by one:</p>
+<h3 id="task-1-npm-script-build">[ ] Task 1: NPM script - build<a class="headerlink" href="#task-1-npm-script-build" title="Permanent link">&para;</a></h3>
+<p><strong>📋 Command:</strong> <code>npm run build</code>
+<strong>📁 Source:</strong> <code>package.json</code>
+<strong>⏱️ Timeout:</strong> 60s
+<strong>🔴 Return Code:</strong> 1
+<strong>⚡ Execution Time:</strong> 3.45s</p>
+<h4 id="error-output">🔴 Error Output:<a class="headerlink" href="#error-output" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Command that failed:</span>
+npm<span class="w"> </span>run<span class="w"> </span>build
+
+<span class="c1"># Error output:</span>
+npm<span class="w"> </span>ERR!<span class="w"> </span>missing<span class="w"> </span>script:<span class="w"> </span>build
+npm<span class="w"> </span>ERR!
+npm<span class="w"> </span>ERR!<span class="w"> </span>To<span class="w"> </span>see<span class="w"> </span>a<span class="w"> </span>list<span class="w"> </span>of<span class="w"> </span>scripts,<span class="w"> </span>run:
+npm<span class="w"> </span>ERR!<span class="w">   </span>npm<span class="w"> </span>run
+npm<span class="w"> </span>ERR!
+npm<span class="w"> </span>ERR!<span class="w"> </span>A<span class="w"> </span><span class="nb">complete</span><span class="w"> </span>log<span class="w"> </span>of<span class="w"> </span>this<span class="w"> </span>run<span class="w"> </span>can<span class="w"> </span>be<span class="w"> </span>found<span class="w"> </span><span class="k">in</span>:
+npm<span class="w"> </span>ERR!<span class="w">     </span>/home/user/.npm/_logs/2025-06-06T16_45_20_123Z-debug.log
+</code></pre></div>
+<h4 id="suggested-fix-actions">💡 Suggested Fix Actions:<a class="headerlink" href="#suggested-fix-actions" title="Permanent link">&para;</a></h4>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Run <code>npm install</code> to ensure all dependencies are installed</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check package.json for script definition errors</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify Node.js and npm versions are compatible</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check package.json for script definition errors</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check if referenced files exist in the project</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify file paths in package.json are correct</li>
+</ul>
+<h4 id="investigation-steps">🔍 Investigation Steps:<a class="headerlink" href="#investigation-steps" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Check source file:</strong> Open <code>package.json</code> and locate the command definition</li>
+<li><strong>Analyze error:</strong> Read the error output above for clues</li>
+<li><strong>Check dependencies:</strong> Verify all required tools/packages are installed</li>
+<li><strong>Test manually:</strong> Run <code>npm run build</code> in terminal to reproduce the issue</li>
+<li><strong>Implement fix:</strong> Based on error analysis, modify files as needed</li>
+<li><strong>Verify fix:</strong> Run the command again to confirm it works</li>
+</ol>
+<h4 id="completion-criteria">✅ Completion Criteria:<a class="headerlink" href="#completion-criteria" title="Permanent link">&para;</a></h4>
+<p>This task is complete when <code>npm run build</code> runs without errors.
+The command will then automatically appear in DONE.md on the next test run.</p>
+<hr />
+<h3 id="task-2-make-target-build">[ ] Task 2: Make target - build<a class="headerlink" href="#task-2-make-target-build" title="Permanent link">&para;</a></h3>
+<p><strong>📋 Command:</strong> <code>make build</code>
+<strong>📁 Source:</strong> <code>Makefile</code>
+<strong>⏱️ Timeout:</strong> 60s
+<strong>🔴 Return Code:</strong> 2
+<strong>⚡ Execution Time:</strong> 0.12s</p>
+<h4 id="error-output_1">🔴 Error Output:<a class="headerlink" href="#error-output_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Command that failed:</span>
+make<span class="w"> </span>build
+
+<span class="c1"># Error output:</span>
+make:<span class="w"> </span>***<span class="w"> </span>No<span class="w"> </span>rule<span class="w"> </span>to<span class="w"> </span>make<span class="w"> </span>target<span class="w"> </span><span class="s1">&#39;src/main.c&#39;</span>,<span class="w"> </span>needed<span class="w"> </span>by<span class="w"> </span><span class="s1">&#39;build&#39;</span>.<span class="w"> </span>Stop.
+</code></pre></div>
+<h4 id="suggested-fix-actions_1">💡 Suggested Fix Actions:<a class="headerlink" href="#suggested-fix-actions_1" title="Permanent link">&para;</a></h4>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check Makefile syntax and dependencies</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify all required tools are installed (gcc, etc.)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check if target dependencies exist</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check if referenced files exist in the project</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify file paths in Makefile are correct</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Create missing files or update paths</li>
+</ul>
+<h4 id="investigation-steps_1">🔍 Investigation Steps:<a class="headerlink" href="#investigation-steps_1" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Check source file:</strong> Open <code>Makefile</code> and locate the command definition</li>
+<li><strong>Analyze error:</strong> Read the error output above for clues</li>
+<li><strong>Check dependencies:</strong> Verify all required tools/packages are installed</li>
+<li><strong>Test manually:</strong> Run <code>make build</code> in terminal to reproduce the issue</li>
+<li><strong>Implement fix:</strong> Based on error analysis, modify files as needed</li>
+<li><strong>Verify fix:</strong> Run the command again to confirm it works</li>
+</ol>
+<h4 id="completion-criteria_1">✅ Completion Criteria:<a class="headerlink" href="#completion-criteria_1" title="Permanent link">&para;</a></h4>
+<p>This task is complete when <code>make build</code> runs without errors.
+The command will then automatically appear in DONE.md on the next test run.</p>
+<hr />
+<h3 id="task-3-docker-build">[ ] Task 3: Docker build<a class="headerlink" href="#task-3-docker-build" title="Permanent link">&para;</a></h3>
+<p><strong>📋 Command:</strong> <code>docker build -t my-project .</code>
+<strong>📁 Source:</strong> <code>Dockerfile</code>
+<strong>⏱️ Timeout:</strong> 60s
+<strong>🔴 Return Code:</strong> 1
+<strong>⚡ Execution Time:</strong> 15.67s</p>
+<h4 id="error-output_2">🔴 Error Output:<a class="headerlink" href="#error-output_2" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Command that failed:</span>
+docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>my-project<span class="w"> </span>.
+
+<span class="c1"># Error output:</span>
+Sending<span class="w"> </span>build<span class="w"> </span>context<span class="w"> </span>to<span class="w"> </span>Docker<span class="w"> </span>daemon<span class="w">  </span><span class="m">2</span>.048kB
+Step<span class="w"> </span><span class="m">1</span>/3<span class="w"> </span>:<span class="w"> </span>FROM<span class="w"> </span>python:3.9-slim
+<span class="w"> </span>---&gt;<span class="w"> </span>2b5a8a4e89cc
+Step<span class="w"> </span><span class="m">2</span>/3<span class="w"> </span>:<span class="w"> </span>COPY<span class="w"> </span>requirements.txt<span class="w"> </span>.
+COPY<span class="w"> </span>failed:<span class="w"> </span>file<span class="w"> </span>not<span class="w"> </span>found<span class="w"> </span><span class="k">in</span><span class="w"> </span>build<span class="w"> </span>context<span class="w"> </span>or<span class="w"> </span>excluded<span class="w"> </span>by<span class="w"> </span>.dockerignore:<span class="w"> </span>stat<span class="w"> </span>requirements.txt:<span class="w"> </span>file<span class="w"> </span>does<span class="w"> </span>not<span class="w"> </span>exist
+</code></pre></div>
+<h4 id="suggested-fix-actions_2">💡 Suggested Fix Actions:<a class="headerlink" href="#suggested-fix-actions_2" title="Permanent link">&para;</a></h4>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check if Docker is running: <code>docker --version</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify Dockerfile syntax</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check Docker permissions for current user</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check if referenced files exist in the project</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify file paths in Dockerfile are correct</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Create missing files or update paths</li>
+</ul>
+<h4 id="investigation-steps_2">🔍 Investigation Steps:<a class="headerlink" href="#investigation-steps_2" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Check source file:</strong> Open <code>Dockerfile</code> and locate the command definition</li>
+<li><strong>Analyze error:</strong> Read the error output above for clues</li>
+<li><strong>Check dependencies:</strong> Verify all required tools/packages are installed</li>
+<li><strong>Test manually:</strong> Run <code>docker build -t my-project .</code> in terminal to reproduce the issue</li>
+<li><strong>Implement fix:</strong> Based on error analysis, modify files as needed</li>
+<li><strong>Verify fix:</strong> Run the command again to confirm it works</li>
+</ol>
+<h4 id="completion-criteria_2">✅ Completion Criteria:<a class="headerlink" href="#completion-criteria_2" title="Permanent link">&para;</a></h4>
+<p>This task is complete when <code>docker build -t my-project .</code> runs without errors.
+The command will then automatically appear in DONE.md on the next test run.</p>
+<hr />
+<h3 id="task-4-poetry-script-mypy">[ ] Task 4: Poetry script - mypy<a class="headerlink" href="#task-4-poetry-script-mypy" title="Permanent link">&para;</a></h3>
+<p><strong>📋 Command:</strong> <code>poetry run mypy</code>
+<strong>📁 Source:</strong> <code>pyproject.toml</code>
+<strong>⏱️ Timeout:</strong> 60s
+<strong>🔴 Return Code:</strong> 1
+<strong>⚡ Execution Time:</strong> 2.89s</p>
+<h4 id="error-output_3">🔴 Error Output:<a class="headerlink" href="#error-output_3" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Command that failed:</span>
+poetry<span class="w"> </span>run<span class="w"> </span>mypy
+
+<span class="c1"># Error output:</span>
+/bin/sh:<span class="w"> </span><span class="m">1</span>:<span class="w"> </span>mypy:<span class="w"> </span>not<span class="w"> </span>found
+</code></pre></div>
+<h4 id="suggested-fix-actions_3">💡 Suggested Fix Actions:<a class="headerlink" href="#suggested-fix-actions_3" title="Permanent link">&para;</a></h4>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Run <code>poetry install</code> to install dependencies</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check pyproject.toml for script configuration</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify poetry is installed and accessible</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Install missing tool/command: Look for installation instructions</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check if command is in PATH: <code>which mypy</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify spelling of command in pyproject.toml</li>
+</ul>
+<h4 id="investigation-steps_3">🔍 Investigation Steps:<a class="headerlink" href="#investigation-steps_3" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Check source file:</strong> Open <code>pyproject.toml</code> and locate the command definition</li>
+<li><strong>Analyze error:</strong> Read the error output above for clues</li>
+<li><strong>Check dependencies:</strong> Verify all required tools/packages are installed</li>
+<li><strong>Test manually:</strong> Run <code>poetry run mypy</code> in terminal to reproduce the issue</li>
+<li><strong>Implement fix:</strong> Based on error analysis, modify files as needed</li>
+<li><strong>Verify fix:</strong> Run the command again to confirm it works</li>
+</ol>
+<h4 id="completion-criteria_3">✅ Completion Criteria:<a class="headerlink" href="#completion-criteria_3" title="Permanent link">&para;</a></h4>
+<p>This task is complete when <code>poetry run mypy</code> runs without errors.
+The command will then automatically appear in DONE.md on the next test run.</p>
+<hr />
+<h3 id="task-5-install-pip-dependencies-from-requirementstxt">[ ] Task 5: Install pip dependencies from requirements.txt<a class="headerlink" href="#task-5-install-pip-dependencies-from-requirementstxt" title="Permanent link">&para;</a></h3>
+<p><strong>📋 Command:</strong> <code>pip install -r requirements.txt</code>
+<strong>📁 Source:</strong> <code>requirements.txt</code>
+<strong>⏱️ Timeout:</strong> 60s
+<strong>🔴 Return Code:</strong> 1
+<strong>⚡ Execution Time:</strong> 1.23s</p>
+<h4 id="error-output_4">🔴 Error Output:<a class="headerlink" href="#error-output_4" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Command that failed:</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="c1"># Error output:</span>
+ERROR:<span class="w"> </span>Could<span class="w"> </span>not<span class="w"> </span>open<span class="w"> </span>requirements<span class="w"> </span>file:<span class="w"> </span><span class="o">[</span>Errno<span class="w"> </span><span class="m">2</span><span class="o">]</span><span class="w"> </span>No<span class="w"> </span>such<span class="w"> </span>file<span class="w"> </span>or<span class="w"> </span>directory:<span class="w"> </span><span class="s1">&#39;requirements.txt&#39;</span>
+</code></pre></div>
+<h4 id="suggested-fix-actions_4">💡 Suggested Fix Actions:<a class="headerlink" href="#suggested-fix-actions_4" title="Permanent link">&para;</a></h4>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check if referenced files exist in the project</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify file paths in requirements.txt are correct</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Create missing files or update paths</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Read the error output carefully for specific clues</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check requirements.txt for command definition and syntax</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Manually run the command to reproduce and debug the issue</li>
+</ul>
+<h4 id="investigation-steps_4">🔍 Investigation Steps:<a class="headerlink" href="#investigation-steps_4" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Check source file:</strong> Open <code>requirements.txt</code> and locate the command definition</li>
+<li><strong>Analyze error:</strong> Read the error output above for clues</li>
+<li><strong>Check dependencies:</strong> Verify all required tools/packages are installed</li>
+<li><strong>Test manually:</strong> Run <code>pip install -r requirements.txt</code> in terminal to reproduce the issue</li>
+<li><strong>Implement fix:</strong> Based on error analysis, modify files as needed</li>
+<li><strong>Verify fix:</strong> Run the command again to confirm it works</li>
+</ol>
+<h4 id="completion-criteria_4">✅ Completion Criteria:<a class="headerlink" href="#completion-criteria_4" title="Permanent link">&para;</a></h4>
+<p>This task is complete when <code>pip install -r requirements.txt</code> runs without errors.
+The command will then automatically appear in DONE.md on the next test run.</p>
+<hr />
+<h3 id="task-6-make-target-publish">[ ] Task 6: Make target - publish<a class="headerlink" href="#task-6-make-target-publish" title="Permanent link">&para;</a></h3>
+<p><strong>📋 Command:</strong> <code>make publish</code>
+<strong>📁 Source:</strong> <code>Makefile</code>
+<strong>⏱️ Timeout:</strong> 60s
+<strong>🔴 Return Code:</strong> -1
+<strong>⚡ Execution Time:</strong> 60.00s</p>
+<h4 id="error-output_5">🔴 Error Output:<a class="headerlink" href="#error-output_5" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Command that failed:</span>
+make<span class="w"> </span>publish
+
+<span class="c1"># Error output:</span>
+Command<span class="w"> </span>timed<span class="w"> </span>out<span class="w"> </span>after<span class="w"> </span><span class="m">60</span><span class="w"> </span>seconds
+</code></pre></div>
+<h4 id="suggested-fix-actions_5">💡 Suggested Fix Actions:<a class="headerlink" href="#suggested-fix-actions_5" title="Permanent link">&para;</a></h4>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Command took longer than 60s - consider increasing timeout</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check if command is hanging or waiting for input</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Add to .doignore if this is a long-running service command</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check Makefile syntax and dependencies</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify all required tools are installed (gcc, etc.)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check if target dependencies exist</li>
+</ul>
+<h4 id="investigation-steps_5">🔍 Investigation Steps:<a class="headerlink" href="#investigation-steps_5" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Check source file:</strong> Open <code>Makefile</code> and locate the command definition</li>
+<li><strong>Analyze error:</strong> Read the error output above for clues</li>
+<li><strong>Check dependencies:</strong> Verify all required tools/packages are installed</li>
+<li><strong>Test manually:</strong> Run <code>make publish</code> in terminal to reproduce the issue</li>
+<li><strong>Implement fix:</strong> Based on error analysis, modify files as needed</li>
+<li><strong>Verify fix:</strong> Run the command again to confirm it works</li>
+</ol>
+<h4 id="completion-criteria_5">✅ Completion Criteria:<a class="headerlink" href="#completion-criteria_5" title="Permanent link">&para;</a></h4>
+<p>This task is complete when <code>make publish</code> runs without errors.
+The command will then automatically appear in DONE.md on the next test run.</p>
+<hr />
+<h2 id="after-making-fixes">🔄 After Making Fixes<a class="headerlink" href="#after-making-fixes" title="Permanent link">&para;</a></h2>
+<p>When you've fixed one or more commands:</p>
+<ol>
+<li>
+<p><strong>Test your fixes:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1"># Test specific command manually:</span>
+<span class="nb">cd</span><span class="w"> </span>/home/user/my-project
+<span class="o">[</span>your-fixed-command<span class="o">]</span>
+
+<span class="c1"># Or test all commands:</span>
+domd
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Check results:</strong></p>
+</li>
+<li>Fixed commands → will appear in DONE.md</li>
+<li>Still broken commands → remain in this TODO.md</li>
+<li>
+<p>New failures → will be added to this TODO.md</p>
+</li>
+<li>
+<p><strong>Iterate:</strong></p>
+</li>
+<li>Continue fixing remaining tasks</li>
+<li>Re-run <code>domd</code> after each fix</li>
+<li>Monitor progress in both files</li>
+</ol>
+<h2 id="common-fix-patterns">📚 Common Fix Patterns<a class="headerlink" href="#common-fix-patterns" title="Permanent link">&para;</a></h2>
+<h3 id="missing-dependencies">Missing Dependencies<a class="headerlink" href="#missing-dependencies" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Python</span>
+pip<span class="w"> </span>install<span class="w"> </span>missing-package
+poetry<span class="w"> </span>add<span class="w"> </span>missing-package
+
+<span class="c1"># Node.js</span>
+npm<span class="w"> </span>install<span class="w"> </span>missing-package
+yarn<span class="w"> </span>add<span class="w"> </span>missing-package
+
+<span class="c1"># System</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>missing-tool
+brew<span class="w"> </span>install<span class="w"> </span>missing-tool
+</code></pre></div>
+<h3 id="configuration-issues">Configuration Issues<a class="headerlink" href="#configuration-issues" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check config files for typos</span>
+<span class="c1"># Verify paths and settings</span>
+<span class="c1"># Update outdated configurations</span>
+</code></pre></div>
+<h3 id="permission-issues">Permission Issues<a class="headerlink" href="#permission-issues" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>chmod<span class="w"> </span>+x<span class="w"> </span>script-file
+sudo<span class="w"> </span>chown<span class="w"> </span>user:group<span class="w"> </span>file
+</code></pre></div>
+<h3 id="version-compatibility">Version Compatibility<a class="headerlink" href="#version-compatibility" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Update to compatible versions</span>
+<span class="c1"># Check tool documentation</span>
+<span class="c1"># Use version-specific commands</span>
+</code></pre></div>
+
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+
+
+
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../js/extra.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

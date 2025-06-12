@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Tom Sapletta" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>🚀 Przewodnik użytkownika DoMD - DOMD Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/extra.css" rel="stylesheet" />
+
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\ud83d\ude80 Przewodnik u\u017cytkownika DoMD";
+        var mkdocs_page_input_path = "usage.md";
+        var mkdocs_page_url = null;
+      </script>
+
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script>
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DOMD Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../user-guide/installation.md">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../user-guide/quickstart.md">Quickstart</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/core/">Core Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/ansible/">Ansible Integration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../api/core.md">Core</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../api/parsers.md">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../api/reporters.md">Reporters</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/testing/">Testing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/ansible-tests/">Ansible Tests</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../contributing.md">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../changelog.md">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DOMD Documentation</a>
+
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">🚀 Przewodnik użytkownika DoMD</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+
+                <h1 id="przewodnik-uzytkownika-domd">🚀 Przewodnik użytkownika DoMD<a class="headerlink" href="#przewodnik-uzytkownika-domd" title="Permanent link">&para;</a></h1>
+<h2 id="spis-tresci">Spis treści<a class="headerlink" href="#spis-tresci" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#-podstawowe-użycie">Podstawowe użycie</a></li>
+<li><a href="#-skanowanie-projektu">Skanowanie projektu</a></li>
+<li><a href="#-konfiguracja">Konfiguracja</a></li>
+<li><a href="#-zaawansowane-funkcje">Zaawansowane funkcje</a></li>
+<li><a href="#-integracja-z-cicd">Integracja z CI/CD</a></li>
+<li><a href="#-przykłady-użycia">Przykłady użycia</a></li>
+<li><a href="#-rozwiązywanie-problemów">Rozwiązywanie problemów</a></li>
+</ol>
+<h2 id="podstawowe-uzycie">🏁 Podstawowe użycie<a class="headerlink" href="#podstawowe-uzycie" title="Permanent link">&para;</a></h2>
+<p>Najprostszy sposób na uruchomienie DoMD w Twoim projekcie:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Przejdź do katalogu projektu</span>
+<span class="nb">cd</span><span class="w"> </span>/ścieżka/do/projektu
+
+<span class="c1"># Uruchom domd</span>
+domd
+</code></pre></div>
+<p>Domyślnie DoMD:
+1. Przeskanuje bieżący katalog w poszukiwaniu plików konfiguracyjnych
+2. Zidentyfikuje dostępne komendy (np. z <code>package.json</code>, <code>Makefile</code>, <code>pyproject.toml</code>)
+3. Wykona znalezione komendy
+4. Wygeneruje raport w pliku <code>TODO.md</code></p>
+<h2 id="skanowanie-projektu">🔍 Skanowanie projektu<a class="headerlink" href="#skanowanie-projektu" title="Permanent link">&para;</a></h2>
+<h3 id="obsugiwane-pliki-konfiguracyjne">Obsługiwane pliki konfiguracyjne<a class="headerlink" href="#obsugiwane-pliki-konfiguracyjne" title="Permanent link">&para;</a></h3>
+<p>DoMD automatycznie wykrywa i analizuje następujące typy plików:</p>
+<ul>
+<li><strong>JavaScript/TypeScript</strong>: <code>package.json</code> (npm, yarn)</li>
+<li><strong>Python</strong>: <code>setup.py</code>, <code>pyproject.toml</code>, <code>requirements.txt</code></li>
+<li><strong>Make</strong>: <code>Makefile</code></li>
+<li><strong>Docker</strong>: <code>Dockerfile</code>, <code>docker-compose.yml</code></li>
+<li><strong>Ansible</strong>: Playbooki, role, inventory</li>
+<li><strong>PHP</strong>: <code>composer.json</code></li>
+<li><strong>Rust</strong>: <code>Cargo.toml</code></li>
+<li><strong>TOML</strong>: Ogólna obsługa plików TOML</li>
+<li><strong>YAML</strong>: Ogólna obsługa plików YAML</li>
+<li><strong>INI</strong>: Ogólna obsługa plików INI</li>
+</ul>
+<h3 id="opcje-skanowania">Opcje skanowania<a class="headerlink" href="#opcje-skanowania" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Skanowanie konkretnego katalogu</span>
+domd<span class="w"> </span>--path<span class="w"> </span>/ścieżka/do/projektu
+
+<span class="c1"># Pomijanie określonych plików/katalogów</span>
+domd<span class="w"> </span>--exclude<span class="w"> </span><span class="s2">&quot;*.test.js&quot;</span><span class="w"> </span>--exclude<span class="w"> </span><span class="s2">&quot;node_modules/*&quot;</span>
+
+<span class="c1"># Skanowanie tylko wybranych plików</span>
+domd<span class="w"> </span>--include-only<span class="w"> </span><span class="s2">&quot;Makefile&quot;</span><span class="w"> </span>--include-only<span class="w"> </span><span class="s2">&quot;package.json&quot;</span>
+</code></pre></div>
+<h2 id="konfiguracja">⚙️ Konfiguracja<a class="headerlink" href="#konfiguracja" title="Permanent link">&para;</a></h2>
+<h3 id="plik-domdignore">Plik .domdignore<a class="headerlink" href="#plik-domdignore" title="Permanent link">&para;</a></h3>
+<p>Możesz utworzyć plik <code>.domdignore</code> w głównym katalogu projektu, aby wykluczyć określone komendy:</p>
+<div class="highlight"><pre><span></span><code># Ignoruj konkretne komendy
+npm run test:coverage
+pytest -xvs
+
+# Ignoruj według wzorca
+*coverage*
+*test*
+</code></pre></div>
+<h3 id="plik-dodocker">Plik .dodocker<a class="headerlink" href="#plik-dodocker" title="Permanent link">&para;</a></h3>
+<p>Aby uruchamiać komendy w kontenerze Docker, utwórz plik <code>.dodocker</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python:3.9</span>
+<span class="nt">volumes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.:/app</span>
+<span class="nt">working_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app</span>
+<span class="nt">environment</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PYTHONPATH=/app</span>
+</code></pre></div>
+<h2 id="zaawansowane-funkcje">🚀 Zaawansowane funkcje<a class="headerlink" href="#zaawansowane-funkcje" title="Permanent link">&para;</a></h2>
+<h3 id="tryb-podgladu-dry-run">Tryb podglądu (dry-run)<a class="headerlink" href="#tryb-podgladu-dry-run" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Pokaż, jakie komendy zostałyby wykonane, bez faktycznego ich wykonywania</span>
+domd<span class="w"> </span>--dry-run
+</code></pre></div>
+<h3 id="rozne-formaty-wyjsciowe">Różne formaty wyjściowe<a class="headerlink" href="#rozne-formaty-wyjsciowe" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Format JSON</span>
+domd<span class="w"> </span>--format<span class="w"> </span>json
+
+<span class="c1"># Format tekstowy</span>
+domd<span class="w"> </span>--format<span class="w"> </span>text
+
+<span class="c1"># Format Markdown (domyślny)</span>
+domd<span class="w"> </span>--format<span class="w"> </span>markdown
+
+<span class="c1"># Własna ścieżka wyjściowa</span>
+domd<span class="w"> </span>--output<span class="w"> </span>raport.md
+</code></pre></div>
+<h3 id="ustawienie-limitu-czasu">Ustawienie limitu czasu<a class="headerlink" href="#ustawienie-limitu-czasu" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Ustawienie limitu czasu na wykonanie komendy (domyślnie 60s)</span>
+domd<span class="w"> </span>--timeout<span class="w"> </span><span class="m">120</span>
+</code></pre></div>
+<h2 id="integracja-z-cicd">🤖 Integracja z CI/CD<a class="headerlink" href="#integracja-z-cicd" title="Permanent link">&para;</a></h2>
+<h3 id="github-actions">GitHub Actions<a class="headerlink" href="#github-actions" title="Permanent link">&para;</a></h3>
+<p>Przykładowy plik workflow dla GitHub Actions:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DoMD Health Check</span>
+
+<span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">pull_request</span><span class="p p-Indicator">]</span>
+
+<span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">health-check</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v3</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Set up Python</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v4</span>
+<span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.9&#39;</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install DoMD</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pip install domd</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run health check</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">domd --output health-report.md</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Upload report</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/upload-artifact@v3</span>
+<span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">health-report</span>
+<span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">health-report.md</span>
+</code></pre></div>
+<h2 id="przykady-uzycia">💡 Przykłady użycia<a class="headerlink" href="#przykady-uzycia" title="Permanent link">&para;</a></h2>
+<h3 id="przykad-1-podstawowe-uzycie">Przykład 1: Podstawowe użycie<a class="headerlink" href="#przykad-1-podstawowe-uzycie" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Przejdź do katalogu projektu</span>
+<span class="nb">cd</span><span class="w"> </span>moj-projekt
+
+<span class="c1"># Uruchom domd</span>
+domd
+
+<span class="c1"># Sprawdź wygenerowany raport</span>
+cat<span class="w"> </span>TODO.md
+</code></pre></div>
+<h3 id="przykad-2-integracja-z-makefile">Przykład 2: Integracja z Makefile<a class="headerlink" href="#przykad-2-integracja-z-makefile" title="Permanent link">&para;</a></h3>
+<p>Dodaj do swojego <code>Makefile</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nf">health-check</span><span class="o">:</span>
+<span class="w">    </span>domd<span class="w"> </span>--output<span class="w"> </span>HEALTH.md
+
+<span class="nf">.PHONY</span><span class="o">:</span><span class="w"> </span><span class="n">health</span>-<span class="n">check</span>
+</code></pre></div>
+<h2 id="rozwiazywanie-problemow">❓ Rozwiązywanie problemów<a class="headerlink" href="#rozwiazywanie-problemow" title="Permanent link">&para;</a></h2>
+<h3 id="bedy-wykonania-komend">Błędy wykonania komend<a class="headerlink" href="#bedy-wykonania-komend" title="Permanent link">&para;</a></h3>
+<p>Jeśli napotkasz błędy podczas wykonywania komend:</p>
+<ol>
+<li>Sprawdź, czy wszystkie wymagane narzędzia są zainstalowane</li>
+<li>Upewnij się, że wszystkie zmienne środowiskowe są ustawione poprawnie</li>
+<li>Spróbuj uruchomić problematyczną komendę ręcznie</li>
+<li>Użyj flagi <code>--verbose</code>, aby uzyskać więcej informacji</li>
+</ol>
+<h3 id="zgaszanie-bedow">Zgłaszanie błędów<a class="headerlink" href="#zgaszanie-bedow" title="Permanent link">&para;</a></h3>
+<p>Jeśli znajdziesz błąd lub masz sugestię:</p>
+<ol>
+<li>Sprawdź, czy problem nie został już zgłoszony w <a href="https://github.com/wronai/domd/issues">issues</a></li>
+<li>Jeśli nie, utwórz nowe zgłoszenie z:</li>
+<li>Krótkim opisem problemu</li>
+<li>Krokami do odtworzenia błędu</li>
+<li>Oczekiwanym i faktycznym zachowaniem</li>
+<li>Wersją DoMD (<code>domd --version</code>)</li>
+<li>Środowiskiem (system operacyjny, wersja Pythona itp.)</li>
+</ol>
+<hr />
+<p>Masz dodatkowe pytania? Sprawdź <a href="https://domd.readthedocs.io/">dokumentację</a> lub <a href="https://github.com/wronai/domd/issues">zgłoś problem</a>.</p>
+
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+
+
+
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../js/extra.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

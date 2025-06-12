@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Tom Sapletta" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Docker Integration - DOMD Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/extra.css" rel="stylesheet" />
+
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Docker Integration";
+        var mkdocs_page_input_path = "docker.md";
+        var mkdocs_page_url = null;
+      </script>
+
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script>
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DOMD Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../user-guide/installation.md">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../user-guide/quickstart.md">Quickstart</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/core/">Core Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../features/ansible/">Ansible Integration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../api/core.md">Core</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../api/parsers.md">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../api/reporters.md">Reporters</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/testing/">Testing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/ansible-tests/">Ansible Tests</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../contributing.md">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../changelog.md">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DOMD Documentation</a>
+
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Docker Integration</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+
+                <h1 id="docker-integration">Docker Integration<a class="headerlink" href="#docker-integration" title="Permanent link">&para;</a></h1>
+<p>DoMD provides seamless Docker integration, allowing you to run commands in isolated containers with automatic environment detection. This document covers all aspects of using Docker with DoMD.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#basic-configuration">Basic Configuration</a></li>
+<li><a href="#advanced-configuration">Advanced Configuration</a></li>
+<li><a href="#volume-mounting">Volume Mounting</a></li>
+<li><a href="#environment-variables">Environment Variables</a></li>
+<li><a href="#debugging">Debugging</a></li>
+<li><a href="#best-practices">Best Practices</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<h2 id="basic-configuration">Basic Configuration<a class="headerlink" href="#basic-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="the-dodocker-file">The .dodocker File<a class="headerlink" href="#the-dodocker-file" title="Permanent link">&para;</a></h3>
+<p>Create a <code>.dodocker</code> file in your project root to configure Docker execution:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># .dodocker</span>
+<span class="nt">test</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python:3.9-slim</span><span class="w">  </span><span class="c1"># Base image to use</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run Python tests</span><span class="w">  </span><span class="c1"># Optional description</span>
+<span class="w">  </span><span class="nt">workdir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app</span><span class="w">  </span><span class="c1"># Working directory in container</span>
+<span class="w">  </span><span class="nt">volumes</span><span class="p">:</span><span class="w">  </span><span class="c1"># Volume mappings</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">~/.cache/pip:/.cache/pip</span><span class="w">  </span><span class="c1"># Cache directory</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">.:/app</span><span class="w">  </span><span class="c1"># Mount current directory</span>
+<span class="w">  </span><span class="nt">environment</span><span class="p">:</span><span class="w">  </span><span class="c1"># Environment variables</span>
+<span class="w">    </span><span class="nt">PYTHONPATH</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app</span>
+</code></pre></div>
+<h3 id="running-commands">Running Commands<a class="headerlink" href="#running-commands" title="Permanent link">&para;</a></h3>
+<p>Run commands with Docker (automatically detected from .dodocker):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run tests in Docker</span>
+poetry<span class="w"> </span>run<span class="w"> </span>domd<span class="w"> </span>run<span class="w"> </span><span class="nb">test</span>
+
+<span class="c1"># Force local execution (bypass Docker)</span>
+poetry<span class="w"> </span>run<span class="w"> </span>domd<span class="w"> </span>run<span class="w"> </span>--no-docker<span class="w"> </span><span class="nb">test</span>
+
+<span class="c1"># List available Docker commands</span>
+poetry<span class="w"> </span>run<span class="w"> </span>domd<span class="w"> </span>list<span class="w"> </span>--docker
+</code></pre></div>
+<h2 id="advanced-configuration">Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="multiple-command-configurations">Multiple Command Configurations<a class="headerlink" href="#multiple-command-configurations" title="Permanent link">&para;</a></h3>
+<p>You can configure multiple commands with different settings:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># .dodocker</span>
+<span class="nt">format</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python:3.9-slim</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Format Python code</span>
+<span class="w">  </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">.:/app</span>
+<span class="w">  </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;black</span><span class="nv"> </span><span class="s">.&quot;</span><span class="w">  </span><span class="c1"># Override default command</span>
+
+<span class="nt">test</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">node:16-slim</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run JavaScript tests</span>
+<span class="w">  </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">.:/app</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">/app/node_modules</span><span class="w">  </span><span class="c1"># Anonymous volume for dependencies</span>
+<span class="w">  </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">NODE_ENV</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span>
+</code></pre></div>
+<h3 id="using-docker-compose">Using Docker Compose<a class="headerlink" href="#using-docker-compose" title="Permanent link">&para;</a></h3>
+<p>For more complex setups, you can use Docker Compose:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># docker-compose.yml</span>
+<span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.8&#39;</span>
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">app</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.:/app</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PYTHONPATH=/app</span>
+<span class="w">    </span><span class="nt">working_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app</span>
+</code></pre></div>
+<p>Then reference it in your <code>.dodocker</code> file:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">test</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">compose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.yml</span>
+<span class="w">  </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app</span>
+<span class="w">  </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest tests/</span>
+</code></pre></div>
+<h2 id="volume-mounting">Volume Mounting<a class="headerlink" href="#volume-mounting" title="Permanent link">&para;</a></h2>
+<p>DoMD handles volume mounting with smart defaults:</p>
+<ul>
+<li>Current directory is mounted to <code>/app</code> by default</li>
+<li>Common cache directories are automatically mounted</li>
+<li>Environment-specific paths are preserved</li>
+</ul>
+<h3 id="custom-volume-mounts">Custom Volume Mounts<a class="headerlink" href="#custom-volume-mounts" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nt">test</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python:3.9-slim</span>
+<span class="w">  </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">.:/app</span><span class="w">  </span><span class="c1"># Mount current directory</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">~/.cache/pip:/.cache/pip</span><span class="w">  </span><span class="c1"># Cache directory</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">/tmp:/tmp</span><span class="w">  </span><span class="c1"># Mount system temp</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">/data</span><span class="w">  </span><span class="c1"># Anonymous volume</span>
+</code></pre></div>
+<h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<h3 id="passing-environment-variables">Passing Environment Variables<a class="headerlink" href="#passing-environment-variables" title="Permanent link">&para;</a></h3>
+<p>You can pass environment variables to Docker containers:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Pass environment variables from host</span>
+<span class="nv">DOMD_ENV</span><span class="o">=</span>production<span class="w"> </span>poetry<span class="w"> </span>run<span class="w"> </span>domd<span class="w"> </span>run<span class="w"> </span><span class="nb">test</span>
+
+<span class="c1"># Or define them in .dodocker</span>
+test:
+<span class="w">  </span>environment:
+<span class="w">    </span>NODE_ENV:<span class="w"> </span><span class="nb">test</span>
+<span class="w">    </span>DEBUG:<span class="w"> </span><span class="m">1</span>
+<span class="w">    </span>DATABASE_URL:<span class="w"> </span>postgres://user:pass@db:5432/mydb
+</code></pre></div>
+<h3 id="environment-file">Environment File<a class="headerlink" href="#environment-file" title="Permanent link">&para;</a></h3>
+<p>For sensitive data, use an environment file:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">test</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.test</span>
+<span class="w">  </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NODE_ENV=test</span>
+</code></pre></div>
+<h2 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h2>
+<h3 id="debug-mode">Debug Mode<a class="headerlink" href="#debug-mode" title="Permanent link">&para;</a></h3>
+<p>To debug Docker-related issues:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Show Docker commands being executed</span>
+<span class="nv">DOMD_DEBUG</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>poetry<span class="w"> </span>run<span class="w"> </span>domd<span class="w"> </span>run<span class="w"> </span><span class="nb">test</span>
+
+<span class="c1"># Get shell in container with the same environment</span>
+poetry<span class="w"> </span>run<span class="w"> </span>domd<span class="w"> </span>shell<span class="w"> </span><span class="nb">test</span>
+</code></pre></div>
+<h3 id="logs-and-inspection">Logs and Inspection<a class="headerlink" href="#logs-and-inspection" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># View container logs</span>
+docker<span class="w"> </span>logs<span class="w"> </span>&lt;container_id&gt;
+
+<span class="c1"># Inspect container configuration</span>
+docker<span class="w"> </span>inspect<span class="w"> </span>&lt;container_id&gt;
+
+<span class="c1"># View running processes</span>
+docker<span class="w"> </span>top<span class="w"> </span>&lt;container_id&gt;
+</code></pre></div>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Use Specific Image Tags</strong></li>
+<li>Prefer specific version tags over <code>latest</code></li>
+<li>
+<p>Example: <code>python:3.9-slim</code> instead of just <code>python</code></p>
+</li>
+<li>
+<p><strong>Minimize Image Size</strong></p>
+</li>
+<li>Use <code>-slim</code> or <code>-alpine</code> variants when possible</li>
+<li>
+<p>Clean up package caches in the same RUN instruction</p>
+</li>
+<li>
+<p><strong>Cache Dependencies</strong></p>
+</li>
+<li>Mount package caches as volumes</li>
+<li>
+<p>Use multi-stage builds for production images</p>
+</li>
+<li>
+<p><strong>Security</strong></p>
+</li>
+<li>Never run as root in containers</li>
+<li>Use <code>.dockerignore</code> to exclude sensitive files</li>
+<li>Keep images updated with security patches</li>
+</ol>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<h4 id="permission-denied-errors">Permission Denied Errors<a class="headerlink" href="#permission-denied-errors" title="Permanent link">&para;</a></h4>
+<p>If you see permission errors with mounted volumes:</p>
+<ol>
+<li>Make sure the container user has proper permissions</li>
+<li>Set the correct user/group in your Dockerfile:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="k">ARG</span><span class="w"> </span><span class="nv">USER_ID</span><span class="o">=</span><span class="m">1000</span>
+<span class="k">ARG</span><span class="w"> </span><span class="nv">GROUP_ID</span><span class="o">=</span><span class="m">1000</span>
+
+<span class="k">RUN</span><span class="w"> </span>groupadd<span class="w"> </span>-g<span class="w"> </span><span class="nv">$GROUP_ID</span><span class="w"> </span>appuser<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>useradd<span class="w"> </span>-u<span class="w"> </span><span class="nv">$USER_ID</span><span class="w"> </span>-g<span class="w"> </span>appuser<span class="w"> </span>-m<span class="w"> </span>appuser
+
+<span class="k">USER</span><span class="w"> </span><span class="s">appuser</span>
+</code></pre></div>
+<h4 id="missing-dependencies">Missing Dependencies<a class="headerlink" href="#missing-dependencies" title="Permanent link">&para;</a></h4>
+<p>If a command works locally but fails in Docker:</p>
+<ol>
+<li>Check if all required system packages are installed in the image</li>
+<li>Verify the working directory is set correctly</li>
+<li>Ensure environment variables are properly passed</li>
+</ol>
+<h4 id="network-issues">Network Issues<a class="headerlink" href="#network-issues" title="Permanent link">&para;</a></h4>
+<p>For network-related problems:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check network connectivity inside container</span>
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--network<span class="w"> </span>host<span class="w"> </span>busybox<span class="w"> </span>ping<span class="w"> </span>google.com
+
+<span class="c1"># Inspect container network</span>
+docker<span class="w"> </span>network<span class="w"> </span>inspect<span class="w"> </span>bridge
+</code></pre></div>
+<h3 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h3>
+<p>If you encounter issues:</p>
+<ol>
+<li>Run with <code>DOMD_DEBUG=1</code> for verbose output</li>
+<li>Check the <a href="https://github.com/wronai/domd/issues">GitHub Issues</a></li>
+<li>Join our <a href="https://discord.gg/your-community">Discord Community</a> for support</li>
+</ol>
+
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+
+
+
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../js/extra.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

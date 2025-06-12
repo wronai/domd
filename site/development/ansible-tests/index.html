@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Tom Sapletta" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Ansible Tests - DOMD Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../css/extra.css" rel="stylesheet" />
+
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Ansible Tests";
+        var mkdocs_page_input_path = "development/ansible-tests.md";
+        var mkdocs_page_url = null;
+      </script>
+
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script>
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> DOMD Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../user-guide/installation.md">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../user-guide/quickstart.md">Quickstart</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/core/">Core Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../features/ansible/">Ansible Integration</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../api/core.md">Core</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../api/parsers.md">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../api/reporters.md">Reporters</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../testing/">Testing</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Ansible Tests</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#test-structure">Test Structure</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#writing-tests">Writing Tests</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#test-fixtures">Test Fixtures</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example-test">Example Test</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#running-tests">Running Tests</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#run-all-ansible-tests">Run All Ansible Tests</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#run-specific-test-modules">Run Specific Test Modules</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#run-with-coverage">Run with Coverage</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#test-dependencies">Test Dependencies</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#debugging-tests">Debugging Tests</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../contributing.md">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../changelog.md">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">DOMD Documentation</a>
+
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Development</li>
+      <li class="breadcrumb-item active">Ansible Tests</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+
+                <h1 id="ansible-test-suite">Ansible Test Suite<a class="headerlink" href="#ansible-test-suite" title="Permanent link">&para;</a></h1>
+<p>This document provides detailed information about the Ansible test suite in DoMD, including how to write and run tests for Ansible-related functionality.</p>
+<h2 id="test-structure">Test Structure<a class="headerlink" href="#test-structure" title="Permanent link">&para;</a></h2>
+<p>The Ansible tests are organized into several modules, each focusing on different aspects of Ansible functionality:</p>
+<ul>
+<li><code>test_ansible_playbook.py</code>: Tests for Ansible playbook detection and execution</li>
+<li><code>test_ansible_roles.py</code>: Tests for Ansible role structure and functionality</li>
+<li><code>test_ansible_galaxy.py</code>: Tests for Ansible Galaxy integration</li>
+<li><code>test_ansible_vault.py</code>: Tests for Ansible Vault functionality</li>
+<li><code>test_ansible_inventory.py</code>: Tests for Ansible inventory handling</li>
+</ul>
+<h2 id="writing-tests">Writing Tests<a class="headerlink" href="#writing-tests" title="Permanent link">&para;</a></h2>
+<h3 id="test-fixtures">Test Fixtures<a class="headerlink" href="#test-fixtures" title="Permanent link">&para;</a></h3>
+<p>Use the following fixtures for Ansible testing:</p>
+<ul>
+<li><code>ansible_playbook</code>: Creates a sample Ansible playbook with inventory</li>
+<li><code>ansible_role</code>: Sets up a basic Ansible role structure</li>
+<li><code>ansible_requirements</code>: Creates a sample <code>requirements.yml</code> file</li>
+</ul>
+<h3 id="example-test">Example Test<a class="headerlink" href="#example-test" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_playbook_execution</span><span class="p">(</span><span class="n">ansible_playbook</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test execution of an Ansible playbook.&quot;&quot;&quot;</span>
+    <span class="n">detector</span> <span class="o">=</span> <span class="n">ProjectCommandDetector</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ansible_playbook</span><span class="o">.</span><span class="n">parent</span><span class="p">))</span>
+    <span class="n">commands</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">scan_project</span><span class="p">()</span>
+
+    <span class="c1"># Verify playbook was detected</span>
+    <span class="n">playbook_cmds</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">commands</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;ansible_playbook&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">playbook_cmds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+</code></pre></div>
+<h2 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
+<h3 id="run-all-ansible-tests">Run All Ansible Tests<a class="headerlink" href="#run-all-ansible-tests" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>test-ansible
+</code></pre></div>
+<h3 id="run-specific-test-modules">Run Specific Test Modules<a class="headerlink" href="#run-specific-test-modules" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Test playbooks</span>
+make<span class="w"> </span>test-playbooks
+
+<span class="c1"># Test roles</span>
+make<span class="w"> </span>test-roles
+
+<span class="c1"># Test Galaxy integration</span>
+make<span class="w"> </span>test-galaxy
+
+<span class="c1"># Test Vault functionality</span>
+make<span class="w"> </span>test-vault
+
+<span class="c1"># Test inventory handling</span>
+make<span class="w"> </span>test-inventory
+</code></pre></div>
+<h3 id="run-with-coverage">Run with Coverage<a class="headerlink" href="#run-with-coverage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>--cov<span class="o">=</span>domd<span class="w"> </span>tests/test_ansible_*.py
+</code></pre></div>
+<h2 id="test-dependencies">Test Dependencies<a class="headerlink" href="#test-dependencies" title="Permanent link">&para;</a></h2>
+<p>Ansible tests require:
+- <code>ansible-core</code> &gt;= 2.12.0
+- <code>ansible-lint</code> &gt;= 6.0.0
+- <code>molecule</code> &gt;= 4.0.0 (for integration tests)</p>
+<h2 id="debugging-tests">Debugging Tests<a class="headerlink" href="#debugging-tests" title="Permanent link">&para;</a></h2>
+<p>To debug test failures:</p>
+<ol>
+<li>
+<p>Run tests with <code>-v</code> for verbose output:
+   <div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>tests/test_ansible_playbook.py<span class="w"> </span>-v
+</code></pre></div></p>
+</li>
+<li>
+<p>Use <code>pdb</code> for interactive debugging:
+   <div class="highlight"><pre><span></span><code>pytest<span class="w"> </span>tests/test_ansible_playbook.py<span class="w"> </span>-v<span class="w"> </span>--pdb
+</code></pre></div></p>
+</li>
+<li>
+<p>Check the test log in <code>test-results/ansible-tests.log</code></p>
+</li>
+</ol>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Isolate Tests</strong>: Each test should be independent</li>
+<li><strong>Use Mocks</strong>: Mock external calls for unit tests</li>
+<li><strong>Test Edge Cases</strong>: Include tests for error conditions</li>
+<li><strong>Keep Tests Fast</strong>: Use appropriate test scopes</li>
+<li><strong>Document Tests</strong>: Include clear docstrings and comments</li>
+</ol>
+
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../testing/" class="btn btn-neutral float-left" title="Testing"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+
+
+      <span><a href="../testing/" style="color: #fcfcfc">&laquo; Previous</a></span>
+
+
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../js/extra.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

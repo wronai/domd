@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Tom Sapletta" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Ansible Integration - DOMD Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../css/extra.css" rel="stylesheet" />
+
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Ansible Integration";
+        var mkdocs_page_input_path = "features/ansible.md";
+        var mkdocs_page_url = null;
+      </script>
+
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script>
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> DOMD Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../user-guide/installation.md">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../user-guide/quickstart.md">Quickstart</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Features</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../core/">Core Features</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Ansible Integration</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#supported-ansible-features">Supported Ansible Features</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#playbooks">Playbooks</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#roles">Roles</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#inventories">Inventories</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ansible-vault">Ansible Vault</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ansible-galaxy">Ansible Galaxy</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#recent-improvements">Recent Improvements</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#enhanced-testing-framework">Enhanced Testing Framework</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#command-detection">Command Detection</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-optimizations">Performance Optimizations</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#example-commands">Example Commands</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../api/core.md">Core</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../api/parsers.md">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../api/reporters.md">Reporters</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Development</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../development/testing/">Testing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../development/ansible-tests/">Ansible Tests</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../contributing.md">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../changelog.md">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">DOMD Documentation</a>
+
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Features</li>
+      <li class="breadcrumb-item active">Ansible Integration</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+
+                <h1 id="ansible-integration">Ansible Integration<a class="headerlink" href="#ansible-integration" title="Permanent link">&para;</a></h1>
+<p>DoMD provides comprehensive support for testing and validating Ansible projects. This includes detection and testing of playbooks, roles, inventories, and other Ansible components.</p>
+<h2 id="supported-ansible-features">Supported Ansible Features<a class="headerlink" href="#supported-ansible-features" title="Permanent link">&para;</a></h2>
+<h3 id="playbooks">Playbooks<a class="headerlink" href="#playbooks" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Detection of <code>*.yml</code> and <code>*.yaml</code> playbook files</li>
+<li>Support for playbooks with multiple plays and complex structures</li>
+<li>Variable file detection and validation</li>
+<li>Playbook execution with proper environment handling</li>
+</ul>
+<h3 id="roles">Roles<a class="headerlink" href="#roles" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Automatic role structure detection</li>
+<li>Role metadata parsing from <code>meta/main.yml</code></li>
+<li>Role dependency resolution and validation</li>
+<li>Task and handler file processing</li>
+<li>Default and custom role variables support</li>
+</ul>
+<h3 id="inventories">Inventories<a class="headerlink" href="#inventories" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Static inventory file parsing (INI and YAML formats)</li>
+<li>Dynamic inventory script execution and parsing</li>
+<li>Group and host variable resolution</li>
+<li>Support for inventory directories with <code>host_vars</code> and <code>group_vars</code></li>
+</ul>
+<h3 id="ansible-vault">Ansible Vault<a class="headerlink" href="#ansible-vault" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Detection of vault-encrypted files</li>
+<li>Integration with vault password files</li>
+<li>Support for <code>ansible-vault</code> commands (encrypt, decrypt, view, etc.)</li>
+<li>Secure handling of sensitive data during testing</li>
+</ul>
+<h3 id="ansible-galaxy">Ansible Galaxy<a class="headerlink" href="#ansible-galaxy" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>requirements.yml</code> file parsing</li>
+<li>Role and collection dependency management</li>
+<li>Support for multiple Galaxy servers</li>
+<li>Version constraint handling</li>
+</ul>
+<h2 id="recent-improvements">Recent Improvements<a class="headerlink" href="#recent-improvements" title="Permanent link">&para;</a></h2>
+<h3 id="enhanced-testing-framework">Enhanced Testing Framework<a class="headerlink" href="#enhanced-testing-framework" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Added comprehensive test coverage for all Ansible components</li>
+<li>Implemented mock-based testing for external dependencies</li>
+<li>Added fixtures for common Ansible project structures</li>
+<li>Improved error handling and reporting</li>
+</ul>
+<h3 id="command-detection">Command Detection<a class="headerlink" href="#command-detection" title="Permanent link">&para;</a></h3>
+<ul>
+<li>More accurate detection of Ansible commands in project files</li>
+<li>Better handling of command arguments and options</li>
+<li>Support for custom Ansible configuration files</li>
+<li>Improved detection of playbook and role structures</li>
+</ul>
+<h3 id="performance-optimizations">Performance Optimizations<a class="headerlink" href="#performance-optimizations" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Caching of parsed Ansible content</li>
+<li>Parallel execution of independent tests</li>
+<li>Reduced overhead in command detection</li>
+<li>Memory usage optimizations for large projects</li>
+</ul>
+<h2 id="example-commands">Example Commands<a class="headerlink" href="#example-commands" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run all Ansible tests</span>
+make<span class="w"> </span>test-ansible
+
+<span class="c1"># Test playbooks specifically</span>
+make<span class="w"> </span>test-playbooks
+
+<span class="c1"># Test role functionality</span>
+make<span class="w"> </span>test-roles
+
+<span class="c1"># Test Galaxy integration</span>
+make<span class="w"> </span>test-galaxy
+
+<span class="c1"># Test Vault functionality</span>
+make<span class="w"> </span>test-vault
+
+<span class="c1"># Test inventory handling</span>
+make<span class="w"> </span>test-inventory
+</code></pre></div>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>Ansible testing can be configured using the following environment variables:</p>
+<ul>
+<li><code>ANSIBLE_CONFIG</code>: Path to ansible.cfg (default: <code>./ansible.cfg</code>)</li>
+<li><code>ANSIBLE_INVENTORY</code>: Path to inventory file (default: <code>inventory/</code>)</li>
+<li><code>ANSIBLE_VAULT_PASSWORD_FILE</code>: Path to vault password file</li>
+</ul>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Organize your tests</strong>: Keep your test files organized by functionality</li>
+<li><strong>Use fixtures</strong>: Leverage the provided test fixtures for common Ansible structures</li>
+<li><strong>Mock external calls</strong>: Use mocking for external dependencies in unit tests</li>
+<li><strong>Test different scenarios</strong>: Include tests for error cases and edge conditions</li>
+<li><strong>Keep tests fast</strong>: Use appropriate test scopes and mocks to keep tests fast</li>
+</ol>
+
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../core/" class="btn btn-neutral float-left" title="Core Features"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../development/testing/" class="btn btn-neutral float-right" title="Testing">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+
+
+      <span><a href="../core/" style="color: #fcfcfc">&laquo; Previous</a></span>
+
+
+      <span><a href="../../development/testing/" style="color: #fcfcfc">Next &raquo;</a></span>
+
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../js/extra.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
