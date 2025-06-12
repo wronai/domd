@@ -1,4 +1,5 @@
-# ✓ DoMD - Project Command Detector
+# ✓ DoMD - Do Markdown Docs
+- automatically detect, run and show working commands in DONE.md and errors in TODO.md markdown files
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -7,7 +8,8 @@
 [![Docker Support](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker)](https://www.docker.com/)
 [![Documentation](https://img.shields.io/badge/Docs-Read%20the%20Docs-blue)](https://wronai.github.io/domd/)
 
-**DoMD** (Do Markdown Docs) is a powerful tool for automatically detecting, executing, and managing commands in development projects. It helps you maintain your project's documentation by generating and updating `todo.md` and `done.md` files based on command execution results.
+**DoMD** helps you maintain your project's documentation by generating and updating `todo.md` and `done.md` files based on command execution results.
+
 
 > 💡 **Pro Tip**: When you think everything in your project is working correctly, run `domd` to verify all commands and update your documentation!
 
@@ -15,7 +17,7 @@
 
 - **Automatic Command Detection** - Discovers commands from various project files
 - **Docker Integration** - Run commands in isolated containers
-- **Smart Command Filtering** - Skip specific commands using `.doingore`
+- **Smart Command Filtering** - Skip specific commands using `.doignore`
 - **Cross-Platform** - Works on Linux, macOS, and Windows
 - **Extensible** - Add support for new command types and tools
 
