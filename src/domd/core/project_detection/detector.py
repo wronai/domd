@@ -263,78 +263,137 @@ class ProjectCommandDetector:
         all_commands.extend(commands)
         logger.info(f"Found {len(commands)} commands in {display_path}")
 
-    def _process_file_commands(self, file_path: Path) -> List[Dict]:
+    def _process_file_commands(self, file_path: Union[str, Path]) -> List[Dict]:
         """Process a single file and extract commands.
 
         Args:
-            file_path: Path to the file to process
+            file_path: Path to the file to process (can be str or Path)
 
         Returns:
             List of command dictionaries with metadata
         """
-        logger.debug(f"Processing file: {file_path}")
+        # Convert to Path object if needed
+        path = Path(file_path) if isinstance(file_path, str) else file_path
+        logger.debug(f"Processing file: {path}")
         commands = []
 
         try:
-            if not file_path.exists():
-                logger.warning(f"File not found: {file_path}")
+            # Check if file exists and is a file
+            if not path.exists():
+                logger.warning(f"File not found: {path}")
+                return commands
+
+            if not path.is_file():
+                logger.debug(f"Path is not a file: {path}")
                 return commands
 
             # Get the appropriate parser for the file
-            parser = self._get_parser_for_file(file_path)
+            parser = self._get_parser_for_file(path)
             if not parser:
-                logger.debug(f"No parser found for file: {file_path}")
+                logger.debug(f"No suitable parser found for file: {path}")
                 return commands
 
-            try:
-                # Set the file_path on the parser if it has that attribute
-                if hasattr(parser, "file_path"):
-                    parser.file_path = str(file_path)
+            # Set the file_path on the parser if it has that attribute
+            if hasattr(parser, "file_path"):
+                parser.file_path = path
 
-                # Parse commands from file
-                file_commands = []
+            # Set project root if needed
+            if hasattr(parser, "project_root") and not hasattr(
+                parser, "_project_root_set"
+            ):
+                parser.project_root = self.project_path
+                parser._project_root_set = True
+
+            # Parse commands from file
+            file_commands = []
+            try:
+                # Try different parsing methods in order of preference
                 if hasattr(parser, "parse_file") and callable(parser.parse_file):
-                    file_commands = parser.parse_file(str(file_path))
+                    file_commands = parser.parse_file(path)
                 elif hasattr(parser, "parse") and callable(parser.parse):
                     # First try without arguments (parser will handle file reading)
                     try:
                         file_commands = parser.parse()
-                    except (TypeError, AttributeError):
+                    except (TypeError, AttributeError) as e:
+                        logger.debug(
+                            f"Parser.parse() failed, trying with file path: {e}"
+                        )
                         # If that fails, try with file path
                         try:
-                            file_commands = parser.parse(str(file_path))
-                        except (TypeError, AttributeError):
+                            file_commands = parser.parse(path)
+                        except (TypeError, AttributeError) as e:
+                            logger.debug(
+                                f"Parser.parse(path) failed, trying with file content: {e}"
+                            )
                             # As a last resort, try with file content
                             try:
-                                content = file_path.read_text(encoding="utf-8")
+                                content = path.read_text(encoding="utf-8")
                                 file_commands = parser.parse(content)
                             except Exception as e:
                                 logger.error(
-                                    f"Error parsing {file_path} with content: {e}"
+                                    f"Error parsing {path} with content: {e}",
+                                    exc_info=logger.isEnabledFor(logging.DEBUG),
                                 )
                                 return []
 
-                # Add file path to commands if not already present
-                for cmd in file_commands:
-                    if isinstance(cmd, dict):
-                        cmd["file"] = str(file_path)
-                        # Add relative path as source if not present
-                        if "source" not in cmd:
-                            cmd["source"] = str(
-                                file_path.relative_to(self.project_path)
-                            )
-                    elif hasattr(cmd, "file") and not cmd.file:
-                        cmd.file = str(file_path)
-                        if not hasattr(cmd, "source") or not cmd.source:
-                            cmd.source = str(file_path.relative_to(self.project_path))
+                if not isinstance(file_commands, list):
+                    logger.warning(
+                        f"Parser returned non-list result: {type(file_commands)}"
+                    )
+                    file_commands = []
 
-                commands.extend(file_commands)
-                logger.debug(f"Found {len(file_commands)} commands in {file_path}")
+                # Process the parsed commands
+                processed_commands = []
+                for cmd in file_commands:
+                    try:
+                        if cmd is None:
+                            continue
+
+                        # Handle both dict and object-style commands
+                        if isinstance(cmd, dict):
+                            # Ensure required fields exist
+                            cmd.setdefault("file", str(path))
+                            if "source" not in cmd:
+                                try:
+                                    cmd["source"] = str(
+                                        path.relative_to(self.project_path)
+                                    )
+                                except ValueError:
+                                    cmd["source"] = str(path)
+                            processed_commands.append(cmd)
+
+                        elif hasattr(cmd, "__dict__"):  # Object with attributes
+                            if not hasattr(cmd, "file") or not cmd.file:
+                                cmd.file = str(path)
+                            if not hasattr(cmd, "source") or not cmd.source:
+                                try:
+                                    cmd.source = str(
+                                        path.relative_to(self.project_path)
+                                    )
+                                except ValueError:
+                                    cmd.source = str(path)
+                            processed_commands.append(cmd)
+
+                    except Exception as e:
+                        logger.warning(
+                            f"Error processing command from {path}: {e}",
+                            exc_info=logger.isEnabledFor(logging.DEBUG),
+                        )
+
+                commands.extend(processed_commands)
+                logger.debug(f"Found {len(processed_commands)} commands in {path}")
 
             except Exception as e:
-                logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
+                logger.error(
+                    f"Error parsing {path}: {e}",
+                    exc_info=logger.isEnabledFor(logging.DEBUG),
+                )
+
         except Exception as e:
-            logger.error(f"Unexpected error processing {file_path}: {e}", exc_info=True)
+            logger.error(
+                f"Unexpected error processing {path}: {e}",
+                exc_info=logger.isEnabledFor(logging.DEBUG),
+            )
 
         return commands
 
@@ -421,24 +480,65 @@ class ProjectCommandDetector:
 
         return result_commands
 
-    def _get_parser_for_file(self, file_path: Path) -> Optional[BaseParser]:
+    def _get_parser_for_file(self, file_path: Union[str, Path]) -> Optional[BaseParser]:
         """Get a parser for a specific file (legacy method).
 
         Args:
-            file_path: Path to the file
+            file_path: Path to the file (can be str or Path)
 
         Returns:
             Parser instance or None if no parser found
         """
+        # Ensure we have a Path object
+        path = Path(file_path) if isinstance(file_path, str) else file_path
+
+        if not path.exists():
+            logger.debug(f"File does not exist: {path}")
+            return None
+
+        logger.debug(f"Looking for parser for file: {path}")
+
         for parser in self.parsers:
             try:
-                if hasattr(parser, "can_parse") and parser.can_parse(file_path):
+                if not hasattr(parser, "can_parse"):
+                    logger.debug(
+                        f"Parser {parser.__class__.__name__} has no can_parse method"
+                    )
+                    continue
+
+                # Check if this parser can handle the file
+                can_parse = False
+                try:
+                    can_parse = parser.can_parse(path)
+                except Exception as e:
+                    logger.warning(
+                        f"Error in can_parse for {parser.__class__.__name__} on {path}: {e}",
+                        exc_info=logger.isEnabledFor(logging.DEBUG),
+                    )
+                    continue
+
+                if can_parse:
+                    logger.debug(
+                        f"Found matching parser: {parser.__class__.__name__} for {path}"
+                    )
+                    # Set the file_path on the parser if it has that attribute
+                    if hasattr(parser, "file_path"):
+                        parser.file_path = path
+                    if hasattr(parser, "project_root") and not hasattr(
+                        parser, "_project_root_set"
+                    ):
+                        parser.project_root = self.project_path
+                        parser._project_root_set = True
                     return parser
+
             except Exception as e:
                 logger.warning(
-                    f"Error checking parser {parser.__class__.__name__}: {e}"
+                    f"Error checking parser {parser.__class__.__name__} on {path}: {e}",
+                    exc_info=logger.isEnabledFor(logging.DEBUG),
                 )
+                continue
 
+        logger.debug(f"No parser found for file: {path}")
         return None
 
     def test_commands(self, commands: List) -> None:

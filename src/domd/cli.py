@@ -4,11 +4,12 @@ Enhanced CLI with clean architecture support
 """
 
 import argparse
+import json
 import logging
 import os
-import signal
 import subprocess
 import sys
+import time
 import webbrowser
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -31,37 +32,34 @@ logger = logging.getLogger(__name__)
 
 def _check_node_installed() -> bool:
     """Check if Node.js and npm are installed.
-    
+
     Returns:
         bool: True if both Node.js and npm are installed, False otherwise
     """
     try:
         # Check Node.js
         node_version = subprocess.check_output(
-            ["node", "--version"], 
-            stderr=subprocess.PIPE,
-            universal_newlines=True
+            ["node", "--version"], stderr=subprocess.PIPE, universal_newlines=True
         ).strip()
-        
+
         # Check npm
         npm_version = subprocess.check_output(
-            ["npm", "--version"], 
-            stderr=subprocess.PIPE,
-            universal_newlines=True
+            ["npm", "--version"], stderr=subprocess.PIPE, universal_newlines=True
         ).strip()
-        
+
         print(f"✓ Found {node_version} and npm {npm_version}")
         return True
-        
+
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
+
 def _install_dependencies(frontend_dir: Path) -> bool:
     """Install frontend dependencies using npm.
-    
+
     Args:
         frontend_dir: Path to the frontend directory
-        
+
     Returns:
         bool: True if installation was successful, False otherwise
     """
@@ -79,59 +77,62 @@ def _install_dependencies(frontend_dir: Path) -> bool:
         print(f"❌ Failed to install dependencies: {e}")
         return False
 
+
 def start_web_interface(args: argparse.Namespace) -> int:
     """Start the web interface.
-    
+
     Args:
         args: Command line arguments
-        
+
     Returns:
         int: Exit code (0 for success, non-zero for error)
     """
     port = args.port
     open_browser = not args.no_browser
-    
+
     # Check if Node.js and npm are installed
     print("🔍 Checking for Node.js and npm...")
     if not _check_node_installed():
-        print("""
+        print(
+            """
 ❌ Node.js and npm are required to run the web interface.
    Please install them from https://nodejs.org/ and try again.
-   
+
    On Ubuntu/Debian: sudo apt-get install nodejs npm
    On macOS:          brew install node
    On Windows:        Download from https://nodejs.org/
-        """)
+        """
+        )
         return 1
-    
+
     # Get the directory of this file
     current_dir = Path(__file__).parent
     frontend_dir = current_dir.parent.parent / "frontend"
-    
+
     if not frontend_dir.exists():
         print(f"❌ Error: Frontend directory not found at {frontend_dir}")
         return 1
-        
+
     # Check if node_modules exists, if not, install dependencies
     if not (frontend_dir / "node_modules").exists():
         if not _install_dependencies(frontend_dir):
             return 1
-    
+
     # Change to the frontend directory
     os.chdir(frontend_dir)
-    
+
     # Set the port environment variable
     os.environ["PORT"] = str(port)
-    
+
     print(f"🚀 Starting DoMD web interface on port {port}...")
     print("   Press Ctrl+C to stop the server")
-    
+
     # Start the React development server
     try:
         cmd = ["npm", "start"]
         if sys.platform == "win32":
             cmd = ["npm.cmd", "start"]
-            
+
         # Start the process
         process = subprocess.Popen(
             cmd,
@@ -140,25 +141,25 @@ def start_web_interface(args: argparse.Namespace) -> int:
             stderr=subprocess.STDOUT,
             universal_newlines=True,
         )
-        
+
         # Open browser after a short delay
         if open_browser:
             time.sleep(2)  # Give the server a moment to start
             print(f"🌐 Opening browser to http://localhost:{port}...")
             webbrowser.open(f"http://localhost:{port}")
-            
+
         # Stream the output
         for line in process.stdout:
             print(line, end="")
-            
+
         # Wait for the process to complete
         process.wait()
         return process.returncode
-        
+
     except KeyboardInterrupt:
         print("\n🛑 Web interface stopped by user")
         return 0
-        
+
     except Exception as e:
         print(f"❌ Error starting web interface: {e}")
         print("\n💡 Try these troubleshooting steps:")

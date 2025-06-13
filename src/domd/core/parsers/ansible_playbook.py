@@ -54,31 +54,41 @@ class AnsiblePlaybookParser(BaseParser):
         """
         from domd.core.commands import Command
 
-        if not self.file_path or not self.file_path.exists():
+        if not hasattr(self, "file_path") or self.file_path is None:
             return []
 
         self._commands: List[Command] = []
 
         # If content is not provided, read from file
-        if content is None and not self.file_path.is_dir():
+        if (
+            content is None
+            and hasattr(self, "file_path")
+            and not self.file_path.is_dir()
+        ):
             try:
-                with open(self.file_path, "r", encoding="utf-8") as f:
+                with open(str(self.file_path), "r", encoding="utf-8") as f:
                     content = f.read()
-            except (IOError, UnicodeDecodeError):
+            except (IOError, UnicodeDecodeError) as e:
                 # If we can't read the file, return empty list
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Error reading file {self.file_path}: {e}")
                 return []
 
         try:
-            playbook = yaml.safe_load(content)
+            playbook = yaml.safe_load(content) if content else []
 
             if not isinstance(playbook, list):
                 return []
 
             # Get relative path if file is in project directory, otherwise use full path
-            try:
-                playbook_path = self.file_path.relative_to(self.project_root)
-            except ValueError:
-                playbook_path = self.file_path
+            playbook_path = str(self.file_path)
+            if hasattr(self, "project_root") and self.project_root:
+                try:
+                    playbook_path = str(self.file_path.relative_to(self.project_root))
+                except ValueError:
+                    pass
 
             for play in playbook:
                 if not isinstance(play, dict):

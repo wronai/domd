@@ -46,7 +46,8 @@ import {
   Error as ErrorIcon,
   Warning as WarningIcon,
   Schedule as ScheduleIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Terminal as TerminalIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -91,38 +92,26 @@ const Commands: React.FC = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  // Add missing state for menu anchor
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [selectedCommand, setSelectedCommand] = React.useState<Command | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [snackbar, setSnackbar] = React.useState({
-    open: false,
-    message: '',
-    severity: 'success' as 'success' | 'error' | 'info' | 'warning'
-  });
-
-  // State for pagination
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  // State for sorting
-  const [orderBy, setOrderBy] = useState<keyof Command>('name');
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-
-  // State for search and filters
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-
-  // State for command menu
+  // State for command menu and dialogs
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedCommand, setSelectedCommand] = useState<Command | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
+  const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
-    severity: 'info'
+    severity: 'success' as 'success' | 'error' | 'info' | 'warning',
   });
+
+  // State for table pagination and sorting
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
+  const [orderBy, setOrderBy] = useState<keyof Command>('createdAt');
+  
+  // State for filters and search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   // Fetch commands
   const {
@@ -134,17 +123,11 @@ const Commands: React.FC = () => {
   } = useQuery<CommandListResponse>({
     queryKey: ['commands', page, rowsPerPage, orderBy, order, searchTerm, statusFilter, categoryFilter],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        page: (page + 1).toString(),
-        limit: rowsPerPage.toString(),
-        sortBy: orderBy,
-        order,
-        search: searchTerm,
-        ...(statusFilter !== 'all' && { status: statusFilter }),
-        ...(categoryFilter !== 'all' && { category: categoryFilter }),
-      });
-
-      const response = await fetch(`/api/commands?${params}`);
+      const response = await fetch(
+        `/api/commands?page=${page + 1}&limit=${limit}&search=${encodeURIComponent(
+          searchTerm
+        )}`
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch commands');
       }
@@ -152,6 +135,9 @@ const Commands: React.FC = () => {
     },
     keepPreviousData: true,
   });
+
+  // Extract commands array with fallback to empty array
+  const commands = commandsData?.data || [];
 
   // Run command mutation
   const runCommandMutation = useMutation(
@@ -242,11 +228,6 @@ const Commands: React.FC = () => {
   // Handle menu close
   const handleMenuClose = () => {
     setAnchorEl(null);
-  };
-
-  // Handle menu close
-  const handleMenuClose = () => {
-    setAnchorEl(null);
     setSelectedCommand(null);
   };
 
@@ -287,12 +268,25 @@ const Commands: React.FC = () => {
 
   // Handle confirm delete
   const handleConfirmDelete = async () => {
-    if (selectedCommand) {
-      try {
-        await deleteCommandMutation.mutateAsync(selectedCommand.id);
-      } catch (error) {
-        console.error('Error deleting command:', error);
-      }
+    if (!selectedCommand) return;
+
+    try {
+      await deleteCommandMutation.mutateAsync(selectedCommand.id);
+      setDeleteDialogOpen(false);
+      setSnackbar({
+        open: true,
+        message: 'Command deleted successfully',
+        severity: 'success',
+      });
+      // Invalidate the commands query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ['commands'] });
+    } catch (error) {
+      console.error('Error deleting command:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete command',
+        severity: 'error',
+      });
     }
   };
 
@@ -345,16 +339,11 @@ const Commands: React.FC = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Commands
-          </Typography>
-          <Typography variant="body1" color="textSecondary">
-            Manage and execute your project commands
-          </Typography>
-        </Box>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Commands
+        </Typography>
         <Button
           variant="contained"
           color="primary"
@@ -366,65 +355,50 @@ const Commands: React.FC = () => {
       </Box>
 
       {/* Search and filter bar */}
-      <Paper sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center' }}>
-        <TextField
-          variant="outlined"
-          size="small"
-          placeholder="Search commands..."
-          value={searchTerm}
-          onChange={handleSearch}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon color="action" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ flexGrow: 1, mr: 2 }}
-        />
-
-        <Button
-          variant="outlined"
-          startIcon={<FilterListIcon />}
-          sx={{ mr: 1 }}
-        >
-          Filters
-        </Button>
-
-        <Tooltip title="Refresh">
-          <IconButton onClick={() => refetch()}>
-            <RefreshIcon />
-          </IconButton>
-        </Tooltip>
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Box display="flex" alignItems="center">
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Search commands..."
+            value={searchTerm}
+            onChange={handleSearch}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            fullWidth
+          />
+          <Box ml={2}>
+            <Button
+              variant="outlined"
+              startIcon={<FilterListIcon />}
+              sx={{ ml: 1 }}
+            >
+              Filters
+            </Button>
+            <IconButton onClick={() => refetch()} sx={{ ml: 1 }}>
+              <RefreshIcon />
+            </IconButton>
+          </Box>
+        </Box>
       </Paper>
+
 
       {/* Commands table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         <TableContainer sx={{ maxHeight: 'calc(100vh - 300px)' }}>
-          <Table stickyHeader aria-label="commands table" size="medium">
+          <Table stickyHeader aria-label="commands table" size="small">
             <TableHead>
               <TableRow>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'name'}
-                    direction={orderBy === 'name' ? order : 'asc'}
-                    onClick={() => handleRequestSort('name')}
-                  >
-                    Name
-                  </TableSortLabel>
-                </TableCell>
+                <TableCell>Name</TableCell>
                 <TableCell>Description</TableCell>
                 <TableCell>Category</TableCell>
                 <TableCell>Tags</TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'lastRun'}
-                    direction={orderBy === 'lastRun' ? order : 'desc'}
-                    onClick={() => handleRequestSort('lastRun')}
-                  >
-                    Last Run
-                  </TableSortLabel>
-                </TableCell>
+                <TableCell>Last Run</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -442,54 +416,47 @@ const Commands: React.FC = () => {
               ) : isError ? (
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                    <Alert severity="error">
-                      Error loading commands: {error instanceof Error ? error.message : 'Unknown error'}
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      Error loading commands
                     </Alert>
                     <Button
                       variant="outlined"
                       color="primary"
                       onClick={() => refetch()}
-                      sx={{ mt: 2 }}
                     >
                       Retry
                     </Button>
                   </TableCell>
                 </TableRow>
-              ) : commandsData?.data.length === 0 ? (
+              ) : commands.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                    <Box sx={{ maxWidth: 400, mx: 'auto' }}>
-                      <TerminalIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-                      <Typography variant="h6" color="textSecondary" gutterBottom>
-                        No commands found
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary" paragraph>
-                        {searchTerm
-                          ? 'No commands match your search. Try a different search term.'
-                          : 'Get started by creating a new command.'}
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<AddIcon />}
-                        onClick={() => navigate('/commands/new')}
-                      >
-                        Create Command
-                      </Button>
-                    </Box>
+                    <TerminalIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                    <Typography variant="h6" color="textSecondary" gutterBottom>
+                      No commands found
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" paragraph>
+                      {searchTerm ? 'No commands match your search' : 'Get started by creating a new command'}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<AddIcon />}
+                      onClick={() => navigate('/commands/new')}
+                    >
+                      Create Command
+                    </Button>
                   </TableCell>
                 </TableRow>
               ) : (
-                commandsData?.data.map((command) => (
+                commands.map((command) => (
                   <TableRow
                     key={command.id}
                     hover
-                    sx={{ '&:hover': { backgroundColor: alpha(theme.palette.primary.light, 0.04) } }}
+                    sx={{ '&:hover': { cursor: 'pointer' } }}
                   >
                     <TableCell>
-                      <Typography variant="subtitle2">
-                        {command.name}
-                      </Typography>
+                      <Typography variant="subtitle2">{command.name}</Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="textSecondary" noWrap>
@@ -513,7 +480,7 @@ const Commands: React.FC = () => {
                             variant="outlined"
                           />
                         ))}
-                        {command.tags?.length > 2 && (
+                        {command.tags && command.tags.length > 2 && (
                           <Chip
                             label={`+${command.tags.length - 2}`}
                             size="small"
@@ -531,28 +498,34 @@ const Commands: React.FC = () => {
                       <Chip
                         icon={getStatusIcon(command.status)}
                         label={command.status || 'unknown'}
-                        color={getStatusChipColor(command.status)}
+                        color={getStatusChipColor(command.status) as any}
                         size="small"
                         variant="outlined"
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                         <Tooltip title="Run">
                           <IconButton
                             size="small"
                             color="primary"
-                            onClick={() => handleRunCommand(command.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRunCommand(command.id);
+                            }}
                             disabled={runCommandMutation.isLoading}
                           >
-                            <PlayArrowIcon />
+                            <PlayArrowIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                         <IconButton
                           size="small"
-                          onClick={(e) => handleMenuOpen(e, command)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMenuOpen(e, command);
+                          }}
                         >
-                          <MoreVertIcon />
+                          <MoreVertIcon fontSize="small" />
                         </IconButton>
                       </Box>
                     </TableCell>
@@ -562,10 +535,8 @@ const Commands: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
-
-        {/* Pagination */}
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25, 50]}
+          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={commandsData?.total || 0}
           rowsPerPage={rowsPerPage}
@@ -575,28 +546,23 @@ const Commands: React.FC = () => {
         />
       </Paper>
 
-      {/* Command menu */}
+      {/* Menu for command actions */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
-        onClick={handleMenuClose}
-        PaperProps={{
-          elevation: 1,
-          sx: {
-            minWidth: 180,
-          },
-        }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        onClick={(e) => e.stopPropagation()}
       >
         <MenuItem onClick={() => selectedCommand && handleViewDetails(selectedCommand.id)}>
           <ListItemIcon>
-            <InfoIcon fontSize="small" />
+            <TerminalIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>View Details</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => selectedCommand && handleRunCommand(selectedCommand.id)}>
+        <MenuItem
+          onClick={() => selectedCommand && handleRunCommand(selectedCommand.id)}
+          disabled={runCommandMutation.isLoading}
+        >
           <ListItemIcon>
             <PlayArrowIcon fontSize="small" color="primary" />
           </ListItemIcon>
@@ -633,13 +599,12 @@ const Commands: React.FC = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="inherit">
+          <Button onClick={handleCloseDeleteDialog} color="primary">
             Cancel
           </Button>
           <Button
             onClick={handleConfirmDelete}
             color="error"
-            variant="contained"
             disabled={deleteCommandMutation.isLoading}
             startIcon={deleteCommandMutation.isLoading ? <CircularProgress size={20} /> : null}
           >
@@ -653,7 +618,7 @@ const Commands: React.FC = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
           onClose={handleCloseSnackbar}

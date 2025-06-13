@@ -250,18 +250,30 @@ class CommandHandler:
                 bin_dir = "bin"
                 python_exe = "python"
 
-            python_path = os.path.join(venv_path, bin_dir, python_exe)
-            if os.path.isfile(python_path):
+            # First try the direct path from venv_env if available
+            python_path = venv_env.get("python_path")
+            if not python_path or not os.path.isfile(python_path):
+                # Fall back to standard location
+                python_path = os.path.join(venv_path, bin_dir, python_exe)
+
+                # If that doesn't exist, try version-specific python
+                if not os.path.isfile(python_path):
+                    python_path = os.path.join(
+                        venv_path,
+                        bin_dir,
+                        f"python{sys.version_info.major}.{sys.version_info.minor}",
+                    )
+                    # If still not found, try without minor version
+                    if not os.path.isfile(python_path):
+                        python_path = os.path.join(
+                            venv_path,
+                            bin_dir,
+                            f"python{sys.version_info.major}",
+                        )
+
+            # If we found a valid Python executable, use it
+            if python_path and os.path.isfile(python_path):
                 cmd_list[0] = python_path
-            else:
-                # Fallback to the Python executable in the virtualenv's bin directory
-                python_path = os.path.join(
-                    venv_path,
-                    bin_dir,
-                    f"python{sys.version_info.major}.{sys.version_info.minor}",
-                )
-                if os.path.isfile(python_path):
-                    cmd_list[0] = python_path
 
         # Merge environments, with user-provided env taking precedence
         env = kwargs.pop("env", {})
