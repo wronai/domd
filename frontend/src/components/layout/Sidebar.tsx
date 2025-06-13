@@ -1,60 +1,27 @@
 import React from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Toolbar, Box } from '@mui/material';
-import { useTheme, Theme, CSSObject } from '@mui/material/styles';
+import {
+  Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
 import { useLocation, Link as RouterLink } from 'react-router-dom';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import TerminalIcon from '@mui/icons-material/Terminal';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import SettingsIcon from '@mui/icons-material/Settings';
-import { styled } from '@mui/material/styles';
+import {
+  Dashboard as DashboardIcon,
+  Terminal as TerminalIcon,
+  Assessment as AssessmentIcon,
+  Settings as SettingsIcon,
+  Help as HelpIcon,
+  ExitToApp as ExitToAppIcon,
+} from '@mui/icons-material';
 
 const drawerWidth = 240;
-
-const openedMixin = (theme: Theme): CSSObject => ({
-  width: drawerWidth,
-  transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
-  overflowX: 'hidden',
-});
-
-const closedMixin = (theme: Theme): CSSObject => ({
-  transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  overflowX: 'hidden',
-  width: `calc(${theme.spacing(7)} + 1px)`,
-  [theme.breakpoints.up('sm')]: {
-    width: `calc(${theme.spacing(8)} + 1px)`,
-  },
-});
-
-const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    width: drawerWidth,
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
-    boxSizing: 'border-box',
-    ...(open && {
-      ...openedMixin(theme),
-      '& .MuiDrawer-paper': openedMixin(theme),
-    }),
-    ...(!open && {
-      ...closedMixin(theme),
-      '& .MuiDrawer-paper': closedMixin(theme),
-    }),
-  })
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  padding: theme.spacing(0, 1),
-  ...theme.mixins.toolbar,
-}));
 
 interface SidebarItem {
   text: string;
@@ -70,6 +37,8 @@ const mainItems: SidebarItem[] = [
 
 const secondaryItems: SidebarItem[] = [
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  { text: 'Help', icon: <HelpIcon />, path: '/help' },
+  { text: 'Logout', icon: <ExitToAppIcon />, path: '/logout' },
 ];
 
 interface SidebarProps {
@@ -80,31 +49,11 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onClose }) => {
   const theme = useTheme();
   const location = useLocation();
-  const [open, setOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    // Set initial open state based on screen size
-    const handleResize = () => {
-      setOpen(window.innerWidth >= 900);
-    };
-
-    // Set initial state
-    handleResize();
-
-    // Add event listener
-    window.addEventListener('resize', handleResize);
-
-    // Clean up
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const handleDrawerToggle = () => {
-    setOpen(!open);
-  };
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const drawer = (
     <div>
-      <Toolbar sx={{ minHeight: '64px !important' }} />
+      <Toolbar />
       <Divider />
       <List>
         {mainItems.map((item) => (
@@ -113,25 +62,9 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onClose }) => {
               component={RouterLink}
               to={item.path}
               selected={location.pathname === item.path}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: theme.palette.action.selected,
-                  '&:hover': {
-                    backgroundColor: theme.palette.action.selected,
-                  },
-                },
-              }}
+              onClick={isMobile ? onClose : undefined}
             >
-              <ListItemIcon
-                sx={{
-                  minWidth: 40,
-                  color: location.pathname === item.path
-                    ? theme.palette.primary.main
-                    : 'inherit',
-                }}
-              >
-                {item.icon}
-              </ListItemIcon>
+              <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
@@ -145,25 +78,9 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onClose }) => {
               component={RouterLink}
               to={item.path}
               selected={location.pathname === item.path}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: theme.palette.action.selected,
-                  '&:hover': {
-                    backgroundColor: theme.palette.action.selected,
-                  },
-                },
-              }}
+              onClick={isMobile ? onClose : undefined}
             >
-              <ListItemIcon
-                sx={{
-                  minWidth: 40,
-                  color: location.pathname === item.path
-                    ? theme.palette.primary.main
-                    : 'inherit',
-                }}
-              >
-                {item.icon}
-              </ListItemIcon>
+              <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
@@ -173,35 +90,41 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onClose }) => {
   );
 
   return (
-    <Box component="nav" sx={{ width: { sm: open ? drawerWidth : `calc(${theme.spacing(7)} + 1px)` }, flexShrink: { sm: 0 } }}>
+    <>
       {/* Mobile drawer */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
         onClose={onClose}
         ModalProps={{
-          keepMounted: true, // Better open performance on mobile.
+          keepMounted: true, // Better open performance on mobile
         }}
         sx={{
           display: { xs: 'block', sm: 'none' },
-          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+          },
         }}
       >
         {drawer}
       </Drawer>
 
       {/* Desktop drawer */}
-      <StyledDrawer
+      <Drawer
         variant="permanent"
         sx={{
           display: { xs: 'none', sm: 'block' },
-          '& .MuiDrawer-paper': { boxSizing: 'border-box' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+          },
         }}
-        open={open}
+        open
       >
         {drawer}
-      </StyledDrawer>
-    </Box>
+      </Drawer>
+    </>
   );
 };
 

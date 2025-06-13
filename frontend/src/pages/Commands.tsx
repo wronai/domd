@@ -31,7 +31,8 @@ import {
   Alert,
   Snackbar,
   useTheme,
-  alpha
+  alpha,
+  Divider
 } from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
@@ -49,7 +50,7 @@ import {
   Add as AddIcon,
   Terminal as TerminalIcon
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 interface Command {
@@ -107,11 +108,23 @@ const Commands: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
   const [orderBy, setOrderBy] = useState<keyof Command>('createdAt');
-  
+
   // State for filters and search
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  // Handle search input change with debounce
+  const [searchInput, setSearchInput] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput);
+      setPage(0); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // Fetch commands
   const {
@@ -124,7 +137,7 @@ const Commands: React.FC = () => {
     queryKey: ['commands', page, rowsPerPage, orderBy, order, searchTerm, statusFilter, categoryFilter],
     queryFn: async () => {
       const response = await fetch(
-        `/api/commands?page=${page + 1}&limit=${limit}&search=${encodeURIComponent(
+        `/api/commands?page=${page + 1}&limit=${rowsPerPage}&search=${encodeURIComponent(
           searchTerm
         )}`
       );
@@ -133,67 +146,71 @@ const Commands: React.FC = () => {
       }
       return response.json();
     },
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
   // Extract commands array with fallback to empty array
   const commands = commandsData?.data || [];
 
   // Run command mutation
-  const runCommandMutation = useMutation(
-    (commandId: string) =>
-      fetch(`/api/commands/${commandId}/run`, { method: 'POST' })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to run command');
-          return res.json();
-        }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['commands']);
-        setSnackbar({
-          open: true,
-          message: 'Command started successfully',
-          severity: 'success'
-        });
-      },
-      onError: (error: Error) => {
-        setSnackbar({
-          open: true,
-          message: `Error running command: ${error.message}`,
-          severity: 'error'
-        });
-      },
-    }
-  ) as UseMutationResult<CommandRunResponse, Error, string, unknown>;
+  const runCommandMutation = useMutation<CommandRunResponse, Error, string>({
+    mutationFn: async (commandId: string) => {
+      const response = await fetch(`/api/commands/${commandId}/run`, {
+        method: 'POST'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to run command');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['commands']
+      });
+      setSnackbar({
+        open: true,
+        message: 'Command started successfully',
+        severity: 'success'
+      });
+    },
+    onError: (error: Error) => {
+      setSnackbar({
+        open: true,
+        message: `Error running command: ${error.message}`,
+        severity: 'error'
+      });
+    },
+  });
 
   // Delete command mutation
-  const deleteCommandMutation = useMutation<CommandDeleteResponse, Error, string>(
-    async (commandId: string) => {
-      const response = await fetch(`/api/commands/${commandId}`, { method: 'DELETE' });
+  const { mutate: deleteCommand, isPending: isDeleting } = useMutation<CommandDeleteResponse, Error, string>({
+    mutationFn: async (commandId: string) => {
+      const response = await fetch(`/api/commands/${commandId}`, {
+        method: 'DELETE'
+      });
       if (!response.ok) {
         throw new Error('Failed to delete command');
       }
       return response.json();
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['commands'] });
-        setSnackbar({
-          open: true,
-          message: 'Command deleted successfully',
-          severity: 'success'
-        });
-        setDeleteDialogOpen(false);
-      },
-      onError: (error: Error) => {
-        setSnackbar({
-          open: true,
-          message: error.message || 'Failed to delete command',
-          severity: 'error'
-        });
-      },
-    }
-  ) as UseMutationResult<CommandDeleteResponse, Error, string, unknown>;
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['commands']
+      });
+      setSnackbar({
+        open: true,
+        message: 'Command deleted successfully',
+        severity: 'success'
+      });
+    },
+    onError: (error: Error) => {
+      setSnackbar({
+        open: true,
+        message: `Error deleting command: ${error.message}`,
+        severity: 'error'
+      });
+    },
+  });
 
   // Handle sort request
   const handleRequestSort = (property: keyof Command) => {
@@ -271,13 +288,9 @@ const Commands: React.FC = () => {
     if (!selectedCommand) return;
 
     try {
-      await deleteCommandMutation.mutateAsync(selectedCommand.id);
+      await deleteCommand(selectedCommand.id);
       setDeleteDialogOpen(false);
-      setSnackbar({
-        open: true,
-        message: 'Command deleted successfully',
-        severity: 'success',
-      });
+      setSelectedCommand(null);
       // Invalidate the commands query to refetch the list
       queryClient.invalidateQueries({ queryKey: ['commands'] });
     } catch (error) {
@@ -443,66 +456,67 @@ const Commands: React.FC = () => {
                       color="primary"
                       startIcon={<AddIcon />}
                       onClick={() => navigate('/commands/new')}
-                    >
-                      Create Command
-                    </Button>
+                    Create Command
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ) : (
+              // Map function for command rows
+              commands.map((command: Command) => (
+                <TableRow
+                  key={command.id}
+                  hover
+                  sx={{ '&:hover': { cursor: 'pointer' } }}
+                  onClick={() => handleViewDetails(command.id)}
+                >
+                  <TableCell>
+                    <Typography variant="subtitle2">{command.name}</Typography>
                   </TableCell>
-                </TableRow>
-              ) : (
-                commands.map((command) => (
-                  <TableRow
-                    key={command.id}
-                    hover
-                    sx={{ '&:hover': { cursor: 'pointer' } }}
-                  >
-                    <TableCell>
-                      <Typography variant="subtitle2">{command.name}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="textSecondary" noWrap>
-                        {command.description || 'No description'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={command.category || 'Uncategorized'}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {command.tags?.slice(0, 2).map((tag) => (
-                          <Chip
-                            key={tag}
-                            label={tag}
-                            size="small"
-                            variant="outlined"
-                          />
-                        ))}
-                        {command.tags && command.tags.length > 2 && (
-                          <Chip
-                            label={`+${command.tags.length - 2}`}
-                            size="small"
-                            variant="outlined"
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="textSecondary">
-                        {command.lastRun ? formatDate(command.lastRun) : 'Never'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        icon={getStatusIcon(command.status)}
-                        label={command.status || 'unknown'}
-                        color={getStatusChipColor(command.status) as any}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="textSecondary" noWrap>
+                      {command.description || 'No description'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={command.category || 'Uncategorized'}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {command.tags?.slice(0, 2).map((tag: string) => (
+                        <Chip
+                          key={tag}
+                          label={tag}
+                          size="small"
+                          variant="outlined"
+                        />
+                      ))}
+                      {command.tags && command.tags.length > 2 && (
+                        <Chip
+                          label={`+${command.tags.length - 2}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="textSecondary">
+                      {command.lastRun ? formatDate(command.lastRun) : 'Never'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      icon={getStatusIcon(command.status)}
+                      label={command.status || 'unknown'}
+                      color={getStatusChipColor(command.status) as any}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </TableCell>
                     <TableCell align="right">
                       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                         <Tooltip title="Run">
@@ -513,7 +527,7 @@ const Commands: React.FC = () => {
                               e.stopPropagation();
                               handleRunCommand(command.id);
                             }}
-                            disabled={runCommandMutation.isLoading}
+                            disabled={runCommandMutation.isPending}
                           >
                             <PlayArrowIcon fontSize="small" />
                           </IconButton>
@@ -586,29 +600,30 @@ const Commands: React.FC = () => {
       {/* Delete confirmation dialog */}
       <Dialog
         open={deleteDialogOpen}
-        onClose={handleCloseDeleteDialog}
+        onClose={() => setDeleteDialogOpen(false)}
         aria-labelledby="delete-dialog-title"
-        aria-describedby="delete-dialog-description"
       >
-        <DialogTitle id="delete-dialog-title">
-          Delete Command
-        </DialogTitle>
+        <DialogTitle id="delete-dialog-title">Delete Command</DialogTitle>
         <DialogContent>
-          <DialogContentText id="delete-dialog-description">
+          <DialogContentText>
             Are you sure you want to delete the command "{selectedCommand?.name}"? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="primary">
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            color="primary"
+            disabled={isDeleting}
+          >
             Cancel
           </Button>
           <Button
-            onClick={handleConfirmDelete}
+            onClick={() => selectedCommand && deleteCommand(selectedCommand.id)}
             color="error"
-            disabled={deleteCommandMutation.isLoading}
-            startIcon={deleteCommandMutation.isLoading ? <CircularProgress size={20} /> : null}
+            disabled={isDeleting}
+            startIcon={isDeleting ? <CircularProgress size={20} /> : null}
           >
-            {deleteCommandMutation.isLoading ? 'Deleting...' : 'Delete'}
+            {isDeleting ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -28,10 +28,10 @@ from .command_execution import (
     CommandResult,
     CommandRunner,
 )
+from .parsing import BaseParser, FileProcessor, ParserRegistry, PatternMatcher
 
 # Import main components from submodules
-from .detector import ProjectCommandDetector  # Main entry point
-from .parsing import BaseParser, FileProcessor, ParserRegistry, PatternMatcher
+from .project_detection.detector import ProjectCommandDetector  # Main entry point
 from .reporting import (
     BaseFormatter,
     ConsoleFormatter,

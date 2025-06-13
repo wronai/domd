@@ -1,6 +1,7 @@
 """Project command detector for finding and executing commands in project files."""
 
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -589,11 +590,50 @@ class ProjectCommandDetector:
         Returns:
             Dictionary with command execution results
         """
+        logger.debug(f"Running command in virtualenv: {command}")
+
         # Get environment variables for virtualenv
         venv_env = self._get_environment()
+        logger.debug(f"Initial venv_env: {venv_env}")
 
-        # Pass the environment to command_handler.run_in_venv
-        return self.command_handler.run_in_venv(command, venv_env=venv_env, **kwargs)
+        # Ensure we have the virtual environment path in the environment
+        if self.venv_info.get("exists"):
+            if "VIRTUAL_ENV" not in venv_env:
+                venv_env["VIRTUAL_ENV"] = self.venv_info["path"]
+                logger.debug(f"Set VIRTUAL_ENV to: {venv_env['VIRTUAL_ENV']}")
+
+        # Ensure we have the Python path in the environment
+        if self.venv_info.get("python_path"):
+            if "python_path" not in venv_env:
+                venv_env["python_path"] = self.venv_info["python_path"]
+                logger.debug(f"Set python_path to: {venv_env['python_path']}")
+
+        # Ensure the virtualenv's bin/Scripts directory is in PATH
+        if self.venv_info.get("path"):
+            venv_path = Path(self.venv_info["path"])
+            bin_dir = "Scripts" if os.name == "nt" else "bin"
+            venv_bin = str(venv_path / bin_dir)
+
+            # Add to the beginning of PATH
+            path = venv_env.get("PATH", "")
+            if venv_bin not in path.split(os.pathsep):
+                venv_env["PATH"] = f"{venv_bin}{os.pathsep}{path}"
+                logger.debug(f"Updated PATH to: {venv_env['PATH']}")
+        else:
+            logger.warning("No virtual environment path found in venv_info")
+
+        logger.debug(f"Final environment for command execution: {venv_env}")
+
+        try:
+            # Pass the environment to command_handler.run_in_venv
+            result = self.command_handler.run_in_venv(
+                command, venv_env=venv_env, **kwargs
+            )
+            logger.debug(f"Command execution result: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Error executing command in virtualenv: {e}", exc_info=True)
+            raise
 
     def _execute_command(self, command_info: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a command with the given information.

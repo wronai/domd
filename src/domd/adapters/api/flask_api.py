@@ -418,7 +418,7 @@ class DomdFlaskApi:
 
             # Use the command service to scan for commands
             try:
-                from ...core.detector import ProjectCommandDetector
+                from ...core.project_detection.detector import ProjectCommandDetector
 
                 detector = ProjectCommandDetector(
                     project_path=project_path,
