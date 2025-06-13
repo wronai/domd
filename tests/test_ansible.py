@@ -4,7 +4,7 @@ Tests for Ansible-related functionality in Project Command Detector.
 
 import pytest
 
-from domd.core.detector import ProjectCommandDetector
+from domd.core.project_detection.detector import ProjectCommandDetector
 
 
 class TestAnsibleDetection:

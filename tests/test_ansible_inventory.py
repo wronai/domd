@@ -4,7 +4,7 @@ Tests for Ansible inventory detection.
 
 import pytest
 
-from domd.core.detector import ProjectCommandDetector
+from domd.core.project_detection.detector import ProjectCommandDetector
 
 
 class TestAnsibleInventory:

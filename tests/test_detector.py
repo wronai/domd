@@ -10,9 +10,9 @@ import pytest
 import toml
 
 from domd.core.commands import Command
-from domd.core.detector import ProjectCommandDetector
 from domd.core.parsers import MakefileParser, PackageJsonParser
 from domd.core.parsing.file_processor import FileProcessor
+from domd.core.project_detection.detector import ProjectCommandDetector
 
 
 class TestProjectCommandDetector:
@@ -49,7 +49,7 @@ class TestProjectCommandDetector:
     def test_scan_empty_project(self, temp_project):
         """Test scanning a project with no configuration files."""
         with patch(
-            "domd.core.detector.ProjectCommandDetector._find_config_files",
+            "domd.core.project_detection.detector.ProjectCommandDetector._find_config_files",
             return_value=[],
         ):
             detector = ProjectCommandDetector(str(temp_project))

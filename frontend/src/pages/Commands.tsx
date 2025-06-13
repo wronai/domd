@@ -149,9 +149,6 @@ const Commands: React.FC = () => {
     placeholderData: (previousData) => previousData,
   });
 
-  // Extract commands array with fallback to empty array
-  const commands = commandsData?.data || [];
-
   // Run command mutation
   const runCommandMutation = useMutation<CommandRunResponse, Error, string>({
     mutationFn: async (commandId: string) => {
@@ -393,9 +390,11 @@ const Commands: React.FC = () => {
             >
               Filters
             </Button>
-            <IconButton onClick={() => refetch()} sx={{ ml: 1 }}>
-              <RefreshIcon />
-            </IconButton>
+            <Tooltip title="Refresh">
+              <IconButton onClick={() => refetch()} sx={{ ml: 1 }}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
       </Paper>
@@ -456,13 +455,13 @@ const Commands: React.FC = () => {
                       color="primary"
                       startIcon={<AddIcon />}
                       onClick={() => navigate('/commands/new')}
-                    Create Command
-                  </Button>
-                </TableCell>
-              </TableRow>
+                    >
+                      Create Command
+                    </Button>
+                  </TableCell>
+                </TableRow>
             ) : (
-              // Map function for command rows
-              commands.map((command: Command) => (
+              commands.map((command) => (
                 <TableRow
                   key={command.id}
                   hover
@@ -575,7 +574,7 @@ const Commands: React.FC = () => {
         </MenuItem>
         <MenuItem
           onClick={() => selectedCommand && handleRunCommand(selectedCommand.id)}
-          disabled={runCommandMutation.isLoading}
+          disabled={runCommandMutation.isPending}
         >
           <ListItemIcon>
             <PlayArrowIcon fontSize="small" color="primary" />

@@ -9,7 +9,7 @@ from typing import Optional
 
 import pytest
 
-from domd.core.detector import ProjectCommandDetector
+from domd.core.project_detection.detector import ProjectCommandDetector
 
 
 def create_mock_venv(venv_path: str, python_path: Optional[str] = None) -> None:

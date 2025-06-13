@@ -5,24 +5,24 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Tom Sapletta" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>🚀 Przewodnik użytkownika DoMD - DOMD Documentation</title>
+    <title>🚀 DoMD User Guide - DOMD Documentation</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../css/extra.css" rel="stylesheet" />
-
+    
       <script>
         // Current page data
-        var mkdocs_page_name = "\ud83d\ude80 Przewodnik u\u017cytkownika DoMD";
+        var mkdocs_page_name = "\ud83d\ude80 DoMD User Guide";
         var mkdocs_page_input_path = "usage.md";
         var mkdocs_page_url = null;
       </script>
-
+    
     <!--[if lt IE 9]>
       <script src="../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-      <script>hljs.highlightAll();</script>
+      <script>hljs.highlightAll();</script> 
 </head>
 
 <body class="wy-body-for-nav" role="document">
@@ -90,13 +90,13 @@
       <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="..">DOMD Documentation</a>
-
+        
       </nav>
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">🚀 Przewodnik użytkownika DoMD</li>
+      <li class="breadcrumb-item active">🚀 DoMD User Guide</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -104,69 +104,69 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
-
-                <h1 id="przewodnik-uzytkownika-domd">🚀 Przewodnik użytkownika DoMD<a class="headerlink" href="#przewodnik-uzytkownika-domd" title="Permanent link">&para;</a></h1>
-<h2 id="spis-tresci">Spis treści<a class="headerlink" href="#spis-tresci" title="Permanent link">&para;</a></h2>
+              
+                <h1 id="domd-user-guide">🚀 DoMD User Guide<a class="headerlink" href="#domd-user-guide" title="Permanent link">&para;</a></h1>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
 <ol>
-<li><a href="#-podstawowe-użycie">Podstawowe użycie</a></li>
-<li><a href="#-skanowanie-projektu">Skanowanie projektu</a></li>
-<li><a href="#-konfiguracja">Konfiguracja</a></li>
-<li><a href="#-zaawansowane-funkcje">Zaawansowane funkcje</a></li>
-<li><a href="#-integracja-z-cicd">Integracja z CI/CD</a></li>
-<li><a href="#-przykłady-użycia">Przykłady użycia</a></li>
-<li><a href="#-rozwiązywanie-problemów">Rozwiązywanie problemów</a></li>
+<li><a href="#-basic-usage">Basic Usage</a></li>
+<li><a href="#-project-scanning">Project Scanning</a></li>
+<li><a href="#-configuration">Configuration</a></li>
+<li><a href="#-advanced-features">Advanced Features</a></li>
+<li><a href="#-cicd-integration">CI/CD Integration</a></li>
+<li><a href="#-usage-examples">Usage Examples</a></li>
+<li><a href="#-troubleshooting">Troubleshooting</a></li>
 </ol>
-<h2 id="podstawowe-uzycie">🏁 Podstawowe użycie<a class="headerlink" href="#podstawowe-uzycie" title="Permanent link">&para;</a></h2>
-<p>Najprostszy sposób na uruchomienie DoMD w Twoim projekcie:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Przejdź do katalogu projektu</span>
-<span class="nb">cd</span><span class="w"> </span>/ścieżka/do/projektu
+<h2 id="basic-usage">🏁 Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
+<p>The simplest way to run DoMD in your project:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Navigate to your project directory</span>
+<span class="nb">cd</span><span class="w"> </span>/path/to/your/project
 
-<span class="c1"># Uruchom domd</span>
+<span class="c1"># Run domd</span>
 domd
 </code></pre></div>
-<p>Domyślnie DoMD:
-1. Przeskanuje bieżący katalog w poszukiwaniu plików konfiguracyjnych
-2. Zidentyfikuje dostępne komendy (np. z <code>package.json</code>, <code>Makefile</code>, <code>pyproject.toml</code>)
-3. Wykona znalezione komendy
-4. Wygeneruje raport w pliku <code>TODO.md</code></p>
-<h2 id="skanowanie-projektu">🔍 Skanowanie projektu<a class="headerlink" href="#skanowanie-projektu" title="Permanent link">&para;</a></h2>
-<h3 id="obsugiwane-pliki-konfiguracyjne">Obsługiwane pliki konfiguracyjne<a class="headerlink" href="#obsugiwane-pliki-konfiguracyjne" title="Permanent link">&para;</a></h3>
-<p>DoMD automatycznie wykrywa i analizuje następujące typy plików:</p>
+<p>By default, DoMD will:
+1. Scan the current directory for configuration files
+2. Identify available commands (e.g., from <code>package.json</code>, <code>Makefile</code>, <code>pyproject.toml</code>)
+3. Execute the found commands
+4. Generate a report in <code>TODO.md</code></p>
+<h2 id="project-scanning">🔍 Project Scanning<a class="headerlink" href="#project-scanning" title="Permanent link">&para;</a></h2>
+<h3 id="supported-configuration-files">Supported Configuration Files<a class="headerlink" href="#supported-configuration-files" title="Permanent link">&para;</a></h3>
+<p>DoMD automatically detects and analyzes the following file types:</p>
 <ul>
 <li><strong>JavaScript/TypeScript</strong>: <code>package.json</code> (npm, yarn)</li>
 <li><strong>Python</strong>: <code>setup.py</code>, <code>pyproject.toml</code>, <code>requirements.txt</code></li>
 <li><strong>Make</strong>: <code>Makefile</code></li>
 <li><strong>Docker</strong>: <code>Dockerfile</code>, <code>docker-compose.yml</code></li>
-<li><strong>Ansible</strong>: Playbooki, role, inventory</li>
+<li><strong>Ansible</strong>: Playbooks, roles, inventory</li>
 <li><strong>PHP</strong>: <code>composer.json</code></li>
 <li><strong>Rust</strong>: <code>Cargo.toml</code></li>
-<li><strong>TOML</strong>: Ogólna obsługa plików TOML</li>
-<li><strong>YAML</strong>: Ogólna obsługa plików YAML</li>
-<li><strong>INI</strong>: Ogólna obsługa plików INI</li>
+<li><strong>TOML</strong>: General TOML file support</li>
+<li><strong>YAML</strong>: General YAML file support</li>
+<li><strong>INI</strong>: General INI file support</li>
 </ul>
-<h3 id="opcje-skanowania">Opcje skanowania<a class="headerlink" href="#opcje-skanowania" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Skanowanie konkretnego katalogu</span>
-domd<span class="w"> </span>--path<span class="w"> </span>/ścieżka/do/projektu
+<h3 id="scanning-options">Scanning Options<a class="headerlink" href="#scanning-options" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Scan a specific directory</span>
+domd<span class="w"> </span>--path<span class="w"> </span>/path/to/project
 
-<span class="c1"># Pomijanie określonych plików/katalogów</span>
+<span class="c1"># Exclude specific files/directories</span>
 domd<span class="w"> </span>--exclude<span class="w"> </span><span class="s2">&quot;*.test.js&quot;</span><span class="w"> </span>--exclude<span class="w"> </span><span class="s2">&quot;node_modules/*&quot;</span>
 
-<span class="c1"># Skanowanie tylko wybranych plików</span>
+<span class="c1"># Scan only specific files</span>
 domd<span class="w"> </span>--include-only<span class="w"> </span><span class="s2">&quot;Makefile&quot;</span><span class="w"> </span>--include-only<span class="w"> </span><span class="s2">&quot;package.json&quot;</span>
 </code></pre></div>
-<h2 id="konfiguracja">⚙️ Konfiguracja<a class="headerlink" href="#konfiguracja" title="Permanent link">&para;</a></h2>
-<h3 id="plik-domdignore">Plik .domdignore<a class="headerlink" href="#plik-domdignore" title="Permanent link">&para;</a></h3>
-<p>Możesz utworzyć plik <code>.domdignore</code> w głównym katalogu projektu, aby wykluczyć określone komendy:</p>
-<div class="highlight"><pre><span></span><code># Ignoruj konkretne komendy
+<h2 id="configuration">⚙️ Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<h3 id="domdignore-file">.domdignore File<a class="headerlink" href="#domdignore-file" title="Permanent link">&para;</a></h3>
+<p>Create a <code>.domdignore</code> file in your project root to exclude specific commands:</p>
+<div class="highlight"><pre><span></span><code># Ignore specific commands
 npm run test:coverage
 pytest -xvs
 
-# Ignoruj według wzorca
+# Ignore using patterns
 *coverage*
 *test*
 </code></pre></div>
-<h3 id="plik-dodocker">Plik .dodocker<a class="headerlink" href="#plik-dodocker" title="Permanent link">&para;</a></h3>
-<p>Aby uruchamiać komendy w kontenerze Docker, utwórz plik <code>.dodocker</code>:</p>
+<h3 id="dodocker-file">.dodocker File<a class="headerlink" href="#dodocker-file" title="Permanent link">&para;</a></h3>
+<p>To run commands in a Docker container, create a <code>.dodocker</code> file:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python:3.9</span>
 <span class="nt">volumes</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.:/app</span>
@@ -174,12 +174,12 @@ pytest -xvs
 <span class="nt">environment</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PYTHONPATH=/app</span>
 </code></pre></div>
-<h2 id="zaawansowane-funkcje">🚀 Zaawansowane funkcje<a class="headerlink" href="#zaawansowane-funkcje" title="Permanent link">&para;</a></h2>
-<h3 id="tryb-podgladu-dry-run">Tryb podglądu (dry-run)<a class="headerlink" href="#tryb-podgladu-dry-run" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Pokaż, jakie komendy zostałyby wykonane, bez faktycznego ich wykonywania</span>
+<h2 id="advanced-features">🚀 Advanced Features<a class="headerlink" href="#advanced-features" title="Permanent link">&para;</a></h2>
+<h3 id="dry-run-mode">Dry Run Mode<a class="headerlink" href="#dry-run-mode" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Show what commands would be executed without actually running them</span>
 domd<span class="w"> </span>--dry-run
 </code></pre></div>
-<h3 id="rozne-formaty-wyjsciowe">Różne formaty wyjściowe<a class="headerlink" href="#rozne-formaty-wyjsciowe" title="Permanent link">&para;</a></h3>
+<h3 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Format JSON</span>
 domd<span class="w"> </span>--format<span class="w"> </span>json
 
@@ -266,7 +266,7 @@ cat<span class="w"> </span>TODO.md
 </ol>
 <hr />
 <p>Masz dodatkowe pytania? Sprawdź <a href="https://domd.readthedocs.io/">dokumentację</a> lub <a href="https://github.com/wronai/domd/issues">zgłoś problem</a>.</p>
-
+              
             </div>
           </div><footer>
 
@@ -278,7 +278,7 @@ cat<span class="w"> </span>TODO.md
 
   Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-
+          
         </div>
       </div>
 
@@ -288,9 +288,9 @@ cat<span class="w"> </span>TODO.md
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
-
-
-
+    
+    
+    
   </span>
 </div>
     <script src="../js/jquery-3.6.0.min.js"></script>

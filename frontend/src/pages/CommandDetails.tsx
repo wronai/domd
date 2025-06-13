@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 import {
   Box,
   Typography,
@@ -27,7 +27,9 @@ import {
   TextField,
   Snackbar,
   useTheme,
-  alpha
+  alpha,
+  Palette,
+  Theme
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -47,10 +49,33 @@ import {
   ContentCopy as ContentCopyIcon,
   Terminal as TerminalIcon
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { formatDistanceToNow, format } from 'date-fns';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+
+// Response types
+interface CommandRunResponse {
+  id: string;
+  status: 'success' | 'failed' | 'running';
+  output: string;
+  error?: string;
+  timestamp: string;
+}
+
+interface CommandDeleteResponse {
+  success: boolean;
+  message: string;
+}
+
+interface Execution {
+  id: string;
+  status: 'success' | 'failed' | 'running';
+  timestamp: string;
+  duration?: number;
+  output?: string;
+  error?: string;
+}
 
 interface CommandDetails {
   id: string;
@@ -80,6 +105,24 @@ interface CommandDetails {
     finishedAt?: string;
     duration?: number;
   }>;
+}
+
+// Extend the theme to include custom palette colors
+declare module '@mui/material/styles' {
+  interface Palette {
+    default: {
+      main: string;
+      light: string;
+      dark: string;
+    };
+  }
+  interface PaletteOptions {
+    default?: {
+      main?: string;
+      light?: string;
+      dark?: string;
+    };
+  }
 }
 
 interface TabPanelProps {
@@ -133,13 +176,7 @@ const CommandDetails: React.FC = () => {
   });
 
   // Fetch command details
-  const {
-    data: command,
-    isLoading,
-    isError,
-    error,
-    refetch
-  } = useQuery<CommandDetails>({
+  const { data: commandData, isLoading, error, refetch } = useQuery<CommandDetails, Error>({
     queryKey: ['command', id],
     queryFn: async () => {
       const response = await fetch(`/api/commands/${id}`);
@@ -148,63 +185,69 @@ const CommandDetails: React.FC = () => {
       }
       return response.json();
     },
-    refetchInterval: command?.lastRun?.status === 'running' ? 2000 : false,
+    refetchInterval: (data) => data?.lastRun?.status === 'running' ? 2000 : false,
   });
 
+  const command = commandData || {} as CommandDetails;
+
   // Run command mutation
-  const runCommandMutation = useMutation(
-    () =>
-      fetch(`/api/commands/${id}/run`, { method: 'POST' })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to run command');
-          return res.json();
-        }),
-    {
-      onSuccess: () => {
-        refetch();
-        setSnackbar({
-          open: true,
-          message: 'Command started successfully',
-          severity: 'success'
-        });
-      },
-      onError: (error: Error) => {
-        setSnackbar({
-          open: true,
-          message: `Error running command: ${error.message}`,
-          severity: 'error'
-        });
-      },
+  const runCommandMutation = useMutation<CommandRunResponse, Error, void>({
+    mutationFn: async () => {
+      const response = await fetch(`/api/commands/${id}/run`, { method: 'POST' });
+      if (!response.ok) throw new Error('Failed to run command');
+      return response.json();
+    },
+    onSuccess: () => {
+      refetch();
+      setSnackbar({
+        open: true,
+        message: 'Command started successfully',
+        severity: 'success',
+      });
+    },
+    onError: (error: Error) => {
+      setSnackbar({
+        open: true,
+        message: `Error running command: ${error.message}`,
+        severity: 'error',
+      });
+    },
+  });
+
+  // Handle run command
+  const handleRunCommand = async () => {
+    try {
+      await runCommandMutation.mutateAsync();
+    } catch (error) {
+      console.error('Error running command:', error);
     }
-  );
+  };
 
   // Delete command mutation
-  const deleteCommandMutation = useMutation<CommandDeleteResponse, Error, void>(
-    async () => {
+  const deleteCommandMutation = useMutation<CommandDeleteResponse, Error, void>({
+    mutationFn: async () => {
       const response = await fetch(`/api/commands/${id}`, { method: 'DELETE' });
       if (!response.ok) {
         throw new Error('Failed to delete command');
       }
       return response.json();
     },
-    {
-      onSuccess: () => {
-        setSnackbar({
-          open: true,
-          message: 'Command deleted successfully',
-          severity: 'success',
-        });
-        navigate('/commands');
-      },
-      onError: (error: Error) => {
-        setSnackbar({
-          open: true,
-          message: error.message || 'Failed to delete command',
-          severity: 'error',
-        });
-      },
-    }
-  ) as UseMutationResult<CommandDeleteResponse, Error, void, unknown>;
+    onSuccess: () => {
+      setSnackbar({
+        open: true,
+        message: 'Command deleted successfully',
+        severity: 'success',
+      });
+      navigate('/commands');
+    },
+    onError: (error: Error) => {
+      setSnackbar({
+        open: true,
+        message: `Error deleting command: ${error.message}`,
+        severity: 'error',
+      });
+    },
+  });
 
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -214,15 +257,6 @@ const CommandDetails: React.FC = () => {
   // Toggle section expansion
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
-  };
-
-  // Handle run command
-  const handleRunCommand = async () => {
-    try {
-      await runCommandMutation.mutateAsync(undefined);
-    } catch (error) {
-      console.error('Error running command:', error);
-    }
   };
 
   // Handle edit command
@@ -308,7 +342,7 @@ const CommandDetails: React.FC = () => {
     );
   }
 
-  if (isError || !command) {
+  if (error || !command) {
     return (
       <Alert severity="error" sx={{ my: 2 }}>
         Error loading command: {error instanceof Error ? error.message : 'Unknown error'}
@@ -348,10 +382,10 @@ const CommandDetails: React.FC = () => {
             color="error"
             startIcon={<DeleteIcon />}
             onClick={handleDeleteCommand}
-            disabled={deleteCommandMutation.isLoading}
+            disabled={deleteCommandMutation.isPending}
             sx={{ mr: 1 }}
           >
-            {deleteCommandMutation.isLoading ? 'Deleting...' : 'Delete'}
+            {deleteCommandMutation.isPending ? 'Deleting...' : 'Delete'}
           </Button>
           <Button
             variant="outlined"
@@ -365,7 +399,7 @@ const CommandDetails: React.FC = () => {
             variant="contained"
             color="primary"
             startIcon={
-              runCommandMutation.isLoading ? (
+              runCommandMutation.isPending ? (
                 <CircularProgress size={20} color="inherit" />
               ) : (
                 <PlayArrowIcon />
@@ -482,7 +516,7 @@ const CommandDetails: React.FC = () => {
       {/* Tab panels */}
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid item={true} xs={12} md={6} component="div">
             <Card>
               <CardHeader
                 title="Command Details"
@@ -563,7 +597,7 @@ const CommandDetails: React.FC = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid item={true} xs={12} md={6} component="div">
             <Card>
               <CardHeader
                 title="Execution Settings"
@@ -666,6 +700,39 @@ const CommandDetails: React.FC = () => {
                     </Box>
                   </Collapse>
                 </List>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} component="div">
+            <Card>
+              <CardHeader
+                title="Command Output"
+                subheader="Output from the last execution"
+                action={
+                  <IconButton onClick={() => refetch()}>
+                    <RefreshIcon />
+                  </IconButton>
+                }
+              />
+              <CardContent>
+                {command.lastRun?.output ? (
+                  <SyntaxHighlighter
+                    language="bash"
+                    style={atomOneDark}
+                    customStyle={{
+                      maxHeight: '400px',
+                      borderRadius: '4px',
+                      margin: 0,
+                    }}
+                  >
+                    {command.lastRun.output}
+                  </SyntaxHighlighter>
+                ) : (
+                  <Typography variant="body2" color="textSecondary">
+                    No output available. Run the command to see the output.
+                  </Typography>
+                )}
               </CardContent>
             </Card>
           </Grid>

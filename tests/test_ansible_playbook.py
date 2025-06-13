@@ -4,7 +4,7 @@ Tests for Ansible playbook detection and execution.
 
 from unittest.mock import MagicMock, patch
 
-from domd.core.detector import ProjectCommandDetector
+from domd.core.project_detection.detector import ProjectCommandDetector
 
 
 class TestAnsiblePlaybookDetection:

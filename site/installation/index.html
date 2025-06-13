@@ -5,24 +5,24 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Tom Sapletta" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>📥 Instalacja DoMD - DOMD Documentation</title>
+    <title>📥 DoMD Installation Guide - DOMD Documentation</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
         <link href="../css/extra.css" rel="stylesheet" />
-
+    
       <script>
         // Current page data
-        var mkdocs_page_name = "\ud83d\udce5 Instalacja DoMD";
+        var mkdocs_page_name = "\ud83d\udce5 DoMD Installation Guide";
         var mkdocs_page_input_path = "installation.md";
         var mkdocs_page_url = null;
       </script>
-
+    
     <!--[if lt IE 9]>
       <script src="../js/html5shiv.min.js"></script>
     <![endif]-->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-      <script>hljs.highlightAll();</script>
+      <script>hljs.highlightAll();</script> 
 </head>
 
 <body class="wy-body-for-nav" role="document">
@@ -90,13 +90,13 @@
       <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="..">DOMD Documentation</a>
-
+        
       </nav>
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-      <li class="breadcrumb-item active">📥 Instalacja DoMD</li>
+      <li class="breadcrumb-item active">📥 DoMD Installation Guide</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -104,69 +104,74 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
-
-                <h1 id="instalacja-domd">📥 Instalacja DoMD<a class="headerlink" href="#instalacja-domd" title="Permanent link">&para;</a></h1>
-<h2 id="wymagania-wstepne">Wymagania wstępne<a class="headerlink" href="#wymagania-wstepne" title="Permanent link">&para;</a></h2>
+              
+                <h1 id="domd-installation-guide">📥 DoMD Installation Guide<a class="headerlink" href="#domd-installation-guide" title="Permanent link">&para;</a></h1>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Python 3.8 lub nowszy</li>
-<li>pip (menedżer pakietów Pythona)</li>
-<li>Git (opcjonalnie, do instalacji z repozytorium)</li>
+<li>Python 3.8 or newer</li>
+<li>pip (Python package manager)</li>
+<li>Git (optional, for installation from repository)</li>
+<li>Docker (optional, for containerized execution)</li>
 </ul>
-<h2 id="metody-instalacji">Metody instalacji<a class="headerlink" href="#metody-instalacji" title="Permanent link">&para;</a></h2>
-<h3 id="1-instalacja-przez-pip-zalecane">1. Instalacja przez pip (zalecane)<a class="headerlink" href="#1-instalacja-przez-pip-zalecane" title="Permanent link">&para;</a></h3>
-<p>Najprostszy sposób na zainstalowanie DoMD:</p>
+<h2 id="installation-methods">Installation Methods<a class="headerlink" href="#installation-methods" title="Permanent link">&para;</a></h2>
+<h3 id="1-using-pip-recommended">1. Using pip (Recommended)<a class="headerlink" href="#1-using-pip-recommended" title="Permanent link">&para;</a></h3>
+<p>The easiest way to install DoMD:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>domd
 </code></pre></div>
-<h3 id="2-instalacja-z-repozytorium-dla-najnowszej-wersji">2. Instalacja z repozytorium (dla najnowszej wersji)<a class="headerlink" href="#2-instalacja-z-repozytorium-dla-najnowszej-wersji" title="Permanent link">&para;</a></h3>
-<p>Jeśli chcesz korzystać z najnowszych zmian:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Sklonuj repozytorium</span>
+<h3 id="2-from-source-for-latest-development-version">2. From Source (for latest development version)<a class="headerlink" href="#2-from-source-for-latest-development-version" title="Permanent link">&para;</a></h3>
+<p>If you want to use the latest development version:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Clone the repository</span>
 git<span class="w"> </span>clone<span class="w"> </span>https://github.com/wronai/domd.git
 <span class="nb">cd</span><span class="w"> </span>domd
 
-<span class="c1"># Zainstaluj w trybie edytowalnym</span>
+<span class="c1"># Install in development mode</span>
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </code></pre></div>
-<h3 id="3-instalacja-z-dodatkowymi-zaleznosciami">3. Instalacja z dodatkowymi zależnościami<a class="headerlink" href="#3-instalacja-z-dodatkowymi-zaleznosciami" title="Permanent link">&para;</a></h3>
-<p>DoMD obsługuje dodatkowe zależności dla rozszerzonej funkcjonalności:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Z obsługą Ansible</span>
+<h3 id="3-with-optional-dependencies">3. With Optional Dependencies<a class="headerlink" href="#3-with-optional-dependencies" title="Permanent link">&para;</a></h3>
+<p>DoMD supports optional dependencies for extended functionality:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># With Ansible support</span>
 pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;domd[ansible]&quot;</span>
 
-<span class="c1"># Z dodatkami developerskimi</span>
+<span class="c1"># With development tools</span>
 pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;domd[dev]&quot;</span>
 
-<span class="c1"># Wszystkie dodatki</span>
+<span class="c1"># All optional dependencies</span>
 pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;domd[all]&quot;</span>
 
-<span class="c1"># Z użyciem Poetry (opcjonalnie)</span>
+<span class="c1"># Using Poetry (optional)</span>
 poetry<span class="w"> </span>add<span class="w"> </span>domd
 </code></pre></div>
-<h2 id="weryfikacja-instalacji">Weryfikacja instalacji<a class="headerlink" href="#weryfikacja-instalacji" title="Permanent link">&para;</a></h2>
-<p>Sprawdź, czy DoMD został poprawnie zainstalowany:</p>
+<h3 id="4-using-docker">4. Using Docker<a class="headerlink" href="#4-using-docker" title="Permanent link">&para;</a></h3>
+<p>You can also use DoMD via Docker without installing it locally:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/app<span class="w"> </span>ghcr.io/wronai/domd<span class="w"> </span>domd
+</code></pre></div>
+<h2 id="verifying-installation">Verifying Installation<a class="headerlink" href="#verifying-installation" title="Permanent link">&para;</a></h2>
+<p>Check if DoMD is installed correctly:</p>
 <div class="highlight"><pre><span></span><code>domd<span class="w"> </span>--version
 </code></pre></div>
-<p>Powinieneś zobaczyć numer wersji, np. <code>domd 1.0.0</code>.</p>
-<h2 id="aktualizacja">Aktualizacja<a class="headerlink" href="#aktualizacja" title="Permanent link">&para;</a></h2>
-<p>Aby zaktualizować DoMD do najnowszej wersji:</p>
+<p>You should see the version number, e.g., <code>domd 1.0.0</code>.</p>
+<h2 id="updating">Updating<a class="headerlink" href="#updating" title="Permanent link">&para;</a></h2>
+<p>To update DoMD to the latest version:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>domd
 </code></pre></div>
-<h2 id="odinstalowywanie">Odinstalowywanie<a class="headerlink" href="#odinstalowywanie" title="Permanent link">&para;</a></h2>
-<p>Jeśli chcesz odinstalować DoMD:</p>
+<h2 id="uninstalling">Uninstalling<a class="headerlink" href="#uninstalling" title="Permanent link">&para;</a></h2>
+<p>To uninstall DoMD:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>uninstall<span class="w"> </span>domd
 </code></pre></div>
-<h2 id="rozwiazywanie-problemow">Rozwiązywanie problemów<a class="headerlink" href="#rozwiazywanie-problemow" title="Permanent link">&para;</a></h2>
-<h3 id="bad-braku-uprawnien">Błąd braku uprawnień<a class="headerlink" href="#bad-braku-uprawnien" title="Permanent link">&para;</a></h3>
-<p>Jeśli wystąpi błąd uprawnień podczas instalacji, spróbuj:</p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="permission-errors">Permission Errors<a class="headerlink" href="#permission-errors" title="Permanent link">&para;</a></h3>
+<p>If you encounter permission errors during installation:</p>
 <p><div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>domd
 </code></pre></div>
-lub
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>domd<span class="w">  </span><span class="c1"># Tylko na Linux/macOS</span>
+Or on Linux/macOS:
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>domd
 </code></pre></div></p>
-<h3 id="bedy-zaleznosci">Błędy zależności<a class="headerlink" href="#bedy-zaleznosci" title="Permanent link">&para;</a></h3>
-<p>Jeśli napotkasz problemy z zależnościami, spróbuj:</p>
+<h3 id="dependency-issues">Dependency Issues<a class="headerlink" href="#dependency-issues" title="Permanent link">&para;</a></h3>
+<p>If you have dependency conflicts:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip<span class="w"> </span>setuptools<span class="w"> </span>wheel
 pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>domd
 </code></pre></div>
-<h3 id="czeste-problemy">Częste problemy<a class="headerlink" href="#czeste-problemy" title="Permanent link">&para;</a></h3>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
 <h4 id="1-bad-command-not-found">1. Błąd: "Command not found"<a class="headerlink" href="#1-bad-command-not-found" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><span class="c1"># Sprawdź czy narzędzie jest zainstalowane</span>
 which<span class="w"> </span>npm<span class="w">  </span><span class="c1"># lub yarn, make, docker, itp.</span>
@@ -204,7 +209,7 @@ domd<span class="w"> </span>--dry-run
 poetry<span class="w"> </span>show<span class="w"> </span>domd<span class="w">  </span><span class="c1"># jeśli zainstalowane przez Poetry</span>
 pip<span class="w"> </span>show<span class="w"> </span>domd<span class="w">     </span><span class="c1"># jeśli zainstalowane przez pip</span>
 </code></pre></div>
-<h3 id="aktualizacja_1">Aktualizacja<a class="headerlink" href="#aktualizacja_1" title="Permanent link">&para;</a></h3>
+<h3 id="aktualizacja">Aktualizacja<a class="headerlink" href="#aktualizacja" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Aktualizacja przez pip</span>
 pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>domd
 
@@ -226,7 +231,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li>Dołącz do społeczności na <a href="https://github.com/wronai/domd/discussions">GitHub Discussions</a></li>
 </ol>
 <p><strong>Gotowe do użycia! 🚀</strong></p>
-
+              
             </div>
           </div><footer>
 
@@ -238,7 +243,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 
   Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-
+          
         </div>
       </div>
 
@@ -248,9 +253,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
-
-
-
+    
+    
+    
   </span>
 </div>
     <script src="../js/jquery-3.6.0.min.js"></script>

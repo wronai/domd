@@ -10,7 +10,6 @@ from typing import Any, Dict, Generator, List, Optional
 
 import pytest
 
-from domd.core.detector import ProjectCommandDetector
 from domd.core.parsers import (
     CargoTomlParser,
     ComposerJsonParser,
@@ -21,6 +20,7 @@ from domd.core.parsers import (
     ToxIniParser,
 )
 from domd.core.parsers.base import BaseParser
+from domd.core.project_detection.detector import ProjectCommandDetector
 from domd.parsers.docker import DockerComposeParser, DockerfileParser
 
 # Import test utilities
@@ -129,9 +129,13 @@ def mock_successful_command(monkeypatch):
             error=None,
         )
 
-    # Patch the CommandExecutor.execute method w obu możliwych ścieżkach
-    monkeypatch.setattr("domd.core.detector.CommandExecutor.execute", mock_execute)
-    monkeypatch.setattr("domd.command_execution.CommandExecutor.execute", mock_execute)
+    # Patch the CommandExecutor.execute method in all possible paths
+    monkeypatch.setattr(
+        "domd.core.command_execution.executor.CommandExecutor.execute", mock_execute
+    )
+    monkeypatch.setattr(
+        "domd.command_execution.executor.CommandExecutor.execute", mock_execute
+    )
     monkeypatch.setattr(
         "domd.core.commands.executor.CommandExecutor.execute", mock_execute
     )
