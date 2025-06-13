@@ -18,17 +18,19 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "axios": "^1.9.0",
+    "date-fns": "^4.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.57.0",
     "react-router-dom": "^7.6.2",
     "react-scripts": "5.0.1",
+    "react-syntax-highlighter": "^15.6.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
     "yup": "^1.6.1"
   },
   "scripts": {
-    "start": "PORT=3003 react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

@@ -47,9 +47,72 @@ docker run --rm -v $(pwd):/app ghcr.io/wronai/domd domd
    ```
 
 2. Run DoMD:
+
    ```bash
+   # Basic scan
    domd
+
+   # Or use the web interface
+   domd web
    ```
+
+## 🌐 Web Interface
+
+DoMD includes a web-based interface for a more interactive experience:
+
+```bash
+# Start the web interface (default port: 3003)
+domd web
+
+# Specify a custom port
+domd web --port 8080
+
+# Start without opening browser automatically
+domd web --no-browser
+```
+
+### Web Interface Features
+
+- **Interactive Dashboard**: View command execution results in real-time
+- **Command History**: Browse through previously executed commands
+- **Filtering**: Filter commands by status, type, or search term
+- **Detailed Views**: See full command output and execution details
+- **Responsive Design**: Works on desktop and mobile devices
+
+### Prerequisites
+
+To use the web interface, you'll need:
+
+- Node.js (v14 or later) and npm (v6 or later)
+- Python 3.8+ with DoMD installed
+- Internet connection (for loading external resources)
+
+## 📖 Basic Usage
+
+1. Navigate to your project directory:
+
+   ```bash
+   cd /path/to/your/project
+   ```
+
+2. Run DoMD with the web interface:
+
+   ```bash
+   # Start the web server
+   domd web
+
+   # The interface will be available at http://localhost:3003 by default
+   ```
+
+3. Open your browser and navigate to the displayed URL
+
+## 💻 Command Line Usage
+
+For command-line usage, you can run:
+
+```bash
+domd
+```
 
    DoMD will:
    - Scan your project for available commands

@@ -155,3 +155,4 @@ local.db
 VERSION
 REVISION
 BUILD_DATE
+package-lock.json

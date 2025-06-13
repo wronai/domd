@@ -108,64 +108,64 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onClose }) => {
       <Divider />
       <List>
         {mainItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            component={RouterLink}
-            to={item.path}
-            selected={location.pathname === item.path}
-            sx={{
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.action.selected,
-                '&:hover': {
-                  backgroundColor: theme.palette.action.selected,
-                },
-              },
-            }}
-          >
-            <ListItemIcon
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              component={RouterLink}
+              to={item.path}
+              selected={location.pathname === item.path}
               sx={{
-                minWidth: 40,
-                color: location.pathname === item.path
-                  ? theme.palette.primary.main
-                  : 'inherit',
+                '&.Mui-selected': {
+                  backgroundColor: theme.palette.action.selected,
+                  '&:hover': {
+                    backgroundColor: theme.palette.action.selected,
+                  },
+                },
               }}
             >
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText primary={item.text} />
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: location.pathname === item.path
+                    ? theme.palette.primary.main
+                    : 'inherit',
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>
       <Divider />
       <List>
         {secondaryItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            component={RouterLink}
-            to={item.path}
-            selected={location.pathname === item.path}
-            sx={{
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.action.selected,
-                '&:hover': {
-                  backgroundColor: theme.palette.action.selected,
-                },
-              },
-            }}
-          >
-            <ListItemIcon
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              component={RouterLink}
+              to={item.path}
+              selected={location.pathname === item.path}
               sx={{
-                minWidth: 40,
-                color: location.pathname === item.path
-                  ? theme.palette.primary.main
-                  : 'inherit',
+                '&.Mui-selected': {
+                  backgroundColor: theme.palette.action.selected,
+                  '&:hover': {
+                    backgroundColor: theme.palette.action.selected,
+                  },
+                },
               }}
             >
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText primary={item.text} />
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: location.pathname === item.path
+                    ? theme.palette.primary.main
+                    : 'inherit',
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>

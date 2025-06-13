@@ -179,31 +179,32 @@ const CommandDetails: React.FC = () => {
   );
 
   // Delete command mutation
-  const deleteCommandMutation = useMutation(
-    () =>
-      fetch(`/api/commands/${id}`, { method: 'DELETE' })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to delete command');
-          return res.json();
-        }),
+  const deleteCommandMutation = useMutation<CommandDeleteResponse, Error, void>(
+    async () => {
+      const response = await fetch(`/api/commands/${id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('Failed to delete command');
+      }
+      return response.json();
+    },
     {
       onSuccess: () => {
         setSnackbar({
           open: true,
           message: 'Command deleted successfully',
-          severity: 'success'
+          severity: 'success',
         });
-        setTimeout(() => navigate('/commands'), 1500);
+        navigate('/commands');
       },
       onError: (error: Error) => {
         setSnackbar({
           open: true,
-          message: `Error deleting command: ${error.message}`,
-          severity: 'error'
+          message: error.message || 'Failed to delete command',
+          severity: 'error',
         });
       },
     }
-  );
+  ) as UseMutationResult<CommandDeleteResponse, Error, void, unknown>;
 
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -216,8 +217,12 @@ const CommandDetails: React.FC = () => {
   };
 
   // Handle run command
-  const handleRunCommand = () => {
-    runCommandMutation.mutate();
+  const handleRunCommand = async () => {
+    try {
+      await runCommandMutation.mutateAsync(undefined);
+    } catch (error) {
+      console.error('Error running command:', error);
+    }
   };
 
   // Handle edit command
