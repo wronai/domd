@@ -82,6 +82,58 @@ docker run --rm -v $(pwd):/app ghcr.io/wronai/domd domd
 
 > 💡 **Pro Tip**: Run `domd` regularly to keep your project documentation in sync with your actual project state!
 
+## 🌐 Web Interface
+
+DoMD comes with a web-based interface for a more interactive experience. Here's how to get it running:
+
+### Prerequisites
+
+- Node.js (v14 or later)
+- npm (comes with Node.js) or Yarn
+
+### Running the Development Server
+
+1. Navigate to the frontend directory:
+
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   # or if you use Yarn:
+   # yarn
+   ```
+
+3. Start the development server:
+
+   ```bash
+   npm start
+   # or if you use Yarn:
+   # yarn start
+   ```
+
+4. Open your browser and visit:
+
+   ```bash
+   http://localhost:3003
+   ```
+
+### Building for Production
+
+To create a production build:
+
+```bash
+cd frontend
+npm run build
+# or with Yarn:
+# yarn build
+```
+
+This will create an optimized production build in the `build` directory.
+
 ## 📖 Documentation
 
 For detailed documentation, please visit our [documentation site](https://wronai.github.io/domd/) or check the [docs](./docs) directory.
