@@ -2,7 +2,7 @@
 Implementacja repozytorium komend w pamięci.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import List
 
 from ...core.domain.command import Command
 from ...core.ports.command_repository import CommandRepository

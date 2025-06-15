@@ -1,20 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Box,
   Typography,
-  Grid,
   Paper,
   Card,
   CardContent,
-  CardHeader,
   Divider,
   CircularProgress,
   Alert,
   Button,
   useTheme,
   alpha,
-  Skeleton
+  Skeleton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import {
   Terminal as TerminalIcon,
@@ -41,13 +43,24 @@ interface RecentCommand {
   duration?: number;
 }
 
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  color: string;
+}
+
 const Dashboard: React.FC = () => {
   const theme = useTheme();
   const { user } = useAuth();
-  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
   // Fetch dashboard stats
-  const { data: stats, isLoading: isLoadingStats, error: statsError, refetch: refetchStats } = useQuery<Stats>({
+  const {
+    data: stats,
+    isLoading: isLoadingStats,
+    error: statsError,
+    refetch: refetchStats
+  } = useQuery<Stats>({
     queryKey: ['dashboardStats'],
     queryFn: async () => {
       const response = await fetch('/api/stats');
@@ -60,7 +73,12 @@ const Dashboard: React.FC = () => {
   });
 
   // Fetch recent commands
-  const { data: recentCommands, isLoading: isLoadingCommands, error: commandsError } = useQuery<RecentCommand[]>({
+  const {
+    data: recentCommands,
+    isLoading: isLoadingCommands,
+    error: commandsError,
+    refetch: refetchRecentCommands
+  } = useQuery<RecentCommand[]>({
     queryKey: ['recentCommands'],
     queryFn: async () => {
       const response = await fetch('/api/commands/recent');
@@ -71,12 +89,12 @@ const Dashboard: React.FC = () => {
     },
   });
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     refetchStats();
-    setLastRefreshed(new Date());
-  };
+    refetchRecentCommands();
+  }, [refetchStats, refetchRecentCommands]);
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = useCallback((status: string) => {
     switch (status) {
       case 'success':
         return <CheckCircleIcon color="success" />;
@@ -89,14 +107,14 @@ const Dashboard: React.FC = () => {
       default:
         return <WarningIcon color="warning" />;
     }
-  };
+  }, []);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleString();
-  };
+  }, []);
 
-  const renderStatCard = (title: string, value: number | string, icon: React.ReactNode, color: string) => (
-    <Grid item xs={12} sm={6} md={3}>
+  const renderStatCard = useCallback(({ title, value, icon, color }: StatCardProps) => (
+    <Box sx={{ height: '100%' }}>
       <Card
         sx={{
           height: '100%',
@@ -123,11 +141,13 @@ const Dashboard: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                '& svg': {
+                  color: color,
+                  fontSize: 20
+                }
               }}
             >
-              {React.cloneElement(icon as React.ReactElement, {
-                style: { color, fontSize: 20 }
-              })}
+              {icon}
             </Box>
           </Box>
           {isLoadingStats ? (
@@ -139,242 +159,138 @@ const Dashboard: React.FC = () => {
           )}
         </CardContent>
       </Card>
-    </Grid>
-  );
+    </Box>
+  ), [theme, alpha, isLoadingStats]);
+
+  const statCards: StatCardProps[] = useMemo(() => [
+    {
+      title: 'Total Commands',
+      value: stats?.totalCommands ?? '--',
+      icon: <TerminalIcon />,
+      color: theme.palette.primary.main
+    },
+    {
+      title: 'Successful Executions',
+      value: stats?.successfulExecutions ?? '--',
+      icon: <CheckCircleIcon />,
+      color: theme.palette.success.main
+    },
+    {
+      title: 'Failed Executions',
+      value: stats?.failedExecutions ?? '--',
+      icon: <ErrorIcon />,
+      color: theme.palette.error.main
+    },
+    {
+      title: 'Warnings',
+      value: stats?.warnings ?? '--',
+      icon: <WarningIcon />,
+      color: theme.palette.warning.main
+    }
+  ], [stats, theme]);
+
+  if (isLoadingStats || isLoadingCommands) {
+    return (
+      <Box p={3}>
+        <Skeleton variant="rectangular" width="100%" height={200} />
+      </Box>
+    );
+  }
+
+  const error = statsError || commandsError;
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        Error: {error instanceof Error ? error.message : 'Unknown error'}
+      </Alert>
+    );
+  }
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Welcome back, {user?.username}!
-          </Typography>
-          <Typography variant="body1" color="textSecondary">
-            Here's what's happening with your commands and reports.
-          </Typography>
-        </Box>
-        <Box display="flex" alignItems="center">
-          {lastRefreshed && (
-            <Typography variant="caption" color="textSecondary" sx={{ mr: 2 }}>
-              Last updated: {lastRefreshed.toLocaleTimeString()}
-            </Typography>
-          )}
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={handleRefresh}
-            disabled={isLoadingStats}
-          >
-            Refresh
-          </Button>
-        </Box>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Welcome back, {user?.username}!
+      </Typography>
+      <Typography variant="body1" color="textSecondary" gutterBottom>
+        Here's what's happening with your commands and reports.
+      </Typography>
+
+      {/* Stats Cards */}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: '1fr',
+          sm: '1fr 1fr',
+          md: 'repeat(4, 1fr)'
+        },
+        gap: 3,
+        mb: 4
+      }}>
+        {statCards.map((statCard, index) => (
+          <Box key={index}>
+            {renderStatCard(statCard)}
+          </Box>
+        ))}
       </Box>
 
-      {statsError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          Error loading dashboard data: {statsError.message}
-        </Alert>
-      )}
+      {/* Recent Commands */}
+      <Box sx={{ mb: 4 }}>
+        <Paper sx={{ p: 3 }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Typography variant="h6">Recent Commands</Typography>
+            <Button
+              size="small"
+              color="primary"
+              endIcon={<RefreshIcon fontSize="small" />}
+              onClick={handleRefresh}
+              disabled={isLoadingCommands}
+            >
+              Refresh
+            </Button>
+          </Box>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {renderStatCard(
-          'Total Commands',
-          stats?.totalCommands ?? '--',
-          <TerminalIcon />,
-          theme.palette.primary.main
-        )}
-        {renderStatCard(
-          'Successful Executions',
-          stats?.successfulExecutions ?? '--',
-          <CheckCircleIcon />,
-          theme.palette.success.main
-        )}
-        {renderStatCard(
-          'Failed Executions',
-          stats?.failedExecutions ?? '--',
-          <ErrorIcon />,
-          theme.palette.error.main
-        )}
-        {renderStatCard(
-          'Warnings',
-          stats?.warnings ?? '--',
-          <WarningIcon />,
-          theme.palette.warning.main
-        )}
-      </Grid>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3, height: '100%' }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Typography variant="h6">Recent Commands</Typography>
-              <Button
-                size="small"
-                color="primary"
-                endIcon={<RefreshIcon fontSize="small" />}
-                onClick={() => {}}
-              >
-                Refresh
-              </Button>
+          {isLoadingCommands ? (
+            <Box>
+              {[1, 2, 3].map((i) => (
+                <Box key={i} sx={{ mb: 2 }}>
+                  <Skeleton variant="rectangular" width="100%" height={60} />
+                </Box>
+              ))}
             </Box>
-
-            {commandsError ? (
-              <Alert severity="error">
-                Error loading recent commands: {commandsError.message}
-              </Alert>
-            ) : isLoadingCommands ? (
-              <Box>
-                {[1, 2, 3].map((i) => (
-                  <Box key={i} sx={{ mb: 2 }}>
-                    <Skeleton variant="rectangular" height={60} />
-                  </Box>
-                ))}
-              </Box>
-            ) : recentCommands && recentCommands.length > 0 ? (
-              <Box>
-                {recentCommands.map((cmd) => (
-                  <Card
-                    key={cmd.id}
-                    variant="outlined"
-                    sx={{
-                      mb: 1.5,
-                      borderLeft: `3px solid ${
-                        cmd.status === 'success'
-                          ? theme.palette.success.main
-                          : cmd.status === 'failed'
-                            ? theme.palette.error.main
-                            : theme.palette.warning.main
-                      }`,
-                      '&:hover': {
-                        boxShadow: theme.shadows[2],
-                      },
-                    }}
-                  >
-                    <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                      <Box display="flex" justifyContent="space-between" alignItems="center">
-                        <Box>
-                          <Typography variant="subtitle1" component="div">
-                            {cmd.name}
-                          </Typography>
-                          <Box display="flex" alignItems="center" mt={0.5}>
-                            {getStatusIcon(cmd.status)}
-                            <Typography
-                              variant="caption"
-                              color="textSecondary"
-                              sx={{ ml: 0.5, textTransform: 'capitalize' }}
-                            >
-                              {cmd.status}
-                            </Typography>
-                            {cmd.duration && (
-                              <Typography variant="caption" color="textSecondary" sx={{ ml: 1.5 }}>
-                                {cmd.duration}s
-                              </Typography>
-                            )}
-                          </Box>
-                        </Box>
-                        <Typography variant="caption" color="textSecondary">
-                          {formatDate(cmd.timestamp)}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Box>
-            ) : (
-              <Box textAlign="center" py={4}>
-                <TerminalIcon color="action" sx={{ fontSize: 48, opacity: 0.5, mb: 1 }} />
-                <Typography variant="subtitle1" color="textSecondary">
-                  No recent commands found
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Quick Actions
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box display="flex" flexDirection="column" gap={2}>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                startIcon={<TerminalIcon />}
-                onClick={() => {}}
-              >
-                Run New Command
-              </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                fullWidth
-                startIcon={<TerminalIcon />}
-                onClick={() => {}}
-              >
-                View All Commands
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                fullWidth
-                startIcon={<TerminalIcon />}
-                onClick={() => {}}
-              >
-                View Reports
-              </Button>
-            </Box>
-
-            <Box mt={4}>
-              <Typography variant="subtitle2" gutterBottom>
-                System Status
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              <Box>
-                {/* Add system status indicators here */}
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Typography variant="body2">API Status:</Typography>
-                  <Box display="flex" alignItems="center">
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        bgcolor: 'success.main',
-                        mr: 1
-                      }}
+          ) : commandsError ? (
+            <Alert severity="error">
+              Error loading recent commands: {commandsError ? String(commandsError) : 'Unknown error'}
+            </Alert>
+          ) : (
+            <List>
+              {recentCommands?.map((command) => (
+                <React.Fragment key={command.id}>
+                  <ListItem>
+                    <ListItemIcon>
+                      {getStatusIcon(command.status)}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={command.name}
+                      secondary={`${formatDate(command.timestamp)} • ${command.duration ? `${command.duration}s` : '--'}`}
                     />
-                    <Typography variant="body2" color="textSecondary">Operational</Typography>
-                  </Box>
-                </Box>
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Typography variant="body2">Database:</Typography>
-                  <Box display="flex" alignItems="center">
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        bgcolor: 'success.main',
-                        mr: 1
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => {
+                        // TODO: Navigate to command details
+                        console.log('View command:', command.id);
                       }}
-                    />
-                    <Typography variant="body2" color="textSecondary">Connected</Typography>
-                  </Box>
-                </Box>
-                <Box display="flex" justifyContent="space-between">
-                  <Typography variant="body2">Last Scan:</Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {new Date().toLocaleString()}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
+                    >
+                      View Details
+                    </Button>
+                  </ListItem>
+                  <Divider component="li" />
+                </React.Fragment>
+              ))}
+            </List>
+          )}
+        </Paper>
+      </Box>
     </Box>
   );
 };

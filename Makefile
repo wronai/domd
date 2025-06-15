@@ -20,6 +20,32 @@ COMPOSE_PROJECT_NAME ?= domd
 # Docker network (for container communication)
 DOCKER_NETWORK ?= domd-network
 
+# Frontend settings
+FRONTEND_DIR = frontend
+NODE_ENV ?= development
+NPM = npm --prefix $(FRONTEND_DIR)
+NPM_RUN = $(NPM) run
+NPM_CI = $(NPM) ci
+NPM_INSTALL = $(NPM) install
+NPM_BUILD = $(NPM_RUN) build
+NPM_START = $(NPM_RUN) start
+NPM_TEST = $(NPM_RUN) test
+NPM_LINT = $(NPM_RUN) lint
+NPM_FORMAT = $(NPM_RUN) format
+NPM_ANALYZE = $(NPM_RUN) analyze
+NPM_AUDIT = $(NPM) audit
+NPM_OUTDATED = $(NPM) outdated
+NPM_UPDATE = $(NPM) update
+NPM_DEDUPE = $(NPM) dedupe
+
+# Backend settings
+PYTHON = python
+PIP = pip
+POETRY = poetry
+PYTEST = $(POETRY) run pytest
+UVICORN = $(POETRY) run uvicorn
+PORT ?= 8000
+
 # Default target
 help: ## Show this help message
 	@echo "DoMD - Project Command Detector"
@@ -29,15 +55,148 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /install/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\nDevelopment:"
 	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /(test|lint|format|mypy|run)/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "\nFrontend:"
+	@awk 'BEGIN {FS = \":.*?## \"} /^frontend-[-a-z]+:.*?## .*$$/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\nDocker:"
 	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /docker/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\nDocumentation:"
 	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /(docs|serve)/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo "\nBuild & Publish:"
-	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && ($$0 ~ /(build|publish|clean)/) && !($$0 ~ /docker/) {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = \":.*?## \"} /^[a-zA-Z_-]+:.*?## .*$$/ && ($$0 ~ /(build|publish|clean)/) && !($$0 ~ /(docker|frontend)/) {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 # Installation targets
-install: ## Install the package
+# Development Commands
+install: install-backend install-frontend ## Install all dependencies
+
+install-backend: ## Install Python dependencies
+	@echo "Installing Python dependencies..."
+	$(POETRY) install
+
+install-frontend: ## Install Node.js dependencies
+	@echo "Installing frontend dependencies..."
+	$(NPM_CI)
+
+
+update-deps: update-backend-deps update-frontend-deps ## Update all dependencies
+
+update-backend-deps: ## Update Python dependencies
+	@echo "Updating Python dependencies..."
+	$(POETRY) update
+
+update-frontend-deps: ## Update frontend dependencies
+	@echo "Updating frontend dependencies..."
+	$(NPM_UPDATE)
+	$(NPM_DEDUPE)
+
+# Backend targets
+run-backend: ## Start the backend development server
+	@echo "Starting backend development server..."
+	$(UVICORN) domd.main:app --reload --port $(PORT)
+
+run-backend-prod: ## Start the backend production server
+	@echo "Starting backend production server..."
+	$(UVICORN) domd.main:app --host 0.0.0.0 --port $(PORT)
+
+run-backend-worker: ## Start the background worker
+	@echo "Starting background worker..."
+	$(POETRY) run python -m domd.worker
+
+test-backend: ## Run backend tests
+	@echo "Running backend tests..."
+	$(PYTEST)
+
+lint-backend: ## Lint backend code
+	@echo "Linting backend code..."
+	$(POETRY) run black --check .
+	$(POETRY) run isort --check-only .
+	$(POETRY) run flake8 .
+
+format-backend: ## Format backend code
+	@echo "Formatting backend code..."
+	$(POETRY) run black .
+	$(POETRY) run isort .
+
+
+# Frontend targets
+frontend-install: ## Install frontend dependencies
+	@echo "Installing frontend dependencies..."
+	$(NPM_CI)
+
+frontend-update: ## Update frontend dependencies
+	@echo "Updating frontend dependencies..."
+	$(NPM_UPDATE)
+	$(NPM_DEDUPE)
+
+frontend-start: ## Start frontend development server
+	@echo "Starting frontend development server..."
+	NODE_ENV=$(NODE_ENV) $(NPM_START)
+
+frontend-build: ## Build frontend for production
+	@echo "Building frontend for production..."
+	NODE_ENV=production $(NPM_BUILD)
+
+frontend-test: ## Run frontend tests
+	@echo "Running frontend tests..."
+	$(NPM_TEST)
+
+frontend-lint: ## Lint frontend code
+	@echo "Linting frontend code..."
+	$(NPM_LINT)
+
+frontend-format: ## Format frontend code
+	@echo "Formatting frontend code..."
+	$(NPM_FORMAT)
+
+frontend-audit: ## Check for vulnerable frontend dependencies
+	@echo "Auditing frontend dependencies..."
+	$(NPM_AUDIT)
+
+frontend-outdated: ## Check for outdated frontend dependencies
+	@echo "Checking for outdated frontend dependencies..."
+	$(NPM_OUTDATED)
+
+frontend-clean: ## Clean frontend build artifacts
+	@echo "Cleaning frontend build artifacts..."
+	rm -rf $(FRONTEND_DIR)/build
+
+# Combined development commands
+dev: ## Start both frontend and backend in development mode
+	@echo "Starting development environment..."
+	@echo "Backend: http://localhost:$(PORT)"
+	@echo "Frontend: http://localhost:3000"
+	@echo ""
+	@echo "Press Ctrl+C to stop all processes"
+	@echo ""
+	@echo "Starting backend and frontend..."
+	@$(MAKE) -j 2 run-backend frontend-start
+
+# Database commands
+db-shell: ## Open a database shell
+	@echo "Opening database shell..."
+	$(POETRY) run python -m domd.db shell
+
+db-migrate: ## Run database migrations
+	@echo "Running database migrations..."
+	$(POETRY) run alembic upgrade head
+
+db-reset: ## Reset the database (WARNING: This will delete all data!)
+	@echo "Resetting database..."
+	@read -p "Are you sure you want to reset the database? This will delete all data! [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo "Dropping and recreating database..."; \
+		$(POETRY) run python -m domd.db reset; \
+		echo "Running migrations..."; \
+		$(MAKE) db-migrate; \
+		echo "Database reset complete."; \
+	else \
+		echo "Database reset cancelled."; \
+	fi
+	rm -rf $(FRONTEND_DIR)/node_modules
+	rm -f $(FRONTEND_DIR)/package-lock.json
+
+# Installation targets
+install: frontend-install ## Install the package and frontend dependencies
 	poetry install
 
 dev-install: ## Install with development dependencies
@@ -256,14 +415,18 @@ docker-compose-down: ## Stop and remove containers
 	docker-compose -f ${DOCKER_COMPOSE_FILE} down
 
 # Build and publish targets
-clean: ## Clean build artifacts and Docker resources
+clean: frontend-clean ## Remove build artifacts and temporary files
 	@echo "Cleaning build artifacts..."
-	rm -rf dist/ build/ *.egg-info/ || true
-	@echo "Cleaning Python cache files..."
-	find . -path './.venv' -prune -o -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+	rm -rf build/ dist/ *.egg-info/ .pytest_cache/ .mypy_cache/ .coverage htmlcov/
+	find . -type d -name '__pycache__' -exec rm -rf {} +
+	find . -type f -name '*.py[co]' -delete
 	find . -path './.venv' -prune -o -type f -name '*.py[co]' -delete 2>/dev/null || true
 	find . -path './.venv' -prune -o -type d -name '*.egg-info' -exec rm -rf {} + 2>/dev/null || true
 	@echo "Clean complete."
+
+frontend-clean: ## Clean frontend build artifacts
+	rm -rf frontend/dist/
+	rm -rf frontend/node_modules/
 
 # Combined targets
 dev: dev-install pre-commit ## Set up development environment

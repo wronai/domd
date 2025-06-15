@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from .handlers import CommandHandler, ConfigFileHandler
-from .models import Command, CommandResult
+from .models import Command
 from .parsers import ParserRegistry
 from .utils import get_virtualenv_info
 

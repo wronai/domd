@@ -1,7 +1,6 @@
 """Configuration file handling for project command detection."""
 
 import logging
-import os
 from pathlib import Path
 from typing import List, Optional
 

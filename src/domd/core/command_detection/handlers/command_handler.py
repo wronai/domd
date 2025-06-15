@@ -1,12 +1,13 @@
 """Handler for executing and managing project commands."""
 
 import logging
+import re
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from ...services.command_runner import CommandRunner
-from ..models import Command, CommandResult
+from ..models import Command
 
 logger = logging.getLogger(__name__)
 

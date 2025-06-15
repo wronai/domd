@@ -129,12 +129,9 @@ def mock_successful_command(monkeypatch):
             error=None,
         )
 
-    # Patch the CommandExecutor.execute method in all possible paths
+    # Patch the CommandExecutor.execute method in the correct path
     monkeypatch.setattr(
         "domd.core.command_execution.executor.CommandExecutor.execute", mock_execute
-    )
-    monkeypatch.setattr(
-        "domd.command_execution.executor.CommandExecutor.execute", mock_execute
     )
     monkeypatch.setattr(
         "domd.core.commands.executor.CommandExecutor.execute", mock_execute

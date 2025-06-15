@@ -2,13 +2,12 @@
 
 import json
 import logging
-import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
-from domd.utils.path_utils import safe_path_display, to_relative_path
+from domd.utils.path_utils import safe_path_display
 
 logger = logging.getLogger(__name__)
 

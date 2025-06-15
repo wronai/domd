@@ -112,7 +112,7 @@ def main() -> int:
         api = DomdFlaskApi(project_path=project_path)
 
         # Wyświetl informacje o serwerze
-        print(f"DoMD REST API Server")
+        print("DoMD REST API Server")
         print(f"Projekt: {project_path}")
         print(f"Uruchamianie serwera na http://{args.host}:{args.port}")
         print("Dostępne endpointy:")

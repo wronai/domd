@@ -3,10 +3,9 @@ Interfejsy dla wykonawców komend w aplikacji DoMD.
 """
 
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
-from ..domain.command import Command, CommandResult
+from ..domain.command import CommandResult
 
 
 class CommandExecutor(ABC):

@@ -58,7 +58,9 @@ docker run --rm -v $(pwd):/app ghcr.io/wronai/domd domd
 
 ## 🌐 Web Interface
 
-DoMD includes a web-based interface for a more interactive experience:
+DoMD includes a secure web-based interface for a more interactive experience:
+
+### Starting the Web Interface
 
 ```bash
 # Start the web interface (default port: 3003)
@@ -69,23 +71,79 @@ domd web --port 8080
 
 # Start without opening browser automatically
 domd web --no-browser
+
+# Start with specific host binding
+domd web --host 0.0.0.0
 ```
+
+### Local Development
+
+For local development, you can start both the backend and frontend services:
+
+```bash
+# Start the backend server
+poetry run uvicorn domd.main:app --reload --port 8000
+
+# In a separate terminal, start the frontend
+cd frontend
+npm install
+npm start
+```
+
+### Authentication & Login
+
+The web interface is protected by authentication. Use the following default credentials:
+
+- **URL**: http://localhost:3000 (frontend development server) or http://localhost:3003 (production build)
+- **Username**: admin
+- **Password**: admin123
+
+> **Security Note**: Change the default password after first login by navigating to User Settings in the web interface.
+
+#### First-Time Login
+
+1. Open your web browser and navigate to http://localhost:3000 (development) or http://localhost:3003 (production)
+2. Enter the default credentials:
+   - Email/Username: `admin`
+   - Password: `admin123`
+3. Click "Sign In"
+4. Immediately change your password in the User Settings menu
 
 ### Web Interface Features
 
+- **Secure Login**: Protected by username/password authentication
 - **Interactive Dashboard**: View command execution results in real-time
 - **Command History**: Browse through previously executed commands
 - **Filtering**: Filter commands by status, type, or search term
 - **Detailed Views**: See full command output and execution details
+- **User Management**: Manage users and permissions (admin only)
 - **Responsive Design**: Works on desktop and mobile devices
+
+### Troubleshooting Login Issues
+
+If you're having trouble logging in:
+
+1. Ensure the backend server is running (check terminal for errors)
+2. Verify the frontend is properly connected to the backend (check browser's developer console for errors)
+3. Clear your browser cache and cookies if experiencing persistent login issues
+4. Check that your credentials are correct (default: admin/admin123)
+5. If you've forgotten your password, you can reset it by:
+   - Stopping the server
+   - Deleting the `domd.db` file (or your configured database file)
+   - Restarting the server (this will recreate the database with default credentials)
+2. Open http://localhost:3003 in your browser
+3. Log in with the default credentials
+4. Navigate to Settings > Users to change the default password
+5. (Optional) Create additional users with appropriate permissions
 
 ### Prerequisites
 
 To use the web interface, you'll need:
 
-- Node.js (v14 or later) and npm (v6 or later)
+- Node.js (v16 or later) and npm (v8 or later)
 - Python 3.8+ with DoMD installed
 - Internet connection (for loading external resources)
+- Modern web browser (Chrome, Firefox, Safari, or Edge)
 
 ## 📖 Basic Usage
 

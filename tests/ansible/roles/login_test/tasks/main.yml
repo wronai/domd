@@ -1,0 +1,61 @@
+---
+- name: Test login with valid credentials
+  uri:
+    url: "{{ api_base_url }}/api/auth/login"
+    method: POST
+    body_format: json
+    body:
+      username: "{{ test_username }}"
+      password: "{{ test_password }}"
+    status_code: 200
+    return_content: yes
+    validate_certs: no
+  register: login_result
+  no_log: true  # Don't log credentials
+
+- name: Verify login response contains access token
+  assert:
+    that:
+      - login_result.json.access_token is defined
+      - login_result.json.access_token | length > 0
+    fail_msg: "Login failed: No access token in response"
+
+- name: Test login with invalid credentials
+  uri:
+    url: "{{ api_base_url }}/api/auth/login"
+    method: POST
+    body_format: json
+    body:
+      username: "invalid_user"
+      password: "wrong_password"
+    status_code: 401
+    return_content: yes
+    validate_certs: no
+  register: invalid_login_result
+  ignore_errors: yes
+
+- name: Verify invalid login response
+  assert:
+    that:
+      - invalid_login_result.status == 401
+      - '"Invalid credentials"' in invalid_login_result.content
+    fail_msg: "Expected 401 for invalid credentials"
+
+- name: Test login with missing fields
+  uri:
+    url: "{{ api_base_url }}/api/auth/login"
+    method: POST
+    body_format: json
+    body: {}
+    status_code: 422
+    return_content: yes
+    validate_certs: no
+  register: missing_fields_result
+  ignore_errors: yes
+
+- name: Verify missing fields response
+  assert:
+    that:
+      - missing_fields_result.status == 422
+      - '"field required"' in missing_fields_result.content
+    fail_msg: "Expected 422 for missing required fields"

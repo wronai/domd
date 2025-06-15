@@ -149,6 +149,8 @@ const Commands: React.FC = () => {
     placeholderData: (previousData) => previousData,
   });
 
+  const commands = commandsData?.data || [];
+
   // Run command mutation
   const runCommandMutation = useMutation<CommandRunResponse, Error, string>({
     mutationFn: async (commandId: string) => {
@@ -440,7 +442,7 @@ const Commands: React.FC = () => {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ) : commands.length === 0 ? (
+              ) : !commands || commands.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
                     <TerminalIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
@@ -461,7 +463,7 @@ const Commands: React.FC = () => {
                   </TableCell>
                 </TableRow>
             ) : (
-              commands.map((command) => (
+              commands?.map((command: Command) => (
                 <TableRow
                   key={command.id}
                   hover

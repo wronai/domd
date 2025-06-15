@@ -4,28 +4,23 @@ Enhanced CLI with clean architecture support
 """
 
 import argparse
-import json
 import logging
 import os
+import signal
 import subprocess
 import sys
 import time
 import webbrowser
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Optional
 
 from . import __version__
 from .adapters.cli.command_presenter import CommandPresenter
 from .application.factory import ApplicationFactory
-
-# Tymczasowy import dla kompatybilności wstecznej
-from .core.detector import ProjectCommandDetector
+from .core.detector import ProjectCommandDetector  # For backward compatibility
 from .core.domain.command import Command
-from .core.ports.command_executor import CommandExecutor
 from .core.ports.command_repository import CommandRepository
-from .core.ports.report_formatter import ReportFormatter
 from .core.services.command_service import CommandService
-from .core.services.report_service import ReportService
 
 logger = logging.getLogger(__name__)
 
@@ -140,6 +135,8 @@ def start_web_interface(args: argparse.Namespace) -> int:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Open browser after a short delay
@@ -167,22 +164,6 @@ def start_web_interface(args: argparse.Namespace) -> int:
         print("2. Try running 'npm install' in the frontend directory")
         print("3. Check the logs above for more details")
         return 1
-
-
-from . import __version__
-from .adapters.cli.command_presenter import CommandPresenter
-from .application.factory import ApplicationFactory
-
-# Tymczasowy import dla kompatybilności wstecznej
-from .core.detector import ProjectCommandDetector
-from .core.domain.command import Command
-from .core.ports.command_executor import CommandExecutor
-from .core.ports.command_repository import CommandRepository
-from .core.ports.report_formatter import ReportFormatter
-from .core.services.command_service import CommandService
-from .core.services.report_service import ReportService
-
-logger = logging.getLogger(__name__)
 
 
 def create_parser() -> argparse.ArgumentParser:

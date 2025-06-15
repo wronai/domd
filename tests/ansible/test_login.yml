@@ -1,0 +1,14 @@
+---
+- name: Test Login Functionality
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    api_base_url: "http://localhost:8000"  # API URL
+    test_username: "testuser"
+    test_password: "testpassword"
+
+  tasks:
+    - name: Include login test role
+      include_role:
+        name: login_test

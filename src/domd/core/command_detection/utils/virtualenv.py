@@ -1,9 +1,12 @@
 """Utilities for working with Python virtual environments."""
 
+import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
+
+logger = logging.getLogger(__name__)
 
 
 def get_virtualenv_info(venv_path: Optional[Union[str, Path]] = None) -> Dict[str, Any]:

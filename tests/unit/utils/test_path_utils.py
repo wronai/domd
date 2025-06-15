@@ -20,7 +20,7 @@ def test_safe_path_display_home_expansion(tmp_path, monkeypatch):
     # Test home directory expansion
     test_path = home / "projects" / "test"
     result = safe_path_display(str(test_path))
-    assert result == f"~/projects/test"
+    assert result == "~/projects/test"
 
     # Test with non-home path
     other_path = tmp_path / "other" / "path"

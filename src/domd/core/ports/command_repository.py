@@ -3,9 +3,7 @@ Interfejsy dla repozytoriów komend w aplikacji DoMD.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
-
-from ..domain.command import Command
+from typing import List, Optional
 
 
 class CommandRepository(ABC):

@@ -1,13 +1,9 @@
 """Report generation and management for command execution results."""
 
 import logging
-import os
-import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type, Union
 
-from ..parsing.pattern_matcher import PatternMatcher
 from .formatters import (
     BaseFormatter,
     ConsoleFormatter,

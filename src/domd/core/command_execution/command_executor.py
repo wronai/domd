@@ -7,9 +7,9 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Dict, List, Optional, Union
 
-from domd.utils.path_utils import safe_path_display, to_relative_path
+from domd.utils.path_utils import safe_path_display
 
 logger = logging.getLogger(__name__)
 

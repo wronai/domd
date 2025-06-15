@@ -4,7 +4,7 @@ Implementacja formatera raportów w formacie Markdown.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List
 
 from ...core.domain.command import Command
 from ...core.ports.report_formatter import ReportFormatter

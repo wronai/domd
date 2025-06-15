@@ -3,8 +3,7 @@ Prezenter komend dla interfejsu wiersza poleceń.
 """
 
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from ...core.ports.command_repository import CommandRepository
 

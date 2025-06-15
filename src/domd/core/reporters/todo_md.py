@@ -1,9 +1,8 @@
 """Markdown reporter for TODO.md generation."""
 
 import datetime
-import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Optional, Union
 
 from .base import BaseReporter
 

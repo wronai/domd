@@ -2,12 +2,18 @@
 Implementacja wykonawcy komend powłoki systemowej.
 """
 
+# Standard library imports
 import logging
+import os
 import shlex
 import subprocess
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
+
+# Local application imports
+from ...core.domain.command import Command, CommandResult
+from ...core.ports.command_executor import CommandExecutor
 
 # List of common shell built-in commands
 SHELL_BUILTINS = {
@@ -71,9 +77,6 @@ SHELL_BUILTINS = {
     "unset",
     "wait",
 }
-
-from ...core.domain.command import Command, CommandResult
-from ...core.ports.command_executor import CommandExecutor
 
 logger = logging.getLogger(__name__)
 

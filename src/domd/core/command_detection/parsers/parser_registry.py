@@ -5,7 +5,7 @@ import inspect
 import logging
 import pkgutil
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Type, TypeVar, Union
+from typing import Dict, List, Optional, Set, Type, TypeVar, Union
 
 from .base_parser import BaseParser
 

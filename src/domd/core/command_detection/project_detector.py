@@ -8,7 +8,6 @@ from .base_detector import CommandDetector
 from .handlers import CommandHandler, ConfigFileHandler
 from .models import Command
 from .parsers import ParserRegistry
-from .utils import get_virtualenv_info
 
 logger = logging.getLogger(__name__)
 

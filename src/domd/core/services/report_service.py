@@ -3,12 +3,7 @@ Usługi biznesowe do generowania raportów w aplikacji DoMD.
 """
 
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Tuple
-
-from ..domain.command import Command
-from ..ports.command_repository import CommandRepository
-from ..ports.report_formatter import ReportFormatter
+from typing import List
 
 logger = logging.getLogger(__name__)
 

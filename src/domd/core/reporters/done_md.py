@@ -2,7 +2,7 @@
 
 import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Optional, Union
 
 from .base import BaseReporter
 
@@ -144,7 +144,7 @@ class DoneMDReporter(BaseReporter):
                 "",
                 "1. Run: `domd` to test all commands",
                 "2. Working commands will appear here",
-                f"3. Failed commands will be moved to [TODO.md](TODO.md) for fixing",
+                "3. Failed commands will be moved to [TODO.md](TODO.md) for fixing",
                 "",
                 f"**Last test run:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
                 "",

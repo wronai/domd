@@ -85,7 +85,7 @@ class PyProjectTomlParser(BaseParser):
             logger.warning(
                 f"Failed to parse TOML content from {file_path or 'provided content'}: {e}"
             )
-            logger.debug(f"TOML parsing error details:", exc_info=True)
+            logger.debug("TOML parsing error details:", exc_info=True)
             return {}
 
     def _extract_commands_safely(self, data: Dict[str, Any]) -> None:

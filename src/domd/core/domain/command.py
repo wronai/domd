@@ -3,8 +3,7 @@ Modele domenowe dla komend w aplikacji DoMD.
 """
 
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional
 
 
 @dataclass

@@ -1,9 +1,7 @@
 """Logging utilities for the domd package."""
 
 import logging
-import os
-import sys
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 
 def setup_logging(
