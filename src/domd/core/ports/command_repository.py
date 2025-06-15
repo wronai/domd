@@ -5,6 +5,8 @@ Interfejsy dla repozytoriów komend w aplikacji DoMD.
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
+from ...core.entities.command import Command
+
 
 class CommandRepository(ABC):
     """
