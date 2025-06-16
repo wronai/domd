@@ -15,7 +15,8 @@ from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ...application.factory import ApplicationFactory
-from ...core.ports.command import Command
+from ...core.domain.command import Command
+from ...core.parsing.pattern_matcher import PatternMatcher
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -76,6 +77,7 @@ class DomdFlaskApi:
             project_path=self.project_path,
             todo_file="TODO.md",
             done_file="DONE.md",
+            formatter=self.formatter,
         )
 
         # Register routes
@@ -145,6 +147,9 @@ class DomdFlaskApi:
         """Register all API routes."""
         # Health check (public)
         self.app.route("/health", methods=["GET"])(self.health)
+        self.app.route("/api/health", methods=["GET"])(
+            self.health
+        )  # Added for frontend compatibility
 
         # Authentication
         self.app.route("/api/auth/login", methods=["POST"])(self.login)
@@ -564,16 +569,12 @@ class DomdFlaskApi:
             todo_file = data.get("todo_file", "TODO.md")
             done_file = data.get("done_file", "DONE.md")
 
-            # Aktualizuj usługę raportów
-            self.report_service = ApplicationFactory.create_report_service(
-                repository=self.repository,
-                project_path=self.project_path,
-                todo_file=todo_file,
-                done_file=done_file,
-            )
+            # Update report service with new file names
+            self.report_service.todo_file = todo_file
+            self.report_service.done_file = done_file
 
-            # Generuj raporty
-            todo_path, done_path = self.report_service.generate_reports(self.formatter)
+            # Generate reports
+            todo_path, done_path = self.report_service.generate_reports()
 
             return jsonify(
                 {

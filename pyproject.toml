@@ -37,7 +37,7 @@ classifiers = [
 "Documentation" = "https://wronai.github.io/domd"
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<4.0"
+python = ">=3.9,<4.0"
 pyyaml = "^6.0"
 toml = "^0.10.2"
 configparser = "^5.3.0"
@@ -51,6 +51,7 @@ colorama = { version = "^0.4.6", optional = true }
 rich = { version = "^13.0.0", optional = true }
 click = { version = "^8.1.0", optional = true }
 flask = { version = "^2.0.0", optional = true }
+flask-cors = "^6.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

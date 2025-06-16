@@ -307,12 +307,14 @@ def validate_args(args: argparse.Namespace) -> Optional[str]:
     ):
         return "Cannot use --quiet and --verbose together"
 
-    project_path = Path(args.path)
-    if not project_path.exists():
-        return f"Project path does not exist: {project_path}"
+    # Only validate path if it exists in args (i.e., for scan command)
+    if hasattr(args, "path"):
+        project_path = Path(args.path)
+        if not project_path.exists():
+            return f"Project path does not exist: {project_path}"
 
-    if not project_path.is_dir():
-        return f"Project path is not a directory: {project_path}"
+        if not project_path.is_dir():
+            return f"Project path is not a directory: {project_path}"
 
     return None
 
@@ -405,73 +407,97 @@ def main() -> int:
     parser = create_parser()
     args = parser.parse_args()
 
-    # Handle web command first (skip validation and logging setup)
-    if hasattr(args, "command") and args.command == "web":
-        return start_web_interface(args)
-
-    # For other commands, do validation and setup logging
-    error_msg = validate_args(args)
-    if error_msg:
-        print(f"❌ Error: {error_msg}", file=sys.stderr)
-        return 1
-
-    # Setup logging with default values if not provided
-    verbose = getattr(args, "verbose", False)
-    quiet = getattr(args, "quiet", False)
-    setup_logging(verbose=verbose, quiet=quiet)
-
-    # Handle scan command (default)
     try:
-        # Inicjalizacja ścieżek
-        project_path = Path(args.path).resolve()
+        # If no command is provided, show help and exit
+        if not hasattr(args, "command") or args.command is None:
+            parser.print_help()
+            print("\nPlease specify a command (scan or web).")
+            return 1
 
-        # Inicjalizacja komponentów aplikacji
-        repository = ApplicationFactory.create_command_repository()
-        executor = ApplicationFactory.create_command_executor(max_retries=1)
-        formatter = ApplicationFactory.create_report_formatter()
+        # Handle web command first (skip validation and logging setup)
+        if args.command == "web":
+            return start_web_interface(args)
 
-        # Załaduj wzorce ignorowania
-        ignore_patterns = []
-        ignore_file_path = project_path / args.ignore_file
-        if ignore_file_path.exists():
-            with open(ignore_file_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith("#"):
-                        ignore_patterns.append(line)
+        # If we get here, it's the scan command
+        elif args.command == "scan":
+            # For scan command, do validation and setup logging
+            error_msg = validate_args(args)
+            if error_msg:
+                print(f"❌ Error: {error_msg}", file=sys.stderr)
+                return 1
 
-        # Inicjalizacja usług
-        command_service = ApplicationFactory.create_command_service(
-            repository=repository,
-            executor=executor,
-            timeout=args.timeout,
-            ignore_patterns=ignore_patterns,
-        )
+            # Setup logging with default values if not provided
+            verbose = getattr(args, "verbose", False)
+            quiet = getattr(args, "quiet", False)
+            setup_logging(verbose=verbose, quiet=quiet)
 
-        report_service = ApplicationFactory.create_report_service(
-            repository=repository,
-            project_path=project_path,
-            todo_file=args.todo_file,
-            done_file="DONE.md",
-        )
+            # Get the project path with a default of current directory if not provided
+            project_path = Path(getattr(args, "path", ".")).resolve()
+
+            # Initialize application components
+            repository = ApplicationFactory.create_command_repository()
+            executor = ApplicationFactory.create_command_executor(max_retries=1)
+
+            # Load ignore patterns
+            ignore_patterns = []
+            ignore_file_path = project_path / getattr(args, "ignore_file", ".doignore")
+            if ignore_file_path.exists():
+                with open(ignore_file_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            ignore_patterns.append(line)
+
+            # Initialize services with default values if not provided
+            timeout = getattr(
+                args, "timeout", 30
+            )  # Default to 30 seconds if not specified
+            todo_file = getattr(args, "todo_file", "TODO.md")
+            script_file = getattr(args, "script_file", "todo.sh")
+            ignore_file = getattr(args, "ignore_file", ".doignore")
+
+            # Initialize command service
+            command_service = ApplicationFactory.create_command_service(
+                repository=repository,
+                executor=executor,
+                timeout=timeout,
+                ignore_patterns=ignore_patterns,
+            )
+
+            # Initialize report service with the correct parameters
+            report_service = ApplicationFactory.create_report_service(
+                repository=repository,
+                project_path=project_path,
+                todo_file=todo_file,
+                done_file="DONE.md",  # Using default done file name
+            )
 
         # Inicjalizacja prezentera
         presenter = ApplicationFactory.create_command_presenter(repository)
 
-        if not args.quiet:
+        # Get quiet attribute with default False if not present
+        quiet = getattr(args, "quiet", False)
+
+        if not quiet:
             print(f"TodoMD v{__version__} - Project Command Detector with .doignore")
             print(f"🔍 Project: {project_path}")
-            print(f"📝 TODO file: {args.todo_file}")
-            print(f"🔧 Script file: {args.script_file}")
-            print(f"🚫 Ignore file: {args.ignore_file}")
+            print(f"📝 TODO file: {getattr(args, 'todo_file', 'TODO.md')}")
+            print(f"🔧 Script file: {getattr(args, 'script_file', 'todo.sh')}")
+            print(f"🚫 Ignore file: {getattr(args, 'ignore_file', '.doignore')}")
 
         # Handle special modes
-        if args.generate_ignore:
-            return handle_generate_ignore(project_path, args.ignore_file)
+        if getattr(args, "generate_ignore", False):
+            return handle_generate_ignore(
+                project_path, getattr(args, "ignore_file", ".doignore")
+            )
 
-        if args.show_ignored:
+        if getattr(args, "show_ignored", False):
             return handle_show_ignored(
-                command_service, repository, presenter, project_path, args.ignore_file
+                command_service,
+                repository,
+                presenter,
+                project_path,
+                getattr(args, "ignore_file", ".doignore"),
             )
 
         # Setup signal handlers
@@ -480,12 +506,14 @@ def main() -> int:
         # Tymczasowo używamy starego kodu do skanowania projektu
         detector = ProjectCommandDetector(
             project_path=project_path,
-            timeout=args.timeout,
-            exclude_patterns=args.exclude or [],
-            include_patterns=args.include_only or [],
-            todo_file=args.todo_file,
-            script_file=args.script_file,
-            ignore_file=args.ignore_file,
+            timeout=getattr(
+                args, "timeout", 30
+            ),  # Default to 30 seconds if not specified
+            exclude_patterns=getattr(args, "exclude", []) or [],
+            include_patterns=getattr(args, "include_only", []) or [],
+            todo_file=getattr(args, "todo_file", "TODO.md"),
+            script_file=getattr(args, "script_file", "todo.sh"),
+            ignore_file=getattr(args, "ignore_file", ".doignore"),
         )
 
         # Skanuj projekt

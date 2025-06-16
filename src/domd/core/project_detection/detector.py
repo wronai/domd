@@ -7,13 +7,14 @@ from typing import Any, Dict, List, Optional, Union
 
 from domd.command_execution import CommandExecutor, CommandRunner
 from domd.core.commands import Command
+from domd.core.parsing.pattern_matcher import PatternMatcher
 from domd.core.project_detection.command_handling import CommandHandler
 from domd.core.project_detection.config_files import ConfigFileHandler
 from domd.core.project_detection.virtualenv import (
     get_virtualenv_environment,
     get_virtualenv_info,
 )
-from domd.parsing import FileProcessor, ParserRegistry, PatternMatcher
+from domd.parsing import FileProcessor, ParserRegistry
 from domd.parsing.base import BaseParser
 from domd.reporting import MarkdownFormatter, Reporter
 

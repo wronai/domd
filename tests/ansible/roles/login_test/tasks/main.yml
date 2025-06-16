@@ -38,7 +38,7 @@
   assert:
     that:
       - invalid_login_result.status == 401
-      - '"Invalid credentials"' in invalid_login_result.content
+      - '\"Invalid credentials\" in invalid_login_result.content'
     fail_msg: "Expected 401 for invalid credentials"
 
 - name: Test login with missing fields
@@ -57,5 +57,5 @@
   assert:
     that:
       - missing_fields_result.status == 422
-      - '"field required"' in missing_fields_result.content
+      - '\"field required\" in missing_fields_result.content'
     fail_msg: "Expected 422 for missing required fields"

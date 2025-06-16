@@ -3,6 +3,10 @@ Interfejsy dla formaterów raportów w aplikacji DoMD.
 """
 
 from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import List
+
+from ...core.domain.command import Command
 
 
 class ReportFormatter(ABC):

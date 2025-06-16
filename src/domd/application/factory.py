@@ -90,6 +90,7 @@ class ApplicationFactory:
         project_path: Path,
         todo_file: str = "TODO.md",
         done_file: str = "DONE.md",
+        formatter: Optional[ReportFormatter] = None,
     ) -> ReportService:
         """
         Tworzy usługę raportów.
@@ -99,6 +100,7 @@ class ApplicationFactory:
             project_path: Ścieżka do katalogu projektu
             todo_file: Nazwa pliku z nieudanymi komendami
             done_file: Nazwa pliku z udanymi komendami
+            formatter: Opcjonalny formater raportów
 
         Returns:
             Usługa raportów
