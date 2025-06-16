@@ -302,7 +302,7 @@ def validate_args(args: argparse.Namespace) -> Optional[str]:
     if (
         hasattr(args, "quiet")
         and hasattr(args, "verbose")
-        and args.quiet
+        and getattr(args, "quiet", False)
         and args.verbose
     ):
         return "Cannot use --quiet and --verbose together"
@@ -527,18 +527,20 @@ def main() -> int:
             return 0
 
         # Handle dry-run mode
-        if args.dry_run:
-            if not args.quiet:
+        if hasattr(args, "dry_run") and args.dry_run:
+            if not getattr(
+                args, "quiet", False
+            ):  # Default to False if quiet not in args
                 presenter.print_dry_run(show_ignored=False)
             return 0
 
         # Handle init-only mode
-        if args.init_only:
+        if hasattr(args, "init_only") and args.init_only:
             # Also generate .doignore template if it doesn't exist
             if not ignore_file_path.exists():
                 detector.generate_domdignore_template()
 
-            if not args.quiet:
+            if not getattr(args, "quiet", False):
                 presenter.print_init_only(
                     todo_file=args.todo_file,
                     script_file=args.script_file,
@@ -547,9 +549,11 @@ def main() -> int:
             return 0
 
         # Test commands with real-time updates
-        if not args.quiet:
+        if not getattr(args, "quiet", False):
             print(f"\n🧪 Testing {len(commands)} commands...")
-            print(f"📊 Progress will be updated in {args.todo_file}")
+            print(
+                f"📊 Progress will be updated in {getattr(args, 'todo_file', 'TODO.md')}"
+            )
 
         # Testuj komendy
         command_service.test_commands(commands)
@@ -558,11 +562,11 @@ def main() -> int:
         todo_path, done_path = report_service.generate_reports(formatter)
 
         # Print summary
-        if not args.quiet:
+        if not getattr(args, "quiet", False):
             presenter.print_summary(
                 todo_file=str(todo_path),
                 done_file=str(done_path),
-                script_file=args.script_file,
+                script_file=getattr(args, "script_file", "todo.sh"),
                 ignore_file=args.ignore_file,
             )
 

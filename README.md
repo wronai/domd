@@ -19,6 +19,16 @@
 - **Cross-Platform** - Works on Linux, macOS, and Windows
 - **Extensible** - Add support for new command types and tools
 
+## 📚 Examples
+
+Explore our comprehensive collection of examples to get started with DoMD:
+
+- [Basic Examples](docs/examples/basic/) - Simple examples to get you started
+- [Advanced Usage](docs/examples/advanced/) - Complex scenarios and custom configurations
+- [Web Interface Guide](docs/examples/web/) - How to use the DoMD web interface
+- [CI/CD Integration](docs/examples/ci_cd/) - Automate documentation with GitHub Actions and more
+- [Integration Examples](docs/examples/integration/) - Using DoMD with other tools and platforms
+
 ## 🚀 Quick Start
 
 ### Prerequisites
