@@ -1,14 +1,23 @@
-"""Handler for executing and managing project commands."""
+"""Handler for executing and managing project commands with Docker testing support."""
 
 import logging
 import re
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Set
 
 from domd.core.command_execution.command_runner import CommandRunner
-
 from ..models import Command
+
+# Import DockerTester conditionally to avoid hard dependency
+try:
+    from ..docker_tester import DockerTester, test_commands_in_docker, update_doignore
+    DOCKER_AVAILABLE = True
+except ImportError:
+    DOCKER_AVAILABLE = False
+    DockerTester = None
+    test_commands_in_docker = None
+    update_doignore = None
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +50,9 @@ class CommandHandler:
         command_runner: CommandRunner,
         timeout: int = 60,
         ignore_patterns: Optional[List[str]] = None,
+        enable_docker_testing: bool = True,
+        dodocker_path: str = ".dodocker",
+        doignore_path: str = ".doignore"
     ):
         """Initialize the CommandHandler.
 
@@ -48,6 +60,10 @@ class CommandHandler:
             project_path: Path to the project root
             command_runner: CommandRunner instance for executing commands
             timeout: Default command execution timeout in seconds
+            ignore_patterns: List of regex patterns to ignore
+            enable_docker_testing: Whether to enable Docker-based command testing
+            dodocker_path: Path to .dodocker configuration file
+            doignore_path: Path to .doignore file
             ignore_patterns: List of command patterns to ignore
         """
         self.project_path = project_path

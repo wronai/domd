@@ -449,12 +449,10 @@ def main() -> int:
                             ignore_patterns.append(line)
 
             # Initialize services with default values if not provided
-            timeout = getattr(
-                args, "timeout", 30
-            )  # Default to 30 seconds if not specified
-            todo_file = getattr(args, "todo_file", "TODO.md")
-            script_file = getattr(args, "script_file", "todo.sh")
-            ignore_file = getattr(args, "ignore_file", ".doignore")
+            timeout = getattr(args, "timeout", 30)  # Default to 30 seconds
+            _ = getattr(args, "todo_file", "TODO.md")  # Used in other parts
+            _ = getattr(args, "script_file", "todo.sh")  # Used in other parts
+            _ = getattr(args, "ignore_file", ".doignore")  # Used in other parts
 
             # Initialize command service
             command_service = ApplicationFactory.create_command_service(

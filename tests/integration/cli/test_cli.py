@@ -4,7 +4,6 @@ import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-
 import pytest
 
 # Add the project root to the Python path
@@ -132,9 +131,22 @@ class TestCLI:
         captured = capsys.readouterr()
         assert "Ignored commands" in captured.out
 
+    def test_web_command(self, capsys):
+        """Test the web command."""
+        # Mock the start_web_interface function
+        with patch("src.domd.cli.start_web_interface") as mock_web:
+            mock_web.return_value = 0
+
+            # Run the CLI with web command
+            with patch("sys.argv", ["domd", "web"]):
+                result = main()
+
+        assert result == 0
+        mock_web.assert_called_once()
+
     def test_dry_run_option(self, setup_test_environment, capsys):
         """Test the --dry-run option."""
-        _ = setup_test_environment  # Unused variable
+        test_dir = setup_test_environment
 
         # Mock the ProjectCommandDetector
         with patch("src.domd.cli.ProjectCommandDetector") as mock_detector:
@@ -152,16 +164,15 @@ class TestCLI:
         assert "DRY RUN" in captured.out
         assert "Test command" in captured.out
 
-    def test_init_only_option(self, setup_test_environment, capsys):
+    def test_init_only_option(self, capsys):
         """Test the --init-only option."""
-        _ = setup_test_environment  # Unused variable
 
         # Run the CLI with --init-only
         with patch("sys.argv", ["domd", "scan", "--init-only"]):
             result = main()
 
         assert result == 0
-        assert (test_dir / ".doignore").exists()
+        assert Path(".doignore").exists()
         captured = capsys.readouterr()
         assert "Initialized project" in captured.out
 

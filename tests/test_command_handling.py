@@ -1,11 +1,9 @@
-import os
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 # Add src to path to import our modules
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 
 # Mock the CommandRunner to avoid executing actual commands
 class MockCommandRunner:

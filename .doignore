@@ -1,65 +1,41 @@
-# DoMD Ignore Patterns
-
-This file contains patterns that will be ignored when detecting shell commands in markdown files. Each pattern is a regular expression that will be matched against potential command strings.
-
-## Markdown Elements
-
-```text
-^#.*
-^\s*[-*+] .*
-^\s*\d+\. .*
-^\s*`{3,}.*`*\s*$
-^\s*\|.*\|\s*$
-^\s*- \[ \] .*
-^\s*- \[x\] .*
-```
-
-## Documentation Text
-
-```text
-^(For|To|This|The|You|We|It|They|He|She|When|Where|Why|How)\s+[A-Za-z]
-^[A-Z][a-z]+(?:\s+[a-z]+)*[.!?]?$
-```
-
-## File Paths and URLs
-
-```text
-^/.*
-^~?/.*
-^[./].*
-^https?://.*
-^ftp://.*
-^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$
-```
-
-## Logs and Error Messages
-
-```text
-^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+\[\w+\].*
-^(Error|ERROR|error|Warning|WARNING|warning|Info|INFO|info|Debug|DEBUG|debug):?\s+.*
-```
-
-## Whitespace and Empty Lines
-
-```text
-^\s*$
-^\s+$
-```
-
-## System Specific
-
-```text
-# System-level commands that might require permissions
-sudo .*
-systemctl .*
-service .*
-
 # Build commands that take too long
+# DoMD Ignore Patterns
+# System-level commands that might require permissions
+# Testing patterns
+## Documentation Text
+## File Paths and URLs
+## Logs and Error Messages
+## Markdown Elements
+## System Specific
+## Whitespace and Empty Lines
 *build*production*
 *build*release*
-
-# Testing patterns
-*test*integration*
 *test*e2e*
+*test*integration*
 *test*slow*
+--list  # broken
+This file contains patterns that will be ignored when detecting shell commands in markdown files. Each pattern is a regular expression that will be matched against potential command strings.
+^#.*
+^(Error|ERROR|error|Warning|WARNING|warning|Info|INFO|info|Debug|DEBUG|debug):?\s+.*
+^(For|To|This|The|You|We|It|They|He|She|When|Where|Why|How)\s+[A-Za-z]
+^/.*
+^[./].*
+^[A-Z][a-z]+(?:\s+[a-z]+)*[.!?]?$
+^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$
+^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+\[\w+\].*
+^\s*$
+^\s*- \[ \] .*
+^\s*- \[x\] .*
+^\s*[-*+] .*
+^\s*\d+\. .*
+^\s*\|.*\|\s*$
+^\s*`{3,}.*`*\s*$
+^\s+$
+^ftp://.*
+^https?://.*
+^~?/.*
 ```
+```text
+service .*
+sudo .*
+systemctl .*
