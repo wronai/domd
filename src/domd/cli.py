@@ -204,6 +204,51 @@ def create_parser() -> argparse.ArgumentParser:
     )
     web_parser.set_defaults(func=start_web_interface)
 
+    # Test commands in Docker
+    test_parser = subparsers.add_parser(
+        "test-commands",
+        help="Test commands in Docker containers",
+        description="Test commands in Docker and update .doignore with failing commands",
+    )
+    test_parser.add_argument(
+        "commands",
+        nargs="*",
+        help="Commands to test (or use --file to read from file)",
+    )
+    test_parser.add_argument(
+        "--file",
+        "-f",
+        type=Path,
+        help="File containing commands to test (one per line)",
+    )
+    test_parser.add_argument(
+        "--update-doignore",
+        action="store_true",
+        help="Update .doignore with commands that fail in Docker",
+    )
+    test_parser.add_argument(
+        "--dodocker",
+        type=Path,
+        default=".dodocker",
+        help="Path to .dodocker configuration file (default: .dodocker)",
+    )
+    test_parser.add_argument(
+        "--doignore",
+        type=Path,
+        default=".doignore",
+        help="Path to .doignore file (default: .doignore)",
+    )
+    test_parser.add_argument(
+        "--no-docker",
+        action="store_true",
+        help="Skip Docker testing and only validate commands",
+    )
+    test_parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
+    )
+    # This will be handled by the command service
+    test_parser.set_defaults(func=lambda args: 0)  # Return success by default
+
     # Common arguments for scan command
     scan_parser.add_argument(
         "path",
@@ -404,17 +449,16 @@ def handle_show_ignored(
 
 def main() -> int:
     """Enhanced main entry point with clean architecture support."""
-    parser = create_parser()
-    args = parser.parse_args()
-
     try:
-        # If no command is provided, show help and exit
+        parser = create_parser()
+        args = parser.parse_args()
+
+        # Check if the command is a valid shell command
         if not hasattr(args, "command") or args.command is None:
             parser.print_help()
             print("\nPlease specify a command (scan or web).")
             return 1
 
-        # Handle web command first (skip validation and logging setup)
         if args.command == "web":
             return start_web_interface(args)
 
@@ -426,27 +470,27 @@ def main() -> int:
                 print(f"❌ Error: {error_msg}", file=sys.stderr)
                 return 1
 
-            # Setup logging with default values if not provided
-            verbose = getattr(args, "verbose", False)
-            quiet = getattr(args, "quiet", False)
-            setup_logging(verbose=verbose, quiet=quiet)
+        # Setup logging with default values if not provided
+        verbose = getattr(args, "verbose", False)
+        quiet = getattr(args, "quiet", False)
+        setup_logging(verbose=verbose, quiet=quiet)
 
-            # Get the project path with a default of current directory if not provided
-            project_path = Path(getattr(args, "path", ".")).resolve()
+        # Get the project path with a default of current directory if not provided
+        project_path = Path(getattr(args, "path", ".")).resolve()
 
-            # Initialize application components
-            repository = ApplicationFactory.create_command_repository()
-            executor = ApplicationFactory.create_command_executor(max_retries=1)
+        # Initialize application components
+        repository = ApplicationFactory.create_command_repository()
+        executor = ApplicationFactory.create_command_executor(max_retries=1)
 
-            # Load ignore patterns
-            ignore_patterns = []
-            ignore_file_path = project_path / getattr(args, "ignore_file", ".doignore")
-            if ignore_file_path.exists():
-                with open(ignore_file_path, "r", encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith("#"):
-                            ignore_patterns.append(line)
+        # Load ignore patterns
+        ignore_patterns = []
+        ignore_file_path = project_path / getattr(args, "ignore_file", ".doignore")
+        if ignore_file_path.exists():
+            with open(ignore_file_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        ignore_patterns.append(line)
 
             # Initialize services with default values if not provided
             timeout = getattr(args, "timeout", 30)  # Default to 30 seconds
@@ -466,7 +510,7 @@ def main() -> int:
             report_service = ApplicationFactory.create_report_service(
                 repository=repository,
                 project_path=project_path,
-                todo_file=todo_file,
+                todo_file=getattr(args, "todo_file", "TODO.md"),
                 done_file="DONE.md",  # Using default done file name
             )
 

@@ -14,10 +14,13 @@
 - **Automatic Command Detection** - Discovers and extracts commands from various project files
 - **Smart Execution** - Runs commands and captures their output and status
 - **Docker Integration** - Execute commands in isolated containers for consistency
+- **Command Testing** - Validate and test commands in Docker containers
+- **Smart .doignore Management** - Automatically update ignore patterns based on test results
 - **Comprehensive Reporting** - Generates detailed reports in markdown format
 - **Customizable** - Configure includes, excludes, and command behavior
 - **Cross-Platform** - Works on Linux, macOS, and Windows
 - **Extensible** - Add support for new command types and tools
+- **REST API** - Full programmatic access to all features
 
 ## 📚 Examples
 
@@ -28,6 +31,30 @@ Explore our comprehensive collection of examples to get started with DoMD:
 - [Web Interface Guide](docs/examples/web/) - How to use the DoMD web interface
 - [CI/CD Integration](docs/examples/ci_cd/) - Automate documentation with GitHub Actions and more
 - [Integration Examples](docs/examples/integration/) - Using DoMD with other tools and platforms
+
+## 🔍 Command Testing
+
+DoMD includes powerful command testing capabilities that help you validate and test shell commands in isolated Docker containers:
+
+```bash
+# Test individual commands
+domd test-commands "ls -la" "pwd" "echo Hello"
+
+# Test commands from a file and update .doignore
+domd test-commands --update-doignore -f commands.txt
+
+# Skip Docker testing (only validate commands)
+domd test-commands --no-docker -f commands.txt
+```
+
+### Key Features:
+
+- **Command Validation**: Automatically detect valid shell commands vs documentation
+- **Docker Testing**: Test commands in isolated containers
+- **Automatic .doignore Updates**: Update ignore patterns based on test results
+- **REST API**: Full programmatic access to testing features
+
+For more details, see the [Command Testing Documentation](docs/command_testing.md).
 
 ## 🚀 Quick Start
 

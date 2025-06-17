@@ -3,24 +3,98 @@
 import logging
 import re
 import time
+import shlex
+import shutil
+import os
+import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union, Set
+from typing import Dict, List, Optional, Set, Tuple, Union, Any, Pattern
 
 from domd.core.command_execution.command_runner import CommandRunner
-from ..models import Command
+from domd.core.domain.command import Command
 
-# Import DockerTester conditionally to avoid hard dependency
+# Import DockerTester if available
 try:
-    from ..docker_tester import DockerTester, test_commands_in_docker, update_doignore
+    from domd.core.command_detection.docker_tester import DockerTester, test_commands_in_docker
     DOCKER_AVAILABLE = True
 except ImportError:
     DOCKER_AVAILABLE = False
-    DockerTester = None
     test_commands_in_docker = None
-    update_doignore = None
 
 logger = logging.getLogger(__name__)
 
+# Cache for command existence checks
+_command_cache = {}
+
+def command_exists(cmd: str) -> bool:
+    """Check if a command exists in the system PATH.
+    
+    Args:
+        cmd: The command to check
+        
+    Returns:
+        bool: True if the command exists in PATH, False otherwise
+    """
+    global _command_cache
+    
+    # Check cache first
+    if cmd in _command_cache:
+        return _command_cache[cmd]
+        
+    # Handle commands with arguments - just check the first part
+    cmd_parts = shlex.split(cmd)
+    if not cmd_parts:
+        _command_cache[cmd] = False
+        return False
+        
+    cmd_name = cmd_parts[0]
+    
+    # Check for built-in commands
+    builtin_commands = {
+        'cd', 'export', 'source', 'alias', 'unalias', 'echo', 'pwd', 'exit',
+        'return', 'shift', 'test', 'true', 'false', ':', '.', 'exec', 'eval',
+        'set', 'unset', 'readonly', 'read', 'printf', 'wait', 'times', 'trap',
+        'umask', 'ulimit', 'type', 'hash', 'command', 'jobs', 'fg', 'bg', 'kill',
+        'getopts', 'shopt', 'complete', 'compgen', 'compopt', 'declare',
+        'typeset', 'local', 'let', 'readonly', 'unset', 'export', 'alias',
+        'unalias', 'echo', 'pwd', 'exit', 'return', 'shift', 'test', 'true',
+        'false', ':', '.', 'exec', 'eval', 'set', 'unset', 'readonly', 'read',
+        'printf', 'wait', 'times', 'trap', 'umask', 'ulimit', 'type', 'hash',
+        'command', 'jobs', 'fg', 'bg', 'kill', 'getopts', 'shopt', 'complete',
+        'compgen', 'compopt', 'declare', 'typeset', 'local', 'let'
+    }
+    
+    if cmd_name in builtin_commands:
+        _command_cache[cmd] = True
+        return True
+        
+    # Check for absolute paths
+    if os.path.isabs(cmd_name):
+        exists = os.path.isfile(cmd_name) and os.access(cmd_name, os.X_OK)
+        _command_cache[cmd] = exists
+        return exists
+        
+    # Check PATH
+    path = os.environ.get('PATH', '').split(os.pathsep)
+    
+    # On Windows, also check PATHEXT for executable extensions
+    if sys.platform == 'win32':
+        pathext = os.environ.get('PATHEXT', '.COM;.EXE;.BAT;.CMD').split(';')
+        for ext in pathext:
+            for dir in path:
+                full_path = os.path.join(dir, f"{cmd_name}{ext}".lower())
+                if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
+                    _command_cache[cmd] = True
+                    return True
+    else:
+        for dir in path:
+            full_path = os.path.join(dir, cmd_name)
+            if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
+                _command_cache[cmd] = True
+                return True
+    
+    _command_cache[cmd] = False
+    return False
 
 class CommandHandler:
     """Handler for executing and managing project commands."""
@@ -70,9 +144,27 @@ class CommandHandler:
         self.command_runner = command_runner
         self.timeout = timeout
         self.ignore_patterns = ignore_patterns or []
-        self._compiled_non_command_patterns = [
-            re.compile(pattern) for pattern in self.NON_COMMAND_PATTERNS
-        ]
+        self.enable_docker_testing = enable_docker_testing and DOCKER_AVAILABLE
+        self.dodocker_path = Path(dodocker_path).absolute()
+        self.doignore_path = Path(doignore_path).absolute()
+        
+        # Initialize Docker tester if available
+        self.docker_tester = None
+        if self.enable_docker_testing and DOCKER_AVAILABLE:
+            try:
+                self.docker_tester = DockerTester(str(self.dodocker_path))
+            except Exception as e:
+                logger.warning(f"Failed to initialize Docker tester: {e}")
+                self.enable_docker_testing = False
+        
+        # Compile patterns for faster matching
+        self._compiled_ignore_patterns = [re.compile(p) for p in self.ignore_patterns]
+        self._compiled_non_command_patterns = [re.compile(p) for p in self.NON_COMMAND_PATTERNS]
+        
+        # Track command validation results
+        self.valid_commands: Set[str] = set()
+        self.invalid_commands: Dict[str, str] = {}  # cmd -> reason
+        self.untested_commands: Set[str] = set()
 
         # Command storage - can contain both Command objects and dictionaries
         self.failed_commands: List[Union[Command, Dict[str, Any]]] = []
@@ -181,6 +273,104 @@ class CommandHandler:
                 "execution_time": 0,
             }
 
+    def test_command_in_docker(self, command: str) -> Tuple[bool, str]:
+        """Test a command in a Docker container.
+        
+        Args:
+            command: The command to test
+            
+        Returns:
+            Tuple of (success, output) where success is a boolean indicating
+            if the command executed successfully, and output is the command output.
+        """
+        if not self.enable_docker_testing or not self.docker_tester:
+            return False, "Docker testing is not available"
+        
+        try:
+            return self.docker_tester.test_command_in_docker(command)
+        except Exception as e:
+            logger.error(f"Error testing command in Docker: {e}")
+            return False, str(e)
+    
+    def update_doignore(self, commands: List[str]) -> int:
+        """Update .doignore with commands that failed in Docker.
+        
+        Args:
+            commands: List of commands that failed in Docker
+            
+        Returns:
+            Number of commands added to .doignore
+        """
+        if not commands or not DOCKER_AVAILABLE:
+            return 0
+            
+        # Filter out commands that are already in .doignore
+        existing_ignores = set()
+        if self.doignore_path.exists():
+            with open(self.doignore_path, 'r') as f:
+                existing_ignores = {line.strip() for line in f if line.strip() and not line.startswith('#')}
+        
+        new_commands = [cmd for cmd in commands if cmd not in existing_ignores]
+        if not new_commands:
+            return 0
+            
+        # Add new commands to .doignore with a note
+        with open(self.doignore_path, 'a') as f:
+            f.write('\n# Commands that failed in Docker testing\n')
+            for cmd in sorted(new_commands):
+                f.write(f'{cmd}\n')
+        
+        return len(new_commands)
+    
+    def validate_commands(self, commands: List[str], test_in_docker: bool = False) -> Dict[str, Tuple[bool, str]]:
+        """Validate multiple commands and optionally test them in Docker.
+        
+        Args:
+            commands: List of commands to validate
+            test_in_docker: Whether to test commands in Docker
+            
+        Returns:
+            Dictionary mapping commands to (is_valid, reason) tuples
+        """
+        results = {}
+        
+        for cmd in commands:
+            # First check if it's a valid command
+            is_valid, reason = self.is_valid_command(cmd)
+            results[cmd] = (is_valid, reason)
+            
+            # Track validation results
+            if is_valid:
+                self.valid_commands.add(cmd)
+                if test_in_docker and self.enable_docker_testing:
+                    self.untested_commands.add(cmd)
+            else:
+                self.invalid_commands[cmd] = reason
+        
+        # If more than half of commands are invalid and Docker testing is enabled,
+        # test the invalid commands in Docker before adding them to .doignore
+        if (len(self.invalid_commands) > len(commands) / 2 and 
+            self.enable_docker_testing and 
+            test_in_docker):
+            
+            # Test invalid commands in Docker
+            docker_results = test_commands_in_docker(
+                list(self.invalid_commands.keys()),
+                str(self.dodocker_path)
+            )
+            
+            # Update .doignore with commands that failed in Docker
+            failed_in_docker = [
+                cmd for cmd, (success, _) in docker_results.items() 
+                if not success and cmd in self.invalid_commands
+            ]
+            
+            if failed_in_docker:
+                count = self.update_doignore(failed_in_docker)
+                logger.info(f"Added {count} commands to .doignore after Docker testing")
+        
+        return results
+    
     def is_valid_command(self, command: Union[str, Dict, Command]) -> Tuple[bool, str]:
         """Check if a command is valid and should be executed.
 
@@ -274,11 +464,23 @@ class CommandHandler:
             r"^\(.*\)$",
         ]
 
-        # If any valid command pattern matches, consider it a valid command
+        # First check if the command matches any valid command patterns
+        command_matches_pattern = False
         for pattern in valid_command_indicators:
             if re.search(pattern, cmd_str, re.MULTILINE):
                 logger.debug(f"Matches valid command pattern: {pattern}")
-                return True, "Valid command"
+                command_matches_pattern = True
+                break
+                
+        # If it doesn't match any command patterns, it's invalid
+        if not command_matches_pattern:
+            return False, "Does not match any valid command patterns"
+            
+        # If it does match a pattern, also verify the command exists in PATH
+        # (but only for the first word that looks like a command)
+        cmd_parts = shlex.split(cmd_str)
+        if cmd_parts and not command_exists(cmd_parts[0]):
+            return False, f"Command not found in PATH: {cmd_parts[0]}"
 
         # Enhanced markdown and documentation detection with detailed logging
         markdown_patterns = [
@@ -295,14 +497,15 @@ class CommandHandler:
             (r"\[.*\]\(.*\)", "Markdown link"),
             (r"^>\s+", "Blockquote"),
             (r"^\s*<!--.*-->\s*$", "HTML comment"),
-            # Documentation patterns
+            # Documentation patterns - be more specific to avoid false positives
             (r"^For\s+\w+\s+information", "Documentation line"),
             (r"^To\s+\w+", "Documentation line"),
             (r"^This\s+\w+", "Documentation line"),
             (r"^The\s+\w+", "Documentation line"),
             (r"^[A-Z][a-z]+\s+the\s+\w+", "Documentation line"),
-            (r"^[A-Z][a-z]+\s+[A-Z][a-z]+", "Documentation line"),
-            (r"^[A-Z][a-z]+\s+[a-z]+\s+[a-z]+", "Documentation line"),
+            # More specific documentation patterns that won't match shell commands
+            (r"^[A-Z][a-z]{3,}\s+[A-Z][a-z]{3,}", "Documentation line"),  # At least 4 letters each word
+            (r"^[A-Z][a-z]+\s+[a-z]{3,}\s+[a-z]{3,}", "Documentation line"),  # At least 4 letters each word
             # Directory tree patterns
             (r"^\s*[│├└─]+\s+", "Directory tree"),
             (r"^\s*[│├└─]+$", "Directory tree connector"),

@@ -17,6 +17,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from ...application.factory import ApplicationFactory
 from ...core.domain.command import Command
 from ...core.parsing.pattern_matcher import PatternMatcher
+from .command_testing import register_command_testing_routes
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -52,13 +53,28 @@ class DomdFlaskApi:
         self.app.secret_key = secret_key or secrets.token_hex(32)
         self.project_path = Path(project_path) if project_path else Path.cwd()
 
-        # Enable CORS
-        cors.init_app(self.app)
+        # Initialize application services
+        self.factory = ApplicationFactory(project_path)
+        
+        # Register all routes
+        self._register_routes()
+        
+        # Register command testing routes
+        try:
+            from ...core.command_detection.handlers.command_handler import CommandHandler
+            command_handler = CommandHandler(
+                project_path=Path(project_path) if project_path else Path.cwd(),
+                command_runner=self.factory.create_command_runner(),
+                enable_docker_testing=True
+            )
+            register_command_testing_routes(self, command_handler)
+        except Exception as e:
+            logger.warning(f"Failed to register command testing routes: {e}")
 
         # Initialize application components
-        self.repository = ApplicationFactory.create_command_repository()
-        self.executor = ApplicationFactory.create_command_executor()
-        self.formatter = ApplicationFactory.create_report_formatter()
+        self.repository = self.factory.create_command_repository()
+        self.executor = self.factory.create_command_executor()
+        self.formatter = self.factory.create_report_formatter()
 
         # Load ignore patterns
         self.ignore_patterns = []
