@@ -159,7 +159,7 @@ class CommandHandler:
                 "execution_time": 0,
             }
 
-    def is_valid_command(self, command: Union[str, Dict, Command]) -> bool:
+    def is_valid_command(self, command: Union[str, Dict, Command]) -> tuple[bool, str]:
         """Check if a command is valid and should be executed.
 
         Args:
@@ -172,22 +172,61 @@ class CommandHandler:
         if not cmd_str or not cmd_str.strip():
             return False, "Empty command"
 
+        # Check if the command looks like a markdown header, list item, or other content
+        if any(
+            markdown_indicator in cmd_str
+            for markdown_indicator in [
+                "# ",  # Headers
+                "- ",  # List items
+                "* ",  # List items
+                "1. ",  # Numbered lists
+                "| ",  # Tables
+                "```",  # Code blocks
+                "**",  # Bold text
+                "__",  # Underlined text
+                "~~",  # Strikethrough
+                "[]",  # Links
+                "![",  # Images
+                "<",  # HTML tags
+                "> ",  # Blockquotes
+            ]
+        ):
+            return False, "Appears to be markdown content"
+
         # Check against non-command patterns
         for pattern in self._compiled_non_command_patterns:
             if pattern.search(cmd_str):
                 return False, f"Matches non-command pattern: {pattern.pattern}"
 
         # Check for common error patterns
-        if "error:" in cmd_str.lower() or "warning:" in cmd_str.lower():
-            return False, "Command appears to be an error or warning message"
+        if any(
+            s in cmd_str.lower()
+            for s in ["error:", "warning:", "exception:", "traceback"]
+        ):
+            return False, "Appears to be an error or warning message"
+
+        # Check for documentation-style lines (e.g., "parameter: value")
+        if re.match(r"^\s*[A-Za-z][A-Za-z0-9_\s-]*:", cmd_str):
+            return False, "Appears to be documentation or configuration"
 
         # Check for suspicious patterns that might indicate internal errors
         if any(s in cmd_str.lower() for s in ["traceback", "exception", "stacktrace"]):
-            return False, "Command appears to contain error output"
+            return False, "Appears to contain error output"
 
         # Check for internal tool paths that shouldn't be executed
-        if any(s in cmd_str for s in ["/tmp/", "/var/", "/usr/local/", "~/.cache/"]):
-            return False, "Command references internal tool paths"
+        if any(
+            s in cmd_str
+            for s in ["/tmp/", "/var/", "/usr/local/", "~/.cache/", "/dev/"]
+        ):
+            return False, "References internal tool paths"
+
+        # Check for commands that are just numbers or special characters
+        if re.match(r"^[\d\s\W]+$", cmd_str):
+            return False, "Contains only numbers or special characters"
+
+        # Check for very long commands that are likely not actual commands
+        if len(cmd_str) > 500:  # Arbitrary length threshold
+            return False, "Command is too long to be a valid shell command"
 
         return True, ""
 
