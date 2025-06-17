@@ -484,7 +484,7 @@ class CommandHandler:
 
         # Enhanced markdown and documentation detection with detailed logging
         markdown_patterns = [
-            # Markdown patterns
+            # Markdown patterns - only match clear markdown syntax
             (r"^#+\s+", "Markdown header"),
             (r"^[-*+]\s+", "Markdown list item"),
             (r"^\d+\.\s+", "Numbered list item"),
@@ -497,16 +497,15 @@ class CommandHandler:
             (r"\[.*\]\(.*\)", "Markdown link"),
             (r"^>\s+", "Blockquote"),
             (r"^\s*<!--.*-->\s*$", "HTML comment"),
-            # Documentation patterns - be more specific to avoid false positives
-            (r"^For\s+\w+\s+information", "Documentation line"),
-            (r"^To\s+\w+", "Documentation line"),
-            (r"^This\s+\w+", "Documentation line"),
-            (r"^The\s+\w+", "Documentation line"),
-            (r"^[A-Z][a-z]+\s+the\s+\w+", "Documentation line"),
-            # More specific documentation patterns that won't match shell commands
-            (r"^[A-Z][a-z]{3,}\s+[A-Z][a-z]{3,}", "Documentation line"),  # At least 4 letters each word
-            (r"^[A-Z][a-z]+\s+[a-z]{3,}\s+[a-z]{3,}", "Documentation line"),  # At least 4 letters each word
-            # Directory tree patterns
+            
+            # More specific documentation patterns that are less likely to match commands
+            (r"^For more information", "Documentation line"),
+            (r"^To get started", "Documentation line"),
+            (r"^This (tutorial|guide|example)", "Documentation line"),
+            (r"^The following (steps|commands|options)", "Documentation line"),
+            (r"^[A-Z][a-z]{3,} the [A-Z][a-z]+", "Documentation line"),
+            
+            # Directory and file system patterns
             (r"^\s*[│├└─]+\s+", "Directory tree"),
             (r"^\s*[│├└─]+$", "Directory tree connector"),
             (r"^\s*\d+\s+[a-z]+\s+\d+\s+\d{2}:\d{2}\s+", "Directory listing"),
