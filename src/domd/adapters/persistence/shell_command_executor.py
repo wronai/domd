@@ -5,12 +5,12 @@ Implementacja wykonawcy komend powłoki systemowej.
 # Standard library imports
 import logging
 import os
-import re
 import shlex
+import shutil
 import subprocess
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 # Local application imports
 from ...core.domain.command import Command, CommandResult
@@ -96,6 +96,29 @@ class ShellCommandExecutor(CommandExecutor):
         """
         self.max_retries = max_retries
 
+    def _can_execute_command(self, command: str) -> Tuple[bool, str]:
+        """
+        Sprawdza, czy komenda może zostać wykonana.
+
+        Args:
+            command: Komenda do sprawdzenia
+
+        Returns:
+            Krotka (can_execute: bool, reason: str)
+        """
+        try:
+            # Check if command is a path
+            if os.path.isabs(command.split()[0]):
+                if not os.access(command.split()[0], os.X_OK):
+                    return False, f"No execute permission for {command.split()[0]}"
+            # Check if command exists in PATH
+            elif shutil.which(command.split()[0]) is None:
+                return False, f"Command not found: {command.split()[0]}"
+
+            return True, ""
+        except Exception as e:
+            return False, f"Error checking command: {str(e)}"
+
     def execute(self, command: Command, timeout: Optional[int] = None) -> CommandResult:
         """
         Wykonuje komendę i zwraca wynik jej wykonania.
@@ -137,6 +160,18 @@ class ShellCommandExecutor(CommandExecutor):
                 execution_time=0,
                 stdout="",
                 stderr="Error: Empty command",
+            )
+
+        # Check command execution permissions
+        can_execute, reason = self._can_execute_command(cmd_str.split()[0])
+        if not can_execute:
+            logger.debug(f"Skipping command due to permission issue: {reason}")
+            return CommandResult(
+                success=False,
+                return_code=126,  # POSIX permission denied exit code
+                execution_time=0,
+                stdout="",
+                stderr=f"Permission denied: {reason}",
             )
 
         cmd_args, needs_shell = self._parse_command(cmd_str)
@@ -196,17 +231,27 @@ class ShellCommandExecutor(CommandExecutor):
                             stderr=f"cd: {str(e)}",
                         )
 
-                # Execute the command
-                process = subprocess.run(
-                    cmd_args,
-                    cwd=str(directory),
-                    shell=needs_shell,
-                    capture_output=True,
-                    text=True,
-                    env=execution_env,
-                    timeout=timeout,
-                    executable="/bin/bash" if needs_shell else None,
-                )
+                # Execute the command with appropriate permissions
+                try:
+                    process = subprocess.run(
+                        cmd_args,
+                        cwd=str(directory),
+                        shell=needs_shell,
+                        capture_output=True,
+                        text=True,
+                        env=execution_env,
+                        timeout=timeout,
+                        executable="/bin/bash" if needs_shell else None,
+                        start_new_session=True,  # Use a new process group
+                    )
+                except PermissionError as pe:
+                    return CommandResult(
+                        success=False,
+                        return_code=126,  # POSIX permission denied exit code
+                        execution_time=time.time() - start_time,
+                        stdout="",
+                        stderr=f"Permission denied: {str(pe)}",
+                    )
 
                 execution_time = time.time() - start_time
 
