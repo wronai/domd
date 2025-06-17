@@ -4,7 +4,7 @@ import logging
 import re
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from domd.core.command_execution.command_runner import CommandRunner
 
@@ -20,14 +20,19 @@ class CommandHandler:
     NON_COMMAND_PATTERNS = [
         r"^#",  # Comments
         r"^\s*$",  # Empty lines
-        r"^source\s+",  # Shell source commands
-        r"^\.\s+",  # Shell source alternative
-        r"^exec\s+",  # Shell exec commands
-        r"^export\s+",  # Environment exports
-        r"^unset\s+",  # Environment unset
-        r"^cd\s+",  # Directory changes
-        r"^echo\s+",  # Echo statements
         r"^\s*(true|false|:)\s*$",  # No-op commands
+        r"^\s*<!--.*-->\s*$",  # HTML comments
+        r"^\s*\*\*\*\s*$",  # Horizontal rules
+        r"^\s*---\s*$",  # Horizontal rules
+        r"^\s*===\s*$",  # Horizontal rules
+        r"^\s*\[\s*\]\s*$",  # Empty brackets
+        r"^\s*\{\s*\}\s*$",  # Empty braces
+        r"^\s*\[.*\]\(.*\)\s*$",  # Markdown links
+        r"^\s*`{3,}.*`*\s*$",  # Code blocks
+        r"^\s*\|.*\|\s*$",  # Tables
+        r"^\s*[│├└─]+\s*$",  # Directory tree connectors
+        r"^\s*\d+\s+\w+\s+\d+\s+\d{2}:\d{2}\s+",  # Directory listing
+        r"^(For|To|This|The|You|We|It|They|He|She|When|Where|Why|How)\s+[A-Za-z]",  # Documentation lines
     ]
 
     def __init__(
@@ -160,7 +165,7 @@ class CommandHandler:
                 "execution_time": 0,
             }
 
-    def is_valid_command(self, command: Union[str, Dict, Command]) -> tuple[bool, str]:
+    def is_valid_command(self, command: Union[str, Dict, Command]) -> Tuple[bool, str]:
         """Check if a command is valid and should be executed.
 
         This method performs multiple validations to ensure the command is a valid shell command
@@ -205,6 +210,59 @@ class CommandHandler:
             if pattern.search(cmd_str):
                 logger.debug(f"Matches non-command pattern: {pattern.pattern}")
                 return False, f"Matches non-command pattern: {pattern.pattern}"
+
+        # Check for markdown task items (e.g., "- [ ] Task")
+        if re.match(r"^\s*-\s*\[\s*[xX\s]?\s*\]", cmd_str):
+            logger.debug("Markdown task item detected")
+            return False, "Markdown task item"
+
+        # Check for plain text (starts with capital letter, no special chars)
+        if re.match(r"^[A-Z][a-z]+(?:\s+[a-z]+)*[.!?]?$", cmd_str):
+            logger.debug("Plain text detected")
+            return False, "Plain text"
+
+        # Check for file paths
+        if re.match(r"^(?:/|./|~?/)[\w./-]+$", cmd_str):
+            logger.debug("File path detected")
+            return False, "File path"
+
+        # Check for timestamped logs (e.g., "2023-01-01 12:00:00 [INFO] message")
+        if re.match(r"^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+\[\w+\]", cmd_str):
+            logger.debug("Timestamped log detected")
+            return False, "Timestamped log"
+
+        # Check for valid command patterns
+        valid_command_indicators = [
+            # Basic commands and paths with complex shell features
+            r'^[a-zA-Z0-9_./-]+(?:\s+[^\s\|&;<>"\']+|\s*[&|;]\s*|\s*\(\s*|\s*\)\s*|\s*\{\s*|\s*\}\s*|\s*"[^"]*"|\s*\'[^\']*\')*$',
+            # Commands with variables and assignments
+            r"^\s*[a-zA-Z_][a-zA-Z0-9_]*=.*$",
+            # Commands with environment variables
+            r"^\s*[a-zA-Z_][a-zA-Z0-9_]*=[^=]+\s+[a-zA-Z0-9_./-]",
+            # Command substitutions
+            r"\$\([^)]+\)",
+            # Process substitutions
+            r"<\s*\([^)]+\)",
+            r">\s*\([^)]+\)",
+            # Redirections
+            r"\d*[<>]&?\d*[-+]?",
+            # Common shell built-ins and control structures
+            r"^(if|then|else|fi|for|while|until|do|done|case|esac|select)\b",
+            # Common command patterns
+            r'^[a-zA-Z0-9_./-]+(?:\s+[^\s\|&;<>"\']+)*$',
+            # Commands with pipes and redirections
+            r"^[a-zA-Z0-9_./-]+(?:\s+[^\s\|&;<>]+)*(?:\s*[\|&]\s*[a-zA-Z0-9_./-]+(?:\s+[^\s\|&;<>]+)*)*$",
+            # Commands with quotes and special characters
+            r'^[a-zA-Z0-9_./-]+(?:\s+[^\s\|&;<>"\']+|"[^"]*"|\'[^\']*\')*$',
+            # Subshell commands
+            r"^\(.*\)$",
+        ]
+
+        # If any valid command pattern matches, consider it a valid command
+        for pattern in valid_command_indicators:
+            if re.search(pattern, cmd_str, re.MULTILINE):
+                logger.debug(f"Matches valid command pattern: {pattern}")
+                return True, "Valid command"
 
         # Enhanced markdown and documentation detection with detailed logging
         markdown_patterns = [

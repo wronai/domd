@@ -570,7 +570,7 @@ def main() -> int:
                 todo_file=str(todo_path),
                 done_file=str(done_path),
                 script_file=getattr(args, "script_file", "todo.sh"),
-                ignore_file=args.ignore_file,
+                ignore_file=getattr(args, "ignore_file", ".doignore"),
             )
 
         # Return exit code based on results

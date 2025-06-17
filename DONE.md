@@ -27,7 +27,7 @@ Changed directory to /home/tom/github/wronai/domd/my-node-app
 **Type:** shell
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 0.52s
+**Execution Time:** 1.43s
 
 **Output:**
 ```

@@ -1,0 +1,17 @@
+# Failing commands for Docker testing
+# These commands will be tested in a container
+
+# Failing command 1: Subshell command
+(cd /tmp && pwd)
+
+# Failing command 2: Markdown task item
+- [ ] Task item
+
+# Failing command 3: Plain text
+Some text with no command
+
+# Failing command 4: File path
+/path/to/some/file.txt
+
+# Failing command 5: Timestamped log
+2023-01-01 12:00:00 [INFO] Starting process

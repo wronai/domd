@@ -1,142 +1,65 @@
-# .doignore - TodoMD Ignore File
-# Commands and patterns to skip during testing
-#
-# Syntax:
-#   - Exact command match: npm run dev
-#   - Pattern match: *recursive*
-#   - Comment with #
-#   - Empty lines ignored
-make help
-# === RECURSIVE/SELF-REFERENTIAL COMMANDS ===
-# Prevent infinite loops
-poetry run domd
-poetry run project-detector
-poetry run cmd-detector
-poetry run todomd
-poetry run llmtask
+# DoMD Ignore Patterns
 
-# Direct domd command invocations
-domd
-domd *
-python -m domd
-python3 -m domd
+This file contains patterns that will be ignored when detecting shell commands in markdown files. Each pattern is a regular expression that will be matched against potential command strings.
 
-# Common script patterns
-*domd*
-*domd *
-*domd.*
-*domd-*
-*domd_*
+## Markdown Elements
 
-# Other command variants
-project-detector
-cmd-detector
-todomd
+```text
+^#.*
+^\s*[-*+] .*
+^\s*\d+\. .*
+^\s*`{3,}.*`*\s*$
+^\s*\|.*\|\s*$
+^\s*- \[ \] .*
+^\s*- \[x\] .*
+```
 
-# === INTERACTIVE/BLOCKING COMMANDS ===
-# Commands that require user input or run indefinitely
-npm run dev
-npm run start
-npm run serve
-yarn dev
-yarn start
-pnpm dev
-pnpm start
-python -m http.server
-mkdocs serve
-poetry run mkdocs serve
-make serve-docs
-make watch-test
-*serve*
-*watch*
-*dev-server*
+## Documentation Text
 
-# === DEPLOYMENT/DESTRUCTIVE COMMANDS ===
-# Commands that deploy, publish, or modify production
-poetry publish
-npm publish
-yarn publish
-pnpm publish
-make publish
-make publish-test
-make deploy
-make release
-*publish*
-*deploy*
-*release*
-git push
-git tag
+```text
+^(For|To|This|The|You|We|It|They|He|She|When|Where|Why|How)\s+[A-Za-z]
+^[A-Z][a-z]+(?:\s+[a-z]+)*[.!?]?$
+```
 
-# === SLOW/RESOURCE-INTENSIVE COMMANDS ===
-# Commands that take very long or use lots of resources
-make release-check
-tox
-*integration*
-*e2e*
-*benchmark*
-docker-compose up
-*docker*build*
-*slow*
+## File Paths and URLs
 
-# === VERSION/TAG MANAGEMENT ===
-# Commands that modify version or tags
-make bump-patch
-make bump-minor
-make bump-major
-make tag
-poetry version
-npm version
+```text
+^/.*
+^~?/.*
+^[./].*
+^https?://.*
+^ftp://.*
+^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$
+```
 
-# === CLEANUP/DESTRUCTIVE ===
-# Commands that delete files or clean up
-make clean
-make clean-all
-make git-clean
-git clean
-rm -rf
-*clean*
-*purge*
+## Logs and Error Messages
 
-# === DEPENDENCY UPDATES ===
-# Commands that modify dependencies (potentially disruptive)
-make deps-update
-poetry update
-npm update
-yarn upgrade
-pip install --upgrade
+```text
+^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+\[\w+\].*
+^(Error|ERROR|error|Warning|WARNING|warning|Info|INFO|info|Debug|DEBUG|debug):?\s+.*
+```
 
-# === IDE/EDITOR SPECIFIC ===
-# IDE or editor related commands
-code .
-vim
-emacs
-nano
+## Whitespace and Empty Lines
 
-# === SYSTEM SPECIFIC ===
+```text
+^\s*$
+^\s+$
+```
+
+## System Specific
+
+```text
 # System-level commands that might require permissions
-sudo *
-systemctl *
-service *
+sudo .*
+systemctl .*
+service .*
 
-# === TESTING PATTERNS ===
-# Specific test patterns that are problematic
-*test*integration*
-*test*e2e*
-*test*slow*
-
-# === BUILD PATTERNS ===
 # Build commands that take too long
 *build*production*
 *build*release*
 
-# === CUSTOM PROJECT SPECIFIC ===
-# Add your project-specific commands here
-# Example:
-# make setup-database
-# ./scripts/heavy-migration.sh
-
-# === PATTERN EXAMPLES ===
-# *pattern*    - matches any command containing "pattern"
-# pattern*     - matches commands starting with "pattern"
-# *pattern     - matches commands ending with "pattern"
-# exact-match  - matches exactly "exact-match"
+# Testing patterns
+*test*integration*
+*test*e2e*
+*test*slow*
+```
