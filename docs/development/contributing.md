@@ -42,7 +42,7 @@ This project adheres to the [Contributor Covenant](CODE_OF_CONDUCT.md). By parti
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/domd.git
+   git clone https://github.com/wronai/domd.git
    cd domd
    ```
 

@@ -28,23 +28,29 @@ class TestCommandHandler:
 
     # Test cases for valid commands
     @pytest.mark.parametrize(
-        "command_str",
+        "command_str,expected_reason",
         [
-            "ls -la",
-            "git status",
-            "python3 script.py --help",
-            "docker ps -a",
-            "kubectl get pods -n default",
-            "echo 'Hello, World!'",
-            "npm install package --save-dev",
+            ("ls -la", "Command matches"),
+            ("git status", "Command matches"),
+            ("python3 script.py --help", "Command matches"),
+            ("docker ps -a", "Command matches"),
+            ("kubectl get pods -n default", "Command matches"),
+            ("echo 'Hello, World!'", "Command matches"),
+            ("npm install package --save-dev", "Command matches"),
+            ("valid-1", "Command matches"),
+            ("failing-5", "Command matches"),
+            ("echo test", "Command matches"),
         ],
     )
-    def test_valid_commands(self, handler, command_str):
+    def test_valid_commands(self, handler, command_str, expected_reason):
         """Test that valid shell commands are correctly identified."""
         is_valid, reason = handler.is_valid_command(command_str)
         assert (
             is_valid is True
         ), f"Expected valid command: {command_str}. Reason: {reason}"
+        assert (
+            expected_reason in reason
+        ), f"Expected reason to contain '{expected_reason}', got: {reason}"
 
     # Test cases for markdown content
     @pytest.mark.parametrize(
@@ -134,29 +140,41 @@ class TestCommandHandler:
 
     # Test cases for internal tool paths
     @pytest.mark.parametrize(
-        "path",
+        "path,expected_reason",
         [
-            "/tmp/file",
-            "/var/log",
-            "/usr/local/bin",
-            "~/.cache/something",
-            "/dev/null",
+            ("/tmp/file", "Internal tool path"),
+            ("/var/log", "Internal tool path"),
+            ("/usr/local/bin", "Internal tool path"),
+            ("~/.cache/something", "Internal tool path"),
+            ("/dev/null", "Internal tool path"),
         ],
     )
-    def test_internal_tool_paths(self, handler, path):
+    def test_internal_tool_paths(self, handler, path, expected_reason):
         """Test that internal tool paths are correctly identified."""
         is_valid, reason = handler.is_valid_command(path)
         assert is_valid is False, f"Expected invalid command: {path}"
-        assert "internal tool path" in reason.lower(), f"Unexpected reason: {reason}"
+        assert (
+            expected_reason in reason
+        ), f"Expected reason: '{expected_reason}', got: '{reason}'"
 
     # Test with Command objects
     def test_with_command_object(self, handler):
         """Test that Command objects are properly handled."""
-        cmd = Command("ls -la", "list files", "test", "test_source")
+        cmd = Command(
+            command="ls -la",
+            type="shell",
+            description="list files",
+            source="test",
+            file="test_file.txt",
+            metadata={"test_source": "test_source"},
+        )
         is_valid, reason = handler.is_valid_command(cmd)
         assert (
             is_valid is True
         ), f"Expected valid command: {cmd.command}. Reason: {reason}"
+        assert (
+            "Command matches" in reason
+        ), f"Expected 'Command matches' in reason, got: {reason}"
 
     # Test with dictionary input
     def test_with_dictionary_input(self, handler):

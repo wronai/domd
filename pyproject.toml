@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "domd"
-version = "2.2.33"
+version = "2.2.34"
 description = " ✓ DoMD - Do Markdown Docs - automatically detect, run and show working commands in DONE.md and errors in TODO.md markdown files"
 authors = ["Tom Sapletta <info@softreck.dev>"]
 maintainers = ["WRONAI Team"]

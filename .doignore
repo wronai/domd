@@ -36,6 +36,9 @@ This file contains patterns that will be ignored when detecting shell commands i
 ^~?/.*
 ```
 ```text
+ini  # broken
+plugin:  # broken
 service .*
 sudo .*
 systemctl .*
+with  # broken

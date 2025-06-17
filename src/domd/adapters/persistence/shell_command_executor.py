@@ -108,13 +108,20 @@ class ShellCommandExecutor(CommandExecutor):
             Krotka (can_execute: bool, reason: str)
         """
         try:
+            # Get the first word of the command
+            first_word = command.split()[0].lower()
+
+            # Check if it's a shell built-in command
+            if first_word in SHELL_BUILTINS:
+                return True, ""
+
             # Check if command is a path
-            if os.path.isabs(command.split()[0]):
-                if not os.access(command.split()[0], os.X_OK):
-                    return False, f"No execute permission for {command.split()[0]}"
+            if os.path.isabs(first_word):
+                if not os.access(first_word, os.X_OK):
+                    return False, f"No execute permission for {first_word}"
             # Check if command exists in PATH
-            elif shutil.which(command.split()[0]) is None:
-                return False, f"Command not found: {command.split()[0]}"
+            elif shutil.which(first_word) is None:
+                return False, f"Command not found: {first_word}"
 
             return True, ""
         except Exception as e:
@@ -351,6 +358,40 @@ class ShellCommandExecutor(CommandExecutor):
         if not command_str or not command_str.strip():
             return True
 
+        # Check if it's a simple command that should always be allowed
+        simple_commands = [
+            "cat",
+            "ls",
+            "echo",
+            "pwd",
+            "cd",
+            "mkdir",
+            "rm",
+            "cp",
+            "mv",
+            "grep",
+            "find",
+            "which",
+            "whereis",
+            "file",
+            "stat",
+            "test",
+            "true",
+            "false",
+            "exit",
+            "export",
+            "env",
+            "printenv",
+            "unset",
+            "alias",
+            "unalias",
+        ]
+
+        # If it's a simple command with arguments, don't mark it as markdown
+        cmd_parts = command_str.strip().split()
+        if cmd_parts and cmd_parts[0] in simple_commands:
+            return False
+
         # Common markdown patterns that shouldn't be executed as commands
         markdown_patterns = [
             # Headers
@@ -360,24 +401,23 @@ class ShellCommandExecutor(CommandExecutor):
             (r"^\d+\.\s+", "Numbered list item"),
             # Code blocks
             (r"^```", "Markdown code block"),
-            (r"`[^`]+`", "Inline code"),
             # Tables
             (r"^\|.*\|$", "Markdown table"),
             # Links and images
             (r"\[.*\]\(.*\)", "Markdown link"),
             (r"!\[.*\]\(.*\)", "Markdown image"),
-            # Text formatting
-            (r"\*\*[^*]+\*\*", "Bold text"),
-            (r"__[^_]+__", "Underlined text"),
-            (r"~~[^~]+~~", "Strikethrough"),
-            (r"\*[^*]+\*", "Italic text"),
-            (r"_[^_]+_", "Italic text (underscore)"),
+            # Text formatting (only match when they're at the start of the line)
+            (r"^\*\*[^*]+\*\*", "Bold text"),
+            (r"^__[^_]+__", "Underlined text"),
+            (r"^~~[^~]+~~", "Strikethrough"),
+            (r"^\*[^*]+\*", "Italic text"),
+            (r"^_[^_]+_", "Italic text (underscore)"),
             # Blockquotes
             (r"^>\s+", "Blockquote"),
             # Horizontal rules
             (r"^\s*[*_-]{3,}\s*$", "Horizontal rule"),
             # HTML tags
-            (r"<[a-z][\s\S]*?>", "HTML tag"),
+            (r"^<[a-z][\s\S]*?>", "HTML tag"),
             # Common documentation patterns
             (r"^\s*[A-Z][A-Za-z0-9_\s-]+:", "Documentation line"),
             (r"^\s*<!--.*-->\s*$", "HTML comment"),
