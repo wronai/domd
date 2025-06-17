@@ -172,31 +172,85 @@ class CommandHandler:
         if not cmd_str or not cmd_str.strip():
             return False, "Empty command"
 
-        # Check if the command looks like a markdown header, list item, or other content
-        if any(
-            markdown_indicator in cmd_str
-            for markdown_indicator in [
-                "# ",  # Headers
-                "- ",  # List items
-                "* ",  # List items
-                "1. ",  # Numbered lists
-                "| ",  # Tables
-                "```",  # Code blocks
-                "**",  # Bold text
-                "__",  # Underlined text
-                "~~",  # Strikethrough
-                "[]",  # Links
-                "![",  # Images
-                "<",  # HTML tags
-                "> ",  # Blockquotes
-            ]
-        ):
-            return False, "Appears to be markdown content"
+        cmd_str = cmd_str.strip()
+
+        # Check for empty or whitespace-only commands
+        if not cmd_str:
+            return False, "Empty command"
+
+        # Check for commands that are too long (likely not actual commands)
+        if len(cmd_str) > 1000:
+            return False, "Command is too long to be a valid shell command"
+
+        # Check for commands that are just numbers or special characters
+        if re.match(r"^[\d\s\W]+$", cmd_str):
+            return False, "Command contains only numbers or special characters"
+
+        # Enhanced markdown detection with more patterns
+        markdown_patterns = [
+            (r"^#+\s+", "Markdown header"),  # Headers (#, ##, ###)
+            (r"^[-*+]\s+", "Markdown list item"),  # List items (-, *, +)
+            (r"^\d+\.\s+", "Numbered list item"),  # Numbered lists (1., 2., etc.)
+            (r"^\|.*\|$", "Markdown table"),  # Tables (| col1 | col2 |)
+            (r"^```", "Markdown code block"),  # Code blocks
+            (r"`[^`]+`", "Inline code"),  # Inline code
+            (r"\*\*[^*]+\*\*", "Bold text"),  # **bold**
+            (r"__[^_]+__", "Underlined text"),  # __underline__
+            (r"~~[^~]+~~", "Strikethrough"),  # ~~strikethrough~~
+            (r"\[.*\]\(.*\)", "Markdown link"),  # [text](url)
+            (r"!\[.*\]\(.*\)", "Markdown image"),  # ![alt](src)
+            (r"^>\s+", "Blockquote"),  # > quote
+            (r"^\s*\*\*\*+\s*$", "Horizontal rule"),  # ***
+            (r"^\s*---\s*$", "Horizontal rule"),  # ---
+            (r"^\s*___\s*$", "Horizontal rule"),  # ___
+        ]
+
+        for pattern, description in markdown_patterns:
+            if re.search(pattern, cmd_str, re.MULTILINE):
+                return False, f"Appears to be {description}"
+
+        # Check for directory listing patterns (tree output)
+        dir_listing_indicators = [
+            r"^[│└├─]",  # Tree-like directory structure
+            r"\s+\d+\s+\w+\s+\d+\s+[\d:]+\s+",  # File size and date
+            r"\d+\s+[BKMGTPEZY]B\s*$",  # File sizes
+            r"^total \d+$",  # 'total X' line
+        ]
+
+        for pattern in dir_listing_indicators:
+            if re.search(pattern, cmd_str, re.MULTILINE):
+                return False, "Appears to be directory listing output"
+
+        # Check for documentation patterns
+        doc_patterns = [
+            (r"^\s*[A-Z][A-Za-z0-9_\s-]+:", "Documentation line"),  # Key: value
+            (r"^\s*<!--.*-->\s*$", "HTML comment"),  # HTML comments
+            (r"^\s*//", "Single-line comment"),  # // comments
+            (r"^\s*#", "Comment"),  # # comments
+            (r"^\s*/\*.*\*/\s*$", "Multi-line comment"),  # /* comments */
+        ]
+
+        for pattern, description in doc_patterns:
+            if re.search(pattern, cmd_str):
+                return False, f"Appears to be {description}"
 
         # Check against non-command patterns
         for pattern in self._compiled_non_command_patterns:
             if pattern.search(cmd_str):
                 return False, f"Matches non-command pattern: {pattern.pattern}"
+
+        # Check for suspicious command patterns
+        suspicious_patterns = [
+            (r"^\s*\w+\s*=\s*\S+\s*$", "Variable assignment without command"),
+            (r"^\s*\{\s*\}\s*$", "Empty code block"),
+            (r"^\s*\[\s*\]\s*$", "Empty array"),
+            (r"^\s*\{\s*$", "Opening brace without content"),
+            (r"^\s*\}\s*$", "Closing brace without content"),
+        ]
+
+        for pattern, reason in suspicious_patterns:
+            if re.search(pattern, cmd_str):
+                return False, f"Suspicious command: {reason}"
 
         # Check for common error patterns
         if any(

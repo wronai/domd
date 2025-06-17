@@ -282,44 +282,111 @@ class ShellCommandExecutor(CommandExecutor):
 
     def _is_markdown_content(self, command_str: str) -> bool:
         """
-        Check if the given string appears to be markdown content.
+        Check if the given string appears to be markdown or other non-command content.
 
         Args:
             command_str: The string to check
 
         Returns:
-            bool: True if the string appears to be markdown content
+            bool: True if the string appears to be non-command content
         """
+        # Skip empty strings
+        if not command_str or not command_str.strip():
+            return True
+
         # Common markdown patterns that shouldn't be executed as commands
-        markdown_indicators = [
+        markdown_patterns = [
             # Headers
-            r"^#+\s",
+            (r"^#+\s+", "Markdown header"),
             # Lists
-            r"^\s*[-*+]\s+",
-            r"^\s*\d+\.\s+",
+            (r"^[-*+]\s+", "Markdown list item"),
+            (r"^\d+\.\s+", "Numbered list item"),
             # Code blocks
-            r"^\s*```",
+            (r"^```", "Markdown code block"),
+            (r"`[^`]+`", "Inline code"),
             # Tables
-            r"\|.*\|",
+            (r"^\|.*\|$", "Markdown table"),
             # Links and images
-            r"\[.*\]\(.*\)",
+            (r"\[.*\]\(.*\)", "Markdown link"),
+            (r"!\[.*\]\(.*\)", "Markdown image"),
+            # Text formatting
+            (r"\*\*[^*]+\*\*", "Bold text"),
+            (r"__[^_]+__", "Underlined text"),
+            (r"~~[^~]+~~", "Strikethrough"),
+            (r"\*[^*]+\*", "Italic text"),
+            (r"_[^_]+_", "Italic text (underscore)"),
             # Blockquotes
-            r"^>",
+            (r"^>\s+", "Blockquote"),
             # Horizontal rules
-            r"^[-*_]{3,}$",
-            # Box-drawing characters (used in tree views)
-            r"[├└│]",
-            # Common markdown file extensions
-            r"\.md$",
+            (r"^\s*[*_-]{3,}\s*$", "Horizontal rule"),
+            # HTML tags
+            (r"<[a-z][\s\S]*?>", "HTML tag"),
+            # Common documentation patterns
+            (r"^\s*[A-Z][A-Za-z0-9_\s-]+:", "Documentation line"),
+            (r"^\s*<!--.*-->\s*$", "HTML comment"),
+            (r"^\s*//", "Single-line comment"),
+            (r"^\s*#", "Comment"),
+            (r"^\s*/\*[\s\S]*?\*/\s*$", "Multi-line comment"),
+            # Common metadata patterns
+            (r"^\s*[\w-]+\s*:\s*.+", "YAML/JSON key-value pair"),
+            # Directory listing patterns
+            (r"^[│└├─]", "Tree-like directory structure"),
+            (r"\s+\d+\s+\w+\s+\d+\s+[\d:]+\s+", "File size and date"),
+            (r"\d+\s+[BKMGTPEZY]B\s*$", "File size"),
+            (r"^total \d+$", "Directory total"),
+            # Common documentation sections
+            (
+                r"^\s*(Installation|Usage|Configuration|Options|Examples):",
+                "Documentation section",
+            ),
+            # Empty or whitespace-only lines
+            (r"^\s*$", "Empty line"),
         ]
 
-        # Check for markdown indicators
-        for pattern in markdown_indicators:
-            if re.search(pattern, command_str):
+        # Check for markdown and other non-command patterns
+        for pattern, description in markdown_patterns:
+            if re.search(pattern, command_str, re.MULTILINE):
+                logger.debug(f"Detected {description}: {command_str[:100]}")
                 return True
 
-        # Check if this looks like a documentation line (e.g., starts with a word and colon)
-        if re.match(r"^\s*[A-Za-z][A-Za-z0-9_\s-]*:", command_str):
+        # Check for suspiciously long lines that aren't commands
+        if len(command_str) > 1000 and not any(
+            c in command_str for c in ["&&", "|", ">", "<", ";"]
+        ):
+            logger.debug(f"Suspiciously long line detected: {command_str[:100]}...")
+            return True
+
+        # Check for lines that are just special characters or numbers
+        if re.match(r"^[\d\s\W]+$", command_str):
+            logger.debug(
+                f"Line contains only numbers/special chars: {command_str[:100]}"
+            )
+            return True
+
+        # Check for common error messages or stack traces
+        error_indicators = [
+            "error:",
+            "warning:",
+            "exception:",
+            "traceback",
+            "stacktrace",
+            "at ",
+            'File "',
+            "line \d+",
+            "in <module>",
+            "^",
+            "~",
+            "SyntaxError",
+            "NameError",
+            "TypeError",
+            "ValueError",
+            "ImportError",
+        ]
+
+        if any(
+            indicator.lower() in command_str.lower() for indicator in error_indicators
+        ):
+            logger.debug(f"Error/warning message detected: {command_str[:100]}...")
             return True
 
         return False
