@@ -13,7 +13,11 @@
 *test*e2e*
 *test*integration*
 *test*slow*
+- [ ] Task item
 --list  # broken
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process
+Some text with no command
 This file contains patterns that will be ignored when detecting shell commands in markdown files. Each pattern is a regular expression that will be matched against potential command strings.
 ^#.*
 ^(Error|ERROR|error|Warning|WARNING|warning|Info|INFO|info|Debug|DEBUG|debug):?\s+.*
@@ -42,3 +46,7 @@ service .*
 sudo .*
 systemctl .*
 with  # broken
+- [ ] Task item
+Some text with no command
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process

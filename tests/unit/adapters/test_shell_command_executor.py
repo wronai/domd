@@ -183,19 +183,34 @@ def test_command_timeout():
 
 def test_max_retries():
     """Test command retry logic."""
-    # Mock subprocess.run to fail twice then succeed
-    with patch("subprocess.run") as mock_run:
-        # First two calls fail, third succeeds
+    # Create a test command
+    test_cmd = create_test_command("flaky_command")
+
+    # Mock subprocess.run in the module where it's actually used
+    with patch(
+        "domd.adapters.persistence.shell_command_executor.subprocess.run"
+    ) as mock_run:
+        # Configure the mock to fail twice then succeed
         mock_run.side_effect = [
             MagicMock(returncode=1, stdout=b"", stderr=b"Error"),
             MagicMock(returncode=1, stdout=b"", stderr=b"Error"),
             MagicMock(returncode=0, stdout=b"Success", stderr=b""),
         ]
 
-        executor = ShellCommandExecutor(max_retries=3)
-        result = executor.execute(create_test_command("flaky_command"))
+        # Mock _can_execute_command to always return True for our test command
+        with patch.object(
+            ShellCommandExecutor, "_can_execute_command", return_value=(True, "")
+        ):
+            executor = ShellCommandExecutor(max_retries=3)
+            result = executor.execute(test_cmd)
 
-        assert result.success
-        # The stdout is returned as bytes, not string
-        assert result.stdout == b"Success"
-        assert mock_run.call_count == 3
+            # Verify the command was retried 3 times (1 initial + 2 retries)
+            assert mock_run.call_count == 3
+
+            # Check the result
+            assert result.success
+            assert result.return_code == 0
+            assert (
+                result.stdout == b"Success"
+            )  # The executor returns bytes for stdout/stderr
+            assert mock_run.call_count == 3
