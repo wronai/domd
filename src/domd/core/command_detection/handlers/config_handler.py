@@ -4,8 +4,8 @@ import logging
 from pathlib import Path
 from typing import Any, List, Optional, Set, Union
 
-from ...services.file_processor import FileProcessor
-from ...services.pattern_matcher import PatternMatcher
+from domd.core.parsing.file_processor import FileProcessor
+from domd.core.parsing.pattern_matcher import PatternMatcher
 
 logger = logging.getLogger(__name__)
 

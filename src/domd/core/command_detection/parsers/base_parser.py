@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Set, Union
 
-from ...models import Command
+from ..models import Command
 
 logger = logging.getLogger(__name__)
 

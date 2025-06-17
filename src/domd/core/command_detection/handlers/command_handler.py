@@ -6,7 +6,8 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from ...services.command_runner import CommandRunner
+from domd.core.command_execution.command_runner import CommandRunner
+
 from ..models import Command
 
 logger = logging.getLogger(__name__)
@@ -162,126 +163,186 @@ class CommandHandler:
     def is_valid_command(self, command: Union[str, Dict, Command]) -> tuple[bool, str]:
         """Check if a command is valid and should be executed.
 
+        This method performs multiple validations to ensure the command is a valid shell command
+        and not markdown, documentation, or other non-command content.
+
         Args:
             command: Command to validate (string, dict, or Command object)
 
         Returns:
             Tuple of (is_valid, reason) where is_valid is a boolean and reason is a string
         """
+        logger.debug(f"Validating command: {command}")
+
         cmd_str = self._extract_command_string(command)
         if not cmd_str or not cmd_str.strip():
+            logger.debug("Empty command string")
             return False, "Empty command"
 
         cmd_str = cmd_str.strip()
+        logger.debug(
+            f"Processing command: {cmd_str[:100]}"
+            + ("..." if len(cmd_str) > 100 else "")
+        )
 
         # Check for empty or whitespace-only commands
         if not cmd_str:
+            logger.debug("Command is empty after stripping")
             return False, "Empty command"
 
-        # Check for commands that are too long (likely not actual commands)
-        if len(cmd_str) > 1000:
+        # Check for very long commands (likely not actual commands)
+        if len(cmd_str) > 500:
+            logger.debug(f"Command too long ({len(cmd_str)} > 500 characters)")
             return False, "Command is too long to be a valid shell command"
 
         # Check for commands that are just numbers or special characters
         if re.match(r"^[\d\s\W]+$", cmd_str):
+            logger.debug("Command contains only numbers or special characters")
             return False, "Command contains only numbers or special characters"
 
-        # Enhanced markdown detection with more patterns
-        markdown_patterns = [
-            (r"^#+\s+", "Markdown header"),  # Headers (#, ##, ###)
-            (r"^[-*+]\s+", "Markdown list item"),  # List items (-, *, +)
-            (r"^\d+\.\s+", "Numbered list item"),  # Numbered lists (1., 2., etc.)
-            (r"^\|.*\|$", "Markdown table"),  # Tables (| col1 | col2 |)
-            (r"^```", "Markdown code block"),  # Code blocks
-            (r"`[^`]+`", "Inline code"),  # Inline code
-            (r"\*\*[^*]+\*\*", "Bold text"),  # **bold**
-            (r"__[^_]+__", "Underlined text"),  # __underline__
-            (r"~~[^~]+~~", "Strikethrough"),  # ~~strikethrough~~
-            (r"\[.*\]\(.*\)", "Markdown link"),  # [text](url)
-            (r"!\[.*\]\(.*\)", "Markdown image"),  # ![alt](src)
-            (r"^>\s+", "Blockquote"),  # > quote
-            (r"^\s*\*\*\*+\s*$", "Horizontal rule"),  # ***
-            (r"^\s*---\s*$", "Horizontal rule"),  # ---
-            (r"^\s*___\s*$", "Horizontal rule"),  # ___
-        ]
-
-        for pattern, description in markdown_patterns:
-            if re.search(pattern, cmd_str, re.MULTILINE):
-                return False, f"Appears to be {description}"
-
-        # Check for directory listing patterns (tree output)
-        dir_listing_indicators = [
-            r"^[│└├─]",  # Tree-like directory structure
-            r"\s+\d+\s+\w+\s+\d+\s+[\d:]+\s+",  # File size and date
-            r"\d+\s+[BKMGTPEZY]B\s*$",  # File sizes
-            r"^total \d+$",  # 'total X' line
-        ]
-
-        for pattern in dir_listing_indicators:
-            if re.search(pattern, cmd_str, re.MULTILINE):
-                return False, "Appears to be directory listing output"
-
-        # Check for documentation patterns
-        doc_patterns = [
-            (r"^\s*[A-Z][A-Za-z0-9_\s-]+:", "Documentation line"),  # Key: value
-            (r"^\s*<!--.*-->\s*$", "HTML comment"),  # HTML comments
-            (r"^\s*//", "Single-line comment"),  # // comments
-            (r"^\s*#", "Comment"),  # # comments
-            (r"^\s*/\*.*\*/\s*$", "Multi-line comment"),  # /* comments */
-        ]
-
-        for pattern, description in doc_patterns:
-            if re.search(pattern, cmd_str):
-                return False, f"Appears to be {description}"
-
-        # Check against non-command patterns
+        # Check for common non-command patterns first (fast checks)
         for pattern in self._compiled_non_command_patterns:
             if pattern.search(cmd_str):
+                logger.debug(f"Matches non-command pattern: {pattern.pattern}")
                 return False, f"Matches non-command pattern: {pattern.pattern}"
 
-        # Check for suspicious command patterns
-        suspicious_patterns = [
-            (r"^\s*\w+\s*=\s*\S+\s*$", "Variable assignment without command"),
-            (r"^\s*\{\s*\}\s*$", "Empty code block"),
-            (r"^\s*\[\s*\]\s*$", "Empty array"),
-            (r"^\s*\{\s*$", "Opening brace without content"),
-            (r"^\s*\}\s*$", "Closing brace without content"),
+        # Enhanced markdown and documentation detection with detailed logging
+        markdown_patterns = [
+            # Markdown patterns
+            (r"^#+\s+", "Markdown header"),
+            (r"^[-*+]\s+", "Markdown list item"),
+            (r"^\d+\.\s+", "Numbered list item"),
+            (r"^\|.*\|$", "Markdown table"),
+            (r"^```", "Markdown code block"),
+            (r"`[^`]+`", "Inline code"),
+            (r"\*\*[^*]+\*\*", "Bold text"),
+            (r"__[^_]+__", "Underlined text"),
+            (r"~~[^~]+~~", "Strikethrough"),
+            (r"\[.*\]\(.*\)", "Markdown link"),
+            (r"^>\s+", "Blockquote"),
+            (r"^\s*<!--.*-->\s*$", "HTML comment"),
+            # Documentation patterns
+            (r"^For\s+\w+\s+information", "Documentation line"),
+            (r"^To\s+\w+", "Documentation line"),
+            (r"^This\s+\w+", "Documentation line"),
+            (r"^The\s+\w+", "Documentation line"),
+            (r"^[A-Z][a-z]+\s+the\s+\w+", "Documentation line"),
+            (r"^[A-Z][a-z]+\s+[A-Z][a-z]+", "Documentation line"),
+            (r"^[A-Z][a-z]+\s+[a-z]+\s+[a-z]+", "Documentation line"),
+            # Directory tree patterns
+            (r"^\s*[│├└─]+\s+", "Directory tree"),
+            (r"^\s*[│├└─]+$", "Directory tree connector"),
+            (r"^\s*\d+\s+[a-z]+\s+\d+\s+\d{2}:\d{2}\s+", "Directory listing"),
         ]
 
-        for pattern, reason in suspicious_patterns:
-            if re.search(pattern, cmd_str):
-                return False, f"Suspicious command: {reason}"
+        logger.debug(f"Checking against {len(markdown_patterns)} markdown patterns")
 
-        # Check for common error patterns
-        if any(
-            s in cmd_str.lower()
-            for s in ["error:", "warning:", "exception:", "traceback"]
-        ):
-            return False, "Appears to be an error or warning message"
+        # Additional patterns to check with detailed logging
+        additional_patterns = [
+            # Common documentation phrases
+            (r"(?i)for more information", "Documentation phrase"),
+            (r"(?i)see also", "Documentation phrase"),
+            (r"(?i)example:", "Documentation phrase"),
+            (r"(?i)note:", "Documentation note"),
+            (r"(?i)warning:", "Warning message"),
+            (r"(?i)important:", "Important note"),
+            (r"(?i)tip:", "Tip note"),
+            (r"(?i)caution:", "Caution note"),
+            (r"(?i)see the", "Documentation reference"),
+            (r"(?i)refer to", "Documentation reference"),
+            # Common command-like patterns that should be ignored
+            (r"^\s*\w+\s*=\s*\S+\s*$", "Variable assignment"),
+            (r"^\s*\{\s*\}\s*$", "Empty code block"),
+            (r"^\s*\[\s*\]\s*$", "Empty array"),
+            (r"^\s*\{\s*$", "Opening brace"),
+            (r"^\s*\}\s*$", "Closing brace"),
+            # Common error patterns
+            (r"(?i)error:", "Error message"),
+            (r"(?i)exception:", "Exception message"),
+            (r"(?i)traceback", "Traceback message"),
+            (r"(?i)stacktrace", "Stack trace"),
+            # Path patterns
+            (r"^\s*/[\w/.-]+$", "File path"),
+            (r"^\s*~?/[\w/.-]+$", "Home-relative path"),
+            (r"^\s*\./[\w/.-]+$", "Relative path"),
+            # URL patterns
+            (r"https?://\S+", "URL"),
+            (r"www\.\S+\.\w+", "Web address"),
+            # Email patterns
+            (r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "Email address"),
+        ]
 
-        # Check for documentation-style lines (e.g., "parameter: value")
-        if re.match(r"^\s*[A-Za-z][A-Za-z0-9_\s-]*:", cmd_str):
-            return False, "Appears to be documentation or configuration"
+        logger.debug(f"Checking against {len(additional_patterns)} additional patterns")
 
-        # Check for suspicious patterns that might indicate internal errors
-        if any(s in cmd_str.lower() for s in ["traceback", "exception", "stacktrace"]):
-            return False, "Appears to contain error output"
+        # Combine all patterns
+        all_patterns = markdown_patterns + additional_patterns
+        logger.debug(f"Total patterns to check: {len(all_patterns)}")
 
-        # Check for internal tool paths that shouldn't be executed
-        if any(
-            s in cmd_str
-            for s in ["/tmp/", "/var/", "/usr/local/", "~/.cache/", "/dev/"]
-        ):
-            return False, "References internal tool paths"
+        # Check all patterns with detailed logging
+        for pattern, description in all_patterns:
+            try:
+                if re.search(pattern, cmd_str, re.IGNORECASE):
+                    logger.debug(
+                        f"Pattern matched - Type: {description}, Pattern: {pattern}"
+                    )
+                    return False, f"{description} detected"
+            except Exception as e:
+                logger.error(f"Error checking pattern '{pattern}': {str(e)}")
+                continue
+
+        logger.debug("No markdown or documentation patterns matched")
+
+        # Check for command-like patterns that might be valid
+        valid_command_indicators = [
+            (r"^\s*[a-z][a-z0-9_-]+(\s+[a-z][a-z0-9_-]+)*\s*$", "Simple command"),
+            (r"^\s*[a-z][a-z0-9_-]+\s+[a-z][a-z0-9_-]+", "Command with argument"),
+            (r"^\s*[a-z][a-z0-9_-]+\s+--?[a-z0-9-]+", "Command with option"),
+            (
+                r"^\s*[a-z][a-z0-9_-]+\s+[a-z][a-z0-9_-]+\s+[a-z][a-z0-9_-]+",
+                "Command with multiple args",
+            ),
+        ]
+
+        logger.debug("Checking command against valid command patterns")
+
+        # Track if any command pattern matches
+        command_matched = False
+        for pattern, pattern_type in valid_command_indicators:
+            try:
+                if re.match(pattern, cmd_str, re.IGNORECASE):
+                    logger.debug(f"Command matches {pattern_type} pattern: {pattern}")
+                    command_matched = True
+                    break
+            except Exception as e:
+                logger.error(f"Error checking command pattern '{pattern}': {str(e)}")
+
+        if not command_matched:
+            logger.debug("Command does not match any valid command patterns")
+            return False, "Does not match valid command patterns"
+
+        # Check for commands that are too short or too simple
+        if len(cmd_str.split()) == 1 and len(cmd_str) < 3:
+            logger.debug("Command is too short or simple")
+            return False, "Command is too short or simple"
+
+        # Check for commands that are too long (likely not actual commands)
+        if len(cmd_str) > 500:
+            logger.debug(f"Command is too long ({len(cmd_str)} characters)")
+            return False, "Command is too long to be a valid shell command"
 
         # Check for commands that are just numbers or special characters
         if re.match(r"^[\d\s\W]+$", cmd_str):
-            return False, "Contains only numbers or special characters"
+            logger.debug("Command contains only numbers or special characters")
+            return False, "Command contains only numbers or special characters"
 
-        # Check for very long commands that are likely not actual commands
-        if len(cmd_str) > 500:  # Arbitrary length threshold
-            return False, "Command is too long to be a valid shell command"
+        # Check for internal tool paths that shouldn't be executed
+        internal_paths = ["/tmp/", "/var/", "/usr/local/", "~/.cache/", "/dev/"]
+        for path in internal_paths:
+            if path in cmd_str:
+                logger.debug(f"Command references internal tool path: {path}")
+                return False, f"References internal tool path: {path}"
 
+        logger.debug("Command passed all validation checks")
         return True, ""
 
     def should_ignore_command(self, command: Union[str, Dict, Command]) -> bool:

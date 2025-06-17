@@ -412,21 +412,23 @@ class ShellCommandExecutor(CommandExecutor):
         Returns:
             Tuple of (command_args, needs_shell)
         """
-        if not command_str.strip():
-            return [], False
+        # Handle empty or whitespace-only commands
+        if not command_str or not command_str.strip():
+            logger.debug("Empty or whitespace-only command")
+            return [""], False  # Return a non-empty list to avoid IndexError
+
+        command_str = command_str.strip()
 
         # Check if this is markdown content that shouldn't be executed
         if self._is_markdown_content(command_str):
             logger.debug(f"Ignoring markdown content: {command_str[:100]}...")
-            return [], False
+            return [""], False  # Return a non-empty list to avoid IndexError
 
         # Check if this is a shell built-in or needs shell features
         needs_shell = self._needs_shell(command_str)
 
         # Special handling for 'source' command
-        if command_str.strip().startswith("source ") or command_str.strip().startswith(
-            ". "
-        ):
+        if command_str.startswith("source ") or command_str.startswith(". "):
             # For 'source' command, we need to use the shell to execute it
             return [command_str], True
 
@@ -436,9 +438,13 @@ class ShellCommandExecutor(CommandExecutor):
 
         # For non-shell commands, use shlex for proper argument splitting
         try:
-            return shlex.split(command_str), False
+            args = shlex.split(command_str)
+            if not args:  # Handle case where shlex.split returns empty list
+                return [""], False
+            return args, False
         except Exception as e:
             logger.warning(
                 f"Error parsing command with shlex, falling back to simple split: {e}"
             )
-            return command_str.split(), False
+            args = command_str.split()
+            return (args if args else [""]), False
