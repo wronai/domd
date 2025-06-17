@@ -141,6 +141,17 @@ class ShellCommandExecutor(CommandExecutor):
 
         cmd_args, needs_shell = self._parse_command(cmd_str)
 
+        # If cmd_args is empty, this is markdown content that should be ignored
+        if not cmd_args:
+            logger.debug(f"Skipping markdown content: {cmd_str[:100]}...")
+            return CommandResult(
+                success=True,
+                return_code=0,
+                execution_time=0,
+                stdout="",
+                stderr="",
+            )
+
         # Prepare execution environment
         execution_env = None
         if env:
@@ -370,7 +381,7 @@ class ShellCommandExecutor(CommandExecutor):
             "exception:",
             "traceback",
             "stacktrace",
-            'at ',
+            "at ",
             'File "',
             r"line \d+",  # Raw string for regex
             "in <module>",
