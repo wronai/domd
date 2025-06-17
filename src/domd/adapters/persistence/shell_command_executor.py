@@ -370,9 +370,9 @@ class ShellCommandExecutor(CommandExecutor):
             "exception:",
             "traceback",
             "stacktrace",
-            "at ",
+            'at ',
             'File "',
-            "line \d+",
+            r"line \d+",  # Raw string for regex
             "in <module>",
             "^",
             "~",
