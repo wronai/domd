@@ -69,14 +69,18 @@ echo:
         # Verify results
         self.assertEqual(len(results), 3)
         self.assertTrue(results["echo test"][0])  # Valid command
+        self.assertIn("Valid command", results["echo test"][1])  # Should be marked as valid
         self.assertFalse(results["invalid-command"][0])  # Invalid command
+        self.assertTrue(results["ls -la"][0])  # Valid command
+        self.assertIn("Valid command", results["ls -la"][1])  # Should be marked as valid
 
-        # Verify Docker tester was called for valid commands
-        mock_tester.test_command_in_docker.assert_called()
+        # Verify Docker tester was not called for common commands
+        mock_tester.test_command_in_docker.assert_not_called()
 
         # Verify .doignore was not updated (no failures in Docker)
-        self.assertEqual(len(self.handler.invalid_commands), 1)
-        self.assertEqual(len(self.handler.untested_commands), 2)
+        self.assertEqual(len(self.handler.invalid_commands), 1)  # Only invalid-command should be invalid
+        self.assertEqual(len(self.handler.valid_commands), 2)  # echo test and ls -la should be valid
+        self.assertEqual(len(self.handler.untested_commands), 0)  # No untested commands
 
     @patch("domd.core.command_detection.handlers.command_handler.DockerTester")
     def test_update_doignore(self, mock_docker_tester):
