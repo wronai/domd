@@ -555,6 +555,9 @@ def main() -> int:
                 f"📊 Progress will be updated in {getattr(args, 'todo_file', 'TODO.md')}"
             )
 
+        # Create formatter for reports
+        formatter = ApplicationFactory.create_report_formatter()
+
         # Testuj komendy
         command_service.test_commands(commands)
 

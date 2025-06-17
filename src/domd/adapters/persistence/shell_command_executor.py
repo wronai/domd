@@ -5,6 +5,7 @@ Implementacja wykonawcy komend powłoki systemowej.
 # Standard library imports
 import logging
 import os
+import re
 import shlex
 import subprocess
 import time
@@ -279,6 +280,50 @@ class ShellCommandExecutor(CommandExecutor):
 
         return False
 
+    def _is_markdown_content(self, command_str: str) -> bool:
+        """
+        Check if the given string appears to be markdown content.
+
+        Args:
+            command_str: The string to check
+
+        Returns:
+            bool: True if the string appears to be markdown content
+        """
+        # Common markdown patterns that shouldn't be executed as commands
+        markdown_indicators = [
+            # Headers
+            r"^#+\s",
+            # Lists
+            r"^\s*[-*+]\s+",
+            r"^\s*\d+\.\s+",
+            # Code blocks
+            r"^\s*```",
+            # Tables
+            r"\|.*\|",
+            # Links and images
+            r"\[.*\]\(.*\)",
+            # Blockquotes
+            r"^>",
+            # Horizontal rules
+            r"^[-*_]{3,}$",
+            # Box-drawing characters (used in tree views)
+            r"[├└│]",
+            # Common markdown file extensions
+            r"\.md$",
+        ]
+
+        # Check for markdown indicators
+        for pattern in markdown_indicators:
+            if re.search(pattern, command_str):
+                return True
+
+        # Check if this looks like a documentation line (e.g., starts with a word and colon)
+        if re.match(r"^\s*[A-Za-z][A-Za-z0-9_\s-]*:", command_str):
+            return True
+
+        return False
+
     def _parse_command(self, command_str: str) -> Tuple[List[str], bool]:
         """
         Parses a command string into a list of arguments and determines if it needs a shell.
@@ -290,6 +335,11 @@ class ShellCommandExecutor(CommandExecutor):
             Tuple of (command_args, needs_shell)
         """
         if not command_str.strip():
+            return [], False
+
+        # Check if this is markdown content that shouldn't be executed
+        if self._is_markdown_content(command_str):
+            logger.debug(f"Ignoring markdown content: {command_str[:100]}...")
             return [], False
 
         # Check if this is a shell built-in or needs shell features
