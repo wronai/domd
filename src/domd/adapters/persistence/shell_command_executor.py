@@ -5,6 +5,7 @@ Implementacja wykonawcy komend powłoki systemowej.
 # Standard library imports
 import logging
 import os
+import re
 import shlex
 import shutil
 import subprocess
