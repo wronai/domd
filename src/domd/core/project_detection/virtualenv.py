@@ -52,9 +52,11 @@ def get_virtualenv_info(path: Optional[str] = None) -> Dict[str, Any]:
                         "exists": True,
                         "path": venv_dir,
                         "python_path": python_path,
-                        "activate_command": f"source {activate_path}"
-                        if sys.platform != "win32"
-                        else activate_path,
+                        "activate_command": (
+                            f"source {activate_path}"
+                            if sys.platform != "win32"
+                            else activate_path
+                        ),
                     }
 
         logger.debug("No virtualenv found")

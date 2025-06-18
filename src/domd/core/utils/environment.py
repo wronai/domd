@@ -1,6 +1,7 @@
 """
 Environment detection and Docker execution utilities for command execution.
 """
+
 import os
 import sys
 from pathlib import Path

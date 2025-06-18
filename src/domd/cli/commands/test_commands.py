@@ -14,6 +14,7 @@ from domd.core.command_execution.command_runner import CommandRunner
 logger = logging.getLogger(__name__)
 console = Console()
 
+
 @click.command()
 @click.argument("commands", nargs=-1, required=False)
 @click.option(
@@ -55,27 +56,27 @@ def test_commands(
     no_docker: bool,
 ) -> None:
     """Test commands in Docker and optionally update .doignore.
-    
+
     This command validates commands and can test them in Docker containers.
     If more than half of commands are invalid, it will test them in Docker
     and optionally update .doignore with commands that fail.
-    
+
     Commands can be provided as arguments or in a file (one per line).
     """
     # Load commands from file if provided
     all_commands = list(commands)
     if file:
         try:
-            with open(file, 'r') as f:
+            with open(file, "r") as f:
                 all_commands.extend(line.strip() for line in f if line.strip())
         except Exception as e:
             console.print(f"[red]Error reading commands from file: {e}[/red]")
             ctx.exit(1)
-    
+
     if not all_commands:
         console.print("[yellow]No commands provided to test[/yellow]")
         return
-    
+
     # Initialize command handler with Docker testing
     command_runner = CommandRunner()
     handler = CommandHandler(
@@ -85,20 +86,19 @@ def test_commands(
         dodocker_path=dodocker,
         doignore_path=doignore,
     )
-    
+
     # Validate and test commands
     console.print(f"[bold]Testing {len(all_commands)} commands...[/bold]")
     results = handler.validate_commands(
-        all_commands, 
-        test_in_docker=not no_docker and update_doignore
+        all_commands, test_in_docker=not no_docker and update_doignore
     )
-    
+
     # Display results
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("Command", style="dim", width=60, overflow="fold")
     table.add_column("Status", justify="right")
     table.add_column("Details", width=40, overflow="fold")
-    
+
     for cmd, (is_valid, reason) in results.items():
         if is_valid:
             status = "[green]VALID[/green]"
@@ -106,29 +106,33 @@ def test_commands(
         else:
             status = "[red]INVALID[/red]"
             details = f"[yellow]{reason}[/yellow]"
-        
+
         # Truncate long commands for display
         display_cmd = cmd if len(cmd) < 60 else f"{cmd[:57]}..."
         table.add_row(display_cmd, status, details)
-    
+
     console.print(table)
-    
+
     # Show summary
     valid_count = sum(1 for _, (is_valid, _) in results.items() if is_valid)
     invalid_count = len(results) - valid_count
-    
+
     console.print(f"\n[bold]Summary:[/bold]")
     console.print(f"  • Total commands: {len(results)}")
     console.print(f"  • Valid commands: [green]{valid_count}[/green]")
     console.print(f"  • Invalid commands: [red]{invalid_count}[/red]")
-    
+
     if handler.untested_commands and not no_docker:
-        console.print("\n[yellow]Note: Some valid commands were not tested in Docker.[/yellow]")
+        console.print(
+            "\n[yellow]Note: Some valid commands were not tested in Docker.[/yellow]"
+        )
         console.print("  Run with --update-doignore to test valid commands in Docker.")
-    
+
     if update_doignore and not no_docker and invalid_count > 0:
-        console.print("\n[green]✓[/green] [bold]Updated .doignore with failing commands[/bold]")
-    
+        console.print(
+            "\n[green]✓[/green] [bold]Updated .doignore with failing commands[/bold]"
+        )
+
     # Exit with non-zero code if any commands are invalid
     if invalid_count > 0:
         ctx.exit(1)

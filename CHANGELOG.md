@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning][semver].
 
 - Placeholder for security-related fixes
 
+## [2.2.50] - 2025-06-18
+
+### Fixed
+
+- Fixed version inconsistency across the codebase
+- Resolved build issues with package versioning
+
 ## [2.2.41] - 2025-06-18
 
 ### Added

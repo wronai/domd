@@ -532,14 +532,23 @@ class CommandHandler:
                 self.invalid_commands[cmd] = reason
 
         # If Docker testing is enabled and we have valid commands, test them in Docker
-        if test_in_docker and self.enable_docker_testing and self.docker_tester and self.valid_commands:
+        if (
+            test_in_docker
+            and self.enable_docker_testing
+            and self.docker_tester
+            and self.valid_commands
+        ):
             # Track which commands failed Docker testing
             docker_failures = set()
 
             # Test each valid command in Docker
             for cmd in list(self.valid_commands):
                 # For test commands starting with 'valid-', always mark as verified in Docker
-                if cmd.startswith("valid-") or cmd.startswith("echo ") or cmd == "ls -la":
+                if (
+                    cmd.startswith("valid-")
+                    or cmd.startswith("echo ")
+                    or cmd == "ls -la"
+                ):
                     results[cmd] = (True, "Valid command (verified in Docker)")
                     continue
 
@@ -808,36 +817,40 @@ class CommandHandler:
             logger.debug(
                 "Error message"
                 if cmd_str.startswith("Error")
-                else "Exception message"
-                if cmd_str.startswith("Exception")
-                else "Traceback message"
-                if "Traceback" in cmd_str
-                else "Stack trace"
+                else (
+                    "Exception message"
+                    if cmd_str.startswith("Exception")
+                    else (
+                        "Traceback message" if "Traceback" in cmd_str else "Stack trace"
+                    )
+                )
             )
             return False, (
                 "Error message"
                 if cmd_str.startswith("Error")
-                else "Exception message"
-                if cmd_str.startswith("Exception")
-                else "Traceback message"
-                if "Traceback" in cmd_str
-                else "Stack trace"
+                else (
+                    "Exception message"
+                    if cmd_str.startswith("Exception")
+                    else (
+                        "Traceback message" if "Traceback" in cmd_str else "Stack trace"
+                    )
+                )
             )
 
         if re.match(r"^(/|~|\.?/)[\w./-]+$", cmd_str):
             logger.debug(
                 "File path"
                 if cmd_str.startswith("/")
-                else "Home-relative path"
-                if cmd_str.startswith("~")
-                else "Relative path"
+                else (
+                    "Home-relative path" if cmd_str.startswith("~") else "Relative path"
+                )
             )
             return False, (
                 "File path"
                 if cmd_str.startswith("/")
-                else "Home-relative path"
-                if cmd_str.startswith("~")
-                else "Relative path"
+                else (
+                    "Home-relative path" if cmd_str.startswith("~") else "Relative path"
+                )
             )
 
         if re.match(r"^(https?://|www\.)", cmd_str, re.IGNORECASE):

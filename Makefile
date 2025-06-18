@@ -1,27 +1,29 @@
 # DoMD Project Makefile
 # Development, build, and Docker automation
 
-.PHONY: help install dev-install test lint format clean build publish docs serve-docs \
-	docker-build docker-run docker-shell docker-test docker-push docker-clean \
-	docker-compose-up docker-compose-down docker-logs docker-restart \
-	docker-setup docker-prune docker-ls docker-cp
+# ==============================================================================
+# Configuration
+# ==============================================================================
 
-# Docker image name and tag
-IMAGE_NAME ?= domd
+# Project information
+PROJECT_NAME := domd
+VERSION := $(shell cat VERSION 2>/dev/null || echo "0.1.0")
+
+# Directories
+SCRIPT_DIR := scripts
+FRONTEND_DIR := frontend
+
+# Docker settings
+IMAGE_NAME ?= $(PROJECT_NAME)
 IMAGE_TAG ?= latest
 DOCKER_COMPOSE_FILE ?= docker-compose.yml
 DOCKER_RUN_OPTS ?= --rm -it
 DOCKER_WORKDIR ?= /app
 DOCKER_USER ?= $(shell id -u):$(shell id -g)
-
-# Docker Compose project name
-COMPOSE_PROJECT_NAME ?= domd
-
-# Docker network (for container communication)
-DOCKER_NETWORK ?= domd-network
+DOCKER_NETWORK ?= $(PROJECT_NAME)-network
+COMPOSE_PROJECT_NAME ?= $(PROJECT_NAME)
 
 # Frontend settings
-FRONTEND_DIR = frontend
 NODE_ENV ?= development
 NPM = npm --prefix $(FRONTEND_DIR)
 NPM_RUN = $(NPM) run
@@ -32,11 +34,6 @@ NPM_START = $(NPM_RUN) start
 NPM_TEST = $(NPM_RUN) test
 NPM_LINT = $(NPM_RUN) lint
 NPM_FORMAT = $(NPM_RUN) format
-NPM_ANALYZE = $(NPM_RUN) analyze
-NPM_AUDIT = $(NPM) audit
-NPM_OUTDATED = $(NPM) outdated
-NPM_UPDATE = $(NPM) update
-NPM_DEDUPE = $(NPM) dedupe
 
 # Backend settings
 PYTHON = python
@@ -44,7 +41,170 @@ PIP = pip
 POETRY = poetry
 PYTEST = $(POETRY) run pytest
 UVICORN = $(POETRY) run uvicorn
-PORT ?= 8000
+PORT ?= 5000
+
+# ==============================================================================
+# Help
+# ==============================================================================
+
+.PHONY: help
+help: ## Show this help message
+	@echo "$(PROJECT_NAME) - Project Command Detector"
+	@echo "=========================================="
+	@echo "Available commands:"
+	@echo ""
+	@echo "Installation:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /install/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo ""
+	@echo "Development:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## .*$$/ && $$0 ~ /(start|stop|test|lint|format|run)/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo ""
+	@echo "Frontend:"
+	@awk 'BEGIN {FS = ":.*?## "} /^frontend-[-a-z]+:.*?## .*$$/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo ""
+	@echo "Docker:"
+	@awk 'BEGIN {FS = ":.*?## "} /^docker-[-a-z]+:.*?## .*$$/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo ""
+	@echo "Documentation:"
+	@awk 'BEGIN {FS = ":.*?## "} /^docs-[-a-z]+:.*?## .*$$/ {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+# ==============================================================================
+# Installation
+# ==============================================================================
+
+.PHONY: install install-backend install-frontend update-deps
+
+install: install-backend install-frontend ## Install all dependencies
+
+install-backend: ## Install Python dependencies
+	@echo "Installing Python dependencies..."
+	$(POETRY) install
+
+install-frontend: ## Install Node.js dependencies
+	@echo "Installing frontend dependencies..."
+	$(NPM_CI)
+
+update-deps: update-backend-deps update-frontend-deps ## Update all dependencies
+
+update-backend-deps: ## Update Python dependencies
+	@echo "Updating Python dependencies..."
+	$(POETRY) update
+
+update-frontend-deps: ## Update frontend dependencies
+	@echo "Updating frontend dependencies..."
+	$(NPM_UPDATE)
+	$(NPM_DEDUPE)
+
+# ==============================================================================
+# Development
+# ==============================================================================
+
+.PHONY: start start-backend start-frontend stop test lint format clean
+
+start: start-backend start-frontend ## Start all services
+
+start-backend: ## Start the backend server
+	@echo "Starting backend server..."
+	@$(SCRIPT_DIR)/start.sh
+
+start-frontend: ## Start the frontend development server
+	@echo "Starting frontend development server..."
+	@$(SCRIPT_DIR)/start_frontend.sh
+
+stop: ## Stop all services
+	@echo "Stopping all services..."
+	@$(SCRIPT_DIR)/stop.sh
+
+test: ## Run all tests
+	@echo "Running tests..."
+	@$(SCRIPT_DIR)/test_api.sh
+
+lint: lint-backend lint-frontend ## Lint all code
+
+lint-backend: ## Lint backend code
+	@echo "Linting backend code..."
+	$(POETRY) run black --check .
+	$(POETRY) run isort --check-only .
+	$(POETRY) run flake8 .
+
+lint-frontend: ## Lint frontend code
+	@$(SCRIPT_DIR)/lint_frontend.sh
+
+format: format-backend format-frontend ## Format all code
+
+format-backend: ## Format backend code
+	@echo "Formatting backend code..."
+	$(POETRY) run black .
+	$(POETRY) run isort .
+
+format-frontend: ## Format frontend code
+	@$(SCRIPT_DIR)/format_frontend.sh
+
+clean: clean-backend clean-frontend ## Clean all build artifacts
+
+clean-backend: ## Clean backend artifacts
+	@$(SCRIPT_DIR)/clean_backend.sh
+
+clean-frontend: ## Clean frontend build artifacts
+	@$(SCRIPT_DIR)/clean_frontend.sh
+
+# ==============================================================================
+# Docker
+# ==============================================================================
+
+.PHONY: docker-build docker-run docker-stop docker-clean docker-logs
+
+docker-build: ## Build Docker image
+	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
+
+docker-run: ## Run Docker container
+	docker run -d \
+		--name $(PROJECT_NAME) \
+		-p 5000:5000 \
+		-v $(PWD):/app \
+		$(IMAGE_NAME):$(IMAGE_TAG)
+
+docker-stop: ## Stop Docker container
+	@docker stop $(PROJECT_NAME) 2>/dev/null || echo "No running container found"
+	@docker rm $(PROJECT_NAME) 2>/dev/null || echo "No container to remove"
+
+docker-clean: docker-stop ## Clean Docker artifacts
+	@docker rmi $(IMAGE_NAME):$(IMAGE_TAG) 2>/dev/null || echo "No image to remove"
+
+docker-logs: ## View Docker container logs
+	@docker logs -f $(PROJECT_NAME) 2>/dev/null || echo "No container logs found"
+
+# ==============================================================================
+# Documentation
+# ==============================================================================
+
+.PHONY: docs-build docs-serve
+
+docs-build: ## Build documentation
+	@echo "Building documentation..."
+	@# Add documentation build commands here
+
+docs-serve: ## Serve documentation locally
+	@echo "Serving documentation..."
+	@# Add documentation serve commands here
+
+# ==============================================================================
+# Utility
+# ==============================================================================
+
+.PHONY: check-env check-docker check-docker-compose
+
+check-env:
+	@if [ ! -f ".env" ]; then \
+		echo "Warning: .env file not found. Creating from .env.example..."; \
+		cp -n .env.example .env || true; \
+	fi
+
+check-docker:
+	@command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but not installed. Aborting."; exit 1; }
+
+check-docker-compose:
+	@command -v docker-compose >/dev/null 2>&1 || { echo >&2 "Docker Compose is required but not installed. Aborting."; exit 1; }
 
 # Default target
 help: ## Show this help message
@@ -457,11 +617,20 @@ build: clean ## Build the package
 	poetry version patch
 	poetry build
 
-publish-test: build ## Publish to test PyPI
+.PHONY: build-dist
+
+build-dist: clean ## Build distribution packages
+	@echo "Building distribution packages..."
+	poetry version patch
+	poetry build
+
+publish-test: build-dist ## Publish to test PyPI
+	@echo "Publishing to test PyPI..."
 	poetry config repositories.testpypi https://test.pypi.org/legacy/
 	poetry publish -r testpypi
 
-publish: build ## Publish to PyPI
+publish: build-dist ## Publish to PyPI
+	@echo "Publishing to PyPI..."
 	poetry publish
 
 # Development targets

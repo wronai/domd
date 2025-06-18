@@ -7,7 +7,7 @@ generates TODO.md for failed commands with detailed error reports.
 Supports: Makefile, package.json, pyproject.toml, Docker, CI/CD workflows, and more.
 """
 
-__version__ = "2.2.41"
+__version__ = "2.2.50"
 __author__ = "Tom Sapletta"
 __email__ = "info@softreck.dev"
 __license__ = "Apache-2.0"
