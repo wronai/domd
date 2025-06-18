@@ -593,27 +593,31 @@ update: ## Update dependencies
 
 upgrade: update ## Alias for update
 
-# Helper targets
+# Build and Publish targets
 
-build: clean ## Build the package
+build: clean ## Build the package with Poetry
+	@echo "Building package..."
 	poetry version patch
 	poetry build
 
-.PHONY: build-dist
-
-build-dist: clean ## Build distribution packages
-	@echo "Building distribution packages..."
-	poetry version patch
-	poetry build
-
-publish-test: build-dist ## Publish to test PyPI
+publish-test: clean ## Publish to test PyPI
 	@echo "Publishing to test PyPI..."
+	poetry version patch
 	poetry config repositories.testpypi https://test.pypi.org/legacy/
-	poetry publish -r testpypi
+	poetry build -v
+	twine upload --repository testpypi dist/*
 
-publish: ## Publish to PyPI (includes build step)
-	@echo "Building and publishing to PyPI..."
-	poetry publish --build
+publish: clean ## Publish to PyPI
+	@echo "Publishing to PyPI..."
+	poetry version patch
+	poetry build -v
+	twine upload dist/*
+
+clean: ## Clean build artifacts
+	@echo "Cleaning build artifacts..."
+	rm -rf dist/ build/ *.egg-info/
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type f -name "*.py[co]" -delete
 
 # Development targets
 run: ## Run domd on current directory
@@ -685,7 +689,7 @@ create-examples: ## Create example projects for testing
 
 demo: create-examples ## Run demo on example projects
 	@echo "Running DoMD demo..."
-	poetry run domd --path examples/ --verbose
+	poetry run domd scan --path examples/ --verbose
 
 # Cleanup targets
 clean-all: clean docs-clean ## Clean everything
