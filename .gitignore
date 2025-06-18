@@ -1,9 +1,14 @@
+test-results
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-
+package-lock.json
+.idea
+venv
+.env
+data
 # Build and distribution
 build/
 develop-eggs/

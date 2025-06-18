@@ -14,7 +14,6 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.126",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "axios": "^1.9.0",
@@ -54,6 +53,8 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.53.0",
+    "@types/node": "^24.0.3",
     "@types/react-query": "^1.2.8",
     "@types/react-syntax-highlighter": "^15.5.13"
   }

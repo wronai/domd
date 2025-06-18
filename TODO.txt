@@ -1,48 +1,5 @@
 # DoMD - Lista zadań refaktoryzacyjnych
 
-## Naprawy pilne (krótkoterminowe)
-1. [x] Naprawić błąd raportowania wykonanych komend w CLI
-   - [x] Poprawić funkcję print_summary w cli.py, aby używała rzeczywistej liczby przetestowanych komend
-   - [x] Zaktualizować typy w CommandHandler, aby odzwierciedlały mieszane typy (Command i Dict)
-
-2. [x] Poprawić obsługę błędów w parserach plików konfiguracyjnych
-   - [x] Obsłużyć wyjątki podczas parsowania TOML/JSON/YAML
-   - [x] Kontynuować działanie po napotkaniu błędu w pliku konfiguracyjnym
-   - [x] Zalogować błędy i dodać je do raportu
-   - [x] Przeprowadzić testowanie pozostałych komend, nawet jeśli niektóre się nie powiodły
-   - [x] Dodać czytelne komunikaty o błędach do wyjścia programu
-
-3. [x] Zaimplementować integrację z Dockerem
-   - [x] Dodać obsługę pliku .dodocker
-   - [x] Zaimplementować wykrywanie środowiska Docker
-   - [x] Dodać obsługę wykonywania komend w kontenerach
-   - [x] Zaktualizować dokumentację Docker
-   - [x] Dodać testy integracyjne dla Docker
-
-
-## Refaktoryzacja architektury (średnioterminowa)
-1. [x] Wprowadzić czystą architekturę warstwową
-   - [x] Stworzyć katalog core/domain z modelami domenowymi
-   - [x] Zdefiniować jasne modele Command i CommandResult
-   - [x] Oddzielić wynik wykonania komendy od samej komendy
-
-2. [x] Wprowadzić wzorzec portów i adapterów
-   - [x] Zdefiniować interfejsy dla repozytoriów komend
-   - [x] Zdefiniować interfejsy dla wykonawców komend
-   - [x] Zdefiniować interfejsy dla formaterów raportów
-
-3. [x] Zaimplementować usługi biznesowe
-   - [x] CommandService do zarządzania wykonaniem komend
-   - [x] ReportService do generowania raportów
-   - [ ] ProjectService do zarządzania projektem
-
-4. [x] Zaimplementować adaptery
-   - [x] CLI adapter (CommandPresenter)
-   - [x] Adapter formatera Markdown
-   - [x] Adapter repozytorium w pamięci
-
-5. [x] Wprowadzić wzorzec fabryki
-   - [x] ApplicationFactory do tworzenia i łączenia komponentów
 
 ## Rozszerzenia (długoterminowe)
 1. [ ] Dodać REST API

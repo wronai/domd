@@ -54,18 +54,21 @@ class DomdFlaskApi:
         self.project_path = Path(project_path) if project_path else Path.cwd()
 
         # Initialize application services
-        self.factory = ApplicationFactory(project_path)
-        
+        self.factory = ApplicationFactory()
+
         # Register all routes
         self._register_routes()
-        
+
         # Register command testing routes
         try:
-            from ...core.command_detection.handlers.command_handler import CommandHandler
+            from ...core.command_detection.handlers.command_handler import (
+                CommandHandler,
+            )
+
             command_handler = CommandHandler(
                 project_path=Path(project_path) if project_path else Path.cwd(),
                 command_runner=self.factory.create_command_runner(),
-                enable_docker_testing=True
+                enable_docker_testing=True,
             )
             register_command_testing_routes(self, command_handler)
         except Exception as e:
@@ -96,8 +99,8 @@ class DomdFlaskApi:
             formatter=self.formatter,
         )
 
-        # Register routes
-        self._register_routes()
+        # Routes are already registered in the first call to _register_routes()
+        pass
 
     def _load_ignore_patterns(self) -> None:
         """Load ignore patterns from .doignore file if it exists."""

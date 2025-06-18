@@ -124,3 +124,22 @@ class ApplicationFactory:
             Prezenter komend
         """
         return CommandPresenter(repository=repository)
+
+    @staticmethod
+    def create_command_runner(max_retries: int = 3) -> "CommandRunner":
+        """
+        Tworzy CommandRunner do wykonywania komend.
+
+        Args:
+            max_retries: Maksymalna liczba prób wykonania komendy
+
+        Returns:
+            CommandRunner do wykonywania komend
+        """
+        from ..adapters.persistence.shell_command_executor import ShellCommandExecutor
+        from ..core.command_execution.command_runner import CommandRunner
+
+        executor = ShellCommandExecutor(
+            max_retries=1
+        )  # CommandRunner will handle retries
+        return CommandRunner(executor=executor, max_retries=max_retries)
