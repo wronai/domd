@@ -9,7 +9,64 @@
 
 **DoMD** (Do Markdown Docs) is a powerful tool that helps you maintain up-to-date project documentation by automatically detecting, running, and documenting commands from your project files. It generates and updates `TODO.md` and `DONE.md` files based on command execution results, making it easier to track what works and what needs attention.
 
-## ✨ Key Features
+## 🌟 Web Interface
+
+DoMD comes with a modern web interface that allows you to interact with your project's commands through a user-friendly dashboard.
+
+### 🚀 Starting the Web Interface
+
+```bash
+# Start the web interface on default port (3000)
+domd web
+
+# Specify a custom port
+domd web --port 8088
+
+# Start without automatically opening a browser
+domd web --no-browser
+```
+
+### 🌈 Features
+
+- **Command Management**: View, run, and manage all your project commands from one place
+- **Real-time Output**: See command execution results in real-time
+- **History Tracking**: Keep track of command execution history
+- **Responsive Design**: Works on both desktop and mobile devices
+- **Dark Mode**: Built-in dark theme for comfortable viewing
+
+### 🛠️ Requirements
+
+- Node.js 16+ and npm 8+
+- Python 3.9+
+- Modern web browser (Chrome, Firefox, Safari, or Edge)
+
+### Getting Started
+
+1. Start the web interface:
+
+   ```bash
+   domd web --port 8088
+   ```
+
+2. Open your browser and navigate to [http://localhost:8088](http://localhost:8088)
+
+3. The interface will automatically detect and display your project's commands
+
+### Development Mode
+
+For development, you can run the frontend and backend separately:
+
+```bash
+# Terminal 1 - Start the backend API
+cd backend
+python -m domd.api
+
+# Terminal 2 - Start the frontend development server
+cd frontend
+npm start
+```
+
+## Core Features
 
 - **Automatic Command Detection** - Discovers and extracts commands from various project files
 - **Smart Execution** - Runs commands and captures their output and status
@@ -22,7 +79,11 @@
 - **Extensible** - Add support for new command types and tools
 - **REST API** - Full programmatic access to all features
 
-## 📚 Examples
+## Demo
+
+[![Watch the demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+
+## Examples
 
 Explore our comprehensive collection of examples to get started with DoMD:
 
@@ -32,7 +93,9 @@ Explore our comprehensive collection of examples to get started with DoMD:
 - [CI/CD Integration](docs/examples/ci_cd/) - Automate documentation with GitHub Actions and more
 - [Integration Examples](docs/examples/integration/) - Using DoMD with other tools and platforms
 
-## 🔍 Command Testing
+![img.png](img.png)
+
+## Command Testing
 
 DoMD includes powerful command testing capabilities that help you validate and test shell commands in isolated Docker containers:
 
@@ -47,7 +110,7 @@ domd test-commands --update-doignore -f commands.txt
 domd test-commands --no-docker -f commands.txt
 ```
 
-### Key Features:
+### Testing Features
 
 - **Command Validation**: Automatically detect valid shell commands vs documentation
 - **Docker Testing**: Test commands in isolated containers
@@ -56,7 +119,7 @@ domd test-commands --no-docker -f commands.txt
 
 For more details, see the [Command Testing Documentation](docs/command_testing.md).
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -69,31 +132,40 @@ For more details, see the [Command Testing Documentation](docs/command_testing.m
 Choose the installation method that works best for you:
 
 ```bash
-# Using pip (recommended)
-pip install domd
+#1. **Install DoMD** (if not already installed):
 
-# Or using Docker (no installation required)
-docker run --rm -v $(pwd):/app ghcr.io/wronai/domd domd
-```
+   ```bash
+   pip install domd
+   ```
 
-### Basic Usage
+   Or using Docker (no installation required):
 
-1. Navigate to your project directory:
+   ```bash
+   docker run --rm -v $(pwd):/app ghcr.io/wronai/domd domd
+   ```
+
+## Basic Usage
+
+1. **Navigate to your project directory**:
+
    ```bash
    cd /path/to/your/project
    ```
 
-2. Run DoMD:
+2. **Run DoMD**:
 
    ```bash
    # Basic scan
    domd
+   ```
 
-   # Or use the web interface
+   Or use the web interface:
+
+   ```bash
    domd web
    ```
 
-## 🌐 Web Interface
+## Web Interface
 
 DoMD includes a secure web-based interface for a more interactive experience:
 
@@ -104,7 +176,7 @@ DoMD includes a secure web-based interface for a more interactive experience:
 domd web
 
 # Specify a custom port
-domd web --port 8080
+domd web --port 8088
 
 # Start without opening browser automatically
 domd web --no-browser
@@ -119,7 +191,7 @@ For local development, you can start both the backend and frontend services:
 
 ```bash
 # Start the backend server
-poetry run uvicorn domd.main:app --reload --port 8000
+poetry run uvicorn domd.main:app --reload --port 8008
 
 # In a separate terminal, start the frontend
 cd frontend
@@ -127,15 +199,17 @@ npm install
 npm start
 ```
 
-### Authentication & Login
+### Authentication and Login
 
 The web interface is protected by authentication. Use the following default credentials:
 
-- **URL**: http://localhost:3000 (frontend development server) or http://localhost:3003 (production build)
+- **URL**: [http://localhost:3000](http://localhost:3000) (frontend development server) or [http://localhost:3003](http://localhost:3003) (production build)
 - **Username**: admin
 - **Password**: admin123
 
-> **Security Note**: Change the default password after first login by navigating to User Settings in the web interface.
+> **Security Note**
+>
+> Change the default password after first login by navigating to User Settings in the web interface.
 
 #### First-Time Login
 
@@ -182,7 +256,7 @@ To use the web interface, you'll need:
 - Internet connection (for loading external resources)
 - Modern web browser (Chrome, Firefox, Safari, or Edge)
 
-## 📖 Basic Usage
+## Basic Usage
 
 1. Navigate to your project directory:
 
@@ -201,7 +275,7 @@ To use the web interface, you'll need:
 
 3. Open your browser and navigate to the displayed URL
 
-## 💻 Command Line Usage
+## Command Line Usage
 
 For command-line usage, you can run:
 
@@ -273,11 +347,7 @@ DoMD comes with a web-based interface for a more interactive experience. Here's 
    # yarn start
    ```
 
-4. Open your browser and visit:
-
-   ```bash
-   http://localhost:3003
-   ```
+4. Open your browser and visit [http://localhost:3003](http://localhost:3003)
 
 ### Building for Production
 
@@ -471,9 +541,9 @@ poetry run mkdocs build
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
-### Adding New Parsers
+## Adding New Parsers
 
-To add support for a new project type:
+To add support for a new project type, follow these steps:
 
 1. Create a parser in `src/domd/parsers/`
 2. Implement the parser interface

@@ -2,32 +2,62 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog][keep-a-changelog],
+and this project adheres to [Semantic Versioning][semver].
 
-## [Unreleased]
+[keep-a-changelog]: https://keepachangelog.com/en/1.0.0/
+[semver]: https://semver.org/spec/v2.0.0.html
+
+## [Unreleased] - YYYY-MM-DD
 
 ### Added
-- Initial project structure and documentation
+
+- Placeholder for upcoming features
 
 ### Changed
-- Nothing yet
+
+- Placeholder for changes in upcoming release
 
 ### Deprecated
-- Nothing yet
+
+- Placeholder for soon-to-be removed features
 
 ### Removed
-- Nothing yet
+
+- Placeholder for removed features
 
 ### Fixed
-- Nothing yet
+
+- Placeholder for bug fixes
 
 ### Security
-- Nothing yet
+
+- Placeholder for security-related fixes
+
+## [2.2.41] - 2025-06-18
+
+### Added
+
+- Web interface for interactive command management
+- Comprehensive documentation for web interface usage
+- Support for custom ports and host binding in web interface
+
+### Changed
+
+- Updated version to 2.2.41 for PyPI publication
+- Improved error handling in command detection
+- Enhanced documentation structure and readability
+
+### Fixed
+
+- Resolved version mismatch in build artifacts
+- Fixed markdown linting issues in documentation
+- Addressed various code quality and test issues
 
 ## [0.1.0] - 2025-06-06
 
-### Added
+### Features Added in 0.1.0
+
 - Initial release of DoMD
 - Project command detection for 15+ project types
 - Support for JavaScript/Node.js projects (package.json, npm scripts)
@@ -51,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development environment automation with Makefile
 
 ### Technical Details
+
 - Python 3.8+ support
 - Poetry for dependency management
 - pytest for testing framework
@@ -60,7 +91,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modular architecture with pluggable parsers
 - Extensible reporter system
 
-### Example Commands Added
+### Example Commands
+
 - `domd` - Basic project scanning
 - `domd --dry-run` - Preview mode
 - `domd --verbose` - Detailed output
@@ -68,7 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `domd --timeout 120` - Custom timeout
 - `domd --exclude "*.test.*"` - Pattern exclusion
 
-### Parsers Implemented
+### Supported Parsers
+
 - **JavaScript**: package.json scripts, npm/yarn/pnpm installations
 - **Python**: Poetry scripts, pytest, tox environments, pip requirements
 - **Make**: Makefile targets detection
@@ -82,6 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Go**: Module build and test commands
 
 ### Output Features
+
 - Structured TODO.md with error analysis
 - Command categorization by source file
 - Suggested fix actions for common issues
@@ -91,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Progress indicators
 
 ### Quality Assurance
+
 - 95%+ test coverage
 - Type checking with mypy
 - Code formatting with Black
@@ -102,7 +137,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.1] - 2025-06-05
 
-### Added
+### Added in 0.0.1
+
 - Project initialization
 - Basic project structure
 - Initial documentation outline
@@ -111,12 +147,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **2.2.41** - Web interface and documentation improvements
 - **0.1.0** - Full initial release with comprehensive project support
 - **0.0.1** - Project setup and structure
 
 ## Migration Guide
 
-### From Manual Command Testing
+### From Manual Command Testing to DoMD
+
 If you're currently manually testing project commands:
 
 1. Install DoMD: `pip install domd`
@@ -126,15 +164,19 @@ If you're currently manually testing project commands:
 
 ### Integration with Existing Workflows
 
-#### CI/CD Integration
+#### 1. CI/CD Integration
+
 Add to your pipeline:
+
 ```yaml
 - name: Project Health Check
   run: domd --quiet || echo "Some commands failed"
 ```
 
-#### Pre-commit Integration
+#### 2. Pre-commit Integration
+
 Add to `.pre-commit-config.yaml`:
+
 ```yaml
 - repo: local
   hooks:
@@ -144,33 +186,41 @@ Add to `.pre-commit-config.yaml`:
       language: system
 ```
 
-#### Makefile Integration
+#### 3. Makefile Integration
+
 Add to your Makefile:
+
 ```makefile
 health-check:
-	domd --verbose
+    domd --verbose
 ```
 
 ## Roadmap
 
-### v0.2.0 (Planned)
-- Configuration file support (.domd.yaml)
+### Upcoming Features (v0.2.0)
+
+- Configuration file support (`.domd.yaml`)
 - Custom parser plugins
 - Parallel command execution
 - Interactive fix mode
 - Web dashboard
 - Slack/Teams notifications
 
-### v0.3.0 (Planned)
+### Future Enhancements (v0.3.0)
+
 - Machine learning suggestions
 - Historical trend analysis
 - Integration with issue trackers
 - Command dependency mapping
 - Performance benchmarking
 
-### v1.0.0 (Planned)
+### Long-term Goals (v1.0.0+)
+
 - Stable API
 - Enterprise features
+- Advanced analytics
+- Plugin ecosystem
+- Community contributions
 - Advanced reporting
 - Multi-project support
 - Cloud service integration
