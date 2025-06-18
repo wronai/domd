@@ -46,3 +46,35 @@ service .*
 sudo .*
 systemctl .*
 with  # broken
+- [ ] Task item
+Some text with no command
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process
+- [ ] Task item
+Some text with no command
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process
+- [ ] Task item
+Some text with no command
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process
+- [ ] Task item
+Some text with no command
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process
+- [ ] Task item
+Some text with no command
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process
+- [ ] Task item
+Some text with no command
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process
+- [ ] Task item
+Some text with no command
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process
+- [ ] Task item
+Some text with no command
+/path/to/some/file.txt
+2023-01-01 12:00:00 [INFO] Starting process

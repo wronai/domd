@@ -200,11 +200,10 @@ check-env:
 		cp -n .env.example .env || true; \
 	fi
 
-check-docker:
-	@command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but not installed. Aborting."; exit 1; }
+check-docker: ## Check if Docker is installed and running
+	@$(SCRIPT_DIR)/check_docker.sh
 
-check-docker-compose:
-	@command -v docker-compose >/dev/null 2>&1 || { echo >&2 "Docker Compose is required but not installed. Aborting."; exit 1; }
+check-docker-compose: check-docker ## Check if Docker Compose is installed
 
 # Default target
 help: ## Show this help message
@@ -340,20 +339,7 @@ db-migrate: ## Run database migrations
 	$(POETRY) run alembic upgrade head
 
 db-reset: ## Reset the database (WARNING: This will delete all data!)
-	@echo "Resetting database..."
-	@read -p "Are you sure you want to reset the database? This will delete all data! [y/N] " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		echo "Dropping and recreating database..."; \
-		$(POETRY) run python -m domd.db reset; \
-		echo "Running migrations..."; \
-		$(MAKE) db-migrate; \
-		echo "Database reset complete."; \
-	else \
-		echo "Database reset cancelled."; \
-	fi
-	rm -rf $(FRONTEND_DIR)/node_modules
-	rm -f $(FRONTEND_DIR)/package-lock.json
+	@$(SCRIPT_DIR)/reset_db.sh
 
 # Installation targets
 install: frontend-install ## Install the package and frontend dependencies
@@ -605,13 +591,6 @@ update: ## Update dependencies
 upgrade: update ## Alias for update
 
 # Helper targets
-.PHONY: check-docker check-docker-compose
-
-check-docker:
-	@command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but not installed. Aborting."; exit 1; }
-
-check-docker-compose:
-	@command -v docker-compose >/dev/null 2>&1 || { echo >&2 "Docker Compose is required but not installed. Aborting."; exit 1; }
 
 build: clean ## Build the package
 	poetry version patch
