@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="domd",
-    version="2.2.50",
+    version="2.2.58",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     install_requires=[
