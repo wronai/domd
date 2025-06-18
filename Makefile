@@ -561,10 +561,13 @@ docker-compose-down: ## Stop and remove containers
 	docker-compose -f ${DOCKER_COMPOSE_FILE} down
 
 # Build and publish targets
-clean: frontend-clean ## Remove build artifacts and temporary files
+clean: frontend-clean ## Remove build artifacts
 	@echo "Cleaning build artifacts..."
 	rm -rf build/ dist/ *.egg-info/ .pytest_cache/ .mypy_cache/ .coverage htmlcov/
-	find . -type d -name '__pycache__' -exec rm -rf {} +
+	find src tests -type d -name '__pycache__' -exec rm -rf {} +
+	find . -type f -name '*.pyc' -delete
+	find . -type f -name '*.pyo' -delete
+	find . -type d -name '.mypy_cache' -exec rm -rf {} +
 	find . -type f -name '*.py[co]' -delete
 	find . -path './.venv' -prune -o -type f -name '*.py[co]' -delete 2>/dev/null || true
 	find . -path './.venv' -prune -o -type d -name '*.egg-info' -exec rm -rf {} + 2>/dev/null || true
@@ -608,9 +611,9 @@ publish-test: build-dist ## Publish to test PyPI
 	poetry config repositories.testpypi https://test.pypi.org/legacy/
 	poetry publish -r testpypi
 
-publish: build-dist ## Publish to PyPI
-	@echo "Publishing to PyPI..."
-	poetry publish
+publish: ## Publish to PyPI (includes build step)
+	@echo "Building and publishing to PyPI..."
+	poetry publish --build
 
 # Development targets
 run: ## Run domd on current directory

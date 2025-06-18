@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "domd"
-version = "2.2.56"
+version = "2.2.58"
 description = " ✓ DoMD - Do Markdown Docs - automatically detect, run and show working commands in DONE.md and errors in TODO.md markdown files"
 authors = ["Tom Sapletta <info@softreck.dev>"]
 maintainers = ["WRONAI Team"]
@@ -48,8 +48,6 @@ classifiers = [
 python = ">=3.9,<4.0"
 pyyaml = "^6.0"
 toml = "^0.10.2"
-configparser = "^5.3.0"
-pathlib = { version = "*", python = ">=3.4" }
 
 # Core dependencies
 docker = "^6.1.3"

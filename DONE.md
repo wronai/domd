@@ -7,7 +7,7 @@
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.12s
+**Execution Time:** 10.71s
 
 **Error Output:**
 ```
@@ -34,7 +34,7 @@ it is a ...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.19s
+**Execution Time:** 5.55s
 
 **Error Output:**
 ```
@@ -57,7 +57,7 @@ the implicit localhost does not match 'all'
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.91s
+**Execution Time:** 8.23s
 
 **Error Output:**
 ```
@@ -84,7 +84,7 @@ is a <class 'bool'>
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.41s
+**Execution Time:** 3.41s
 
 **Error Output:**
 ```
@@ -111,7 +111,7 @@ i...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.66s
+**Execution Time:** 3.11s
 
 **Error Output:**
 ```
@@ -139,7 +139,7 @@ source
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.23s
+**Execution Time:** 2.50s
 
 **Error Output:**
 ```
@@ -165,7 +165,7 @@ while loading YAML.   did not find ex...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.90s
+**Execution Time:** 2.40s
 
 **Error Output:**
 ```
@@ -191,7 +191,7 @@ while loading YAML.   mapping values are not al...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.17s
+**Execution Time:** 2.28s
 
 **Error Output:**
 ```
@@ -217,7 +217,7 @@ while loading YAML.   did not find expected <...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.25s
+**Execution Time:** 3.01s
 
 **Error Output:**
 ```
@@ -244,7 +244,7 @@ inventory source
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.90s
+**Execution Time:** 3.62s
 
 **Error Output:**
 ```
@@ -272,7 +272,7 @@ inventory source
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.69s
+**Execution Time:** 4.05s
 
 **Error Output:**
 ```
@@ -300,7 +300,7 @@ source
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.53s
+**Execution Time:** 2.97s
 
 **Error Output:**
 ```
@@ -328,7 +328,7 @@ inventory source
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.29s
+**Execution Time:** 2.52s
 
 **Error Output:**
 ```
@@ -355,7 +355,7 @@ key=value host variable assignment, got: inventory/
 **Type:** ansible_galaxy
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.86s
+**Execution Time:** 5.70s
 
 **Output:**
 ```
@@ -378,7 +378,7 @@ Nothing to do. All requested collections are already installed. If you want to r
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.05s
+**Execution Time:** 3.10s
 
 **Error Output:**
 ```
@@ -406,7 +406,7 @@ plugin config file
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.59s
+**Execution Time:** 2.83s
 
 **Error Output:**
 ```
@@ -433,7 +433,7 @@ column 1 (char 0)  ...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.46s
+**Execution Time:** 3.78s
 
 **Error Output:**
 ```
@@ -460,16 +460,15 @@ test/test_domd.py:1: Expected key=value host variable assignment, got: os
 **Type:** shell
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.54s
+**Execution Time:** 4.18s
 
 **Output:**
 ```
-Requirement already satisfied: mkdocs in ./.venv/lib/python3.13/site-packages (1.6.1)
-Requirement already satisfied: mkdocs-material in ./.venv/lib/python3.13/site-packages (9.2.6)
-Requirement already satisfied: mkdocstrings[python] in ./.venv/lib/python3.13/site-packages (0.22.0)
-Requirement already satisfied: click>=7.0 in ./.venv/lib/python3.13/site-packages (from mkdocs) (8.2.1)
-Requirement already satisfied: ghp-import>=1.0 in ./.venv/lib/python3.13/site-packages (from mkdocs) (2.1.0)
-Requi...
+Requirement already satisfied: mkdocs in ./.venv/lib64/python3.13/site-packages (1.6.1)
+Requirement already satisfied: mkdocs-material in ./.venv/lib64/python3.13/site-packages (9.2.6)
+Requirement already satisfied: mkdocstrings[python] in ./.venv/lib64/python3.13/site-packages (0.22.0)
+Requirement already satisfied: click>=7.0 in ./.venv/lib64/python3.13/site-packages (from mkdocs) (8.2.1)
+Requirement already satisfied: ghp-import>=1.0 in ./.venv/lib64/python3.13/site-packages (from mkdocs) (2....
 ```
 
 **Metadata:**
@@ -485,7 +484,7 @@ Requi...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.49s
+**Execution Time:** 2.57s
 
 **Error Output:**
 ```
@@ -507,7 +506,7 @@ the implicit localhost does not match 'all'
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.33s
+**Execution Time:** 2.14s
 
 **Error Output:**
 ```
@@ -555,7 +554,7 @@ Changed directory to /home/tom/github/wronai/domd/domd
 **Type:** shell
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 0.00s
+**Execution Time:** 0.01s
 
 **Metadata:**
 - **line_number:** 44
@@ -570,7 +569,7 @@ Changed directory to /home/tom/github/wronai/domd/domd
 **Type:** shell
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 7.29s
+**Execution Time:** 14.44s
 
 **Output:**
 ```
@@ -598,7 +597,7 @@ Obtaining file:///home/tom/github/wronai/domd
 **Type:** shell
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 0.55s
+**Execution Time:** 0.82s
 
 **Output:**
 ```
@@ -619,7 +618,7 @@ pre-commit installed at .git/hooks/pre-commit
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.28s
+**Execution Time:** 3.10s
 
 **Error Output:**
 ```
@@ -648,7 +647,7 @@ host variable assignment, got: document
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.70s
+**Execution Time:** 3.18s
 
 **Error Output:**
 ```
@@ -675,7 +674,7 @@ key=value host variable assignment, got: kompletny
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.72s
+**Execution Time:** 2.64s
 
 **Error Output:**
 ```
@@ -721,7 +720,7 @@ Changed directory to /home/tom/github/wronai/domd/my-node-app
 **Type:** shell
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.14s
+**Execution Time:** 1.93s
 
 **Output:**
 ```
@@ -752,7 +751,7 @@ npm warn Unknown global config "python". This will stop working in the next majo
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.72s
+**Execution Time:** 2.53s
 
 **Error Output:**
 ```
@@ -781,7 +780,7 @@ host variable assignment, got: provides
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.14s
+**Execution Time:** 2.96s
 
 **Error Output:**
 ```
@@ -809,7 +808,7 @@ variable assignment, got: provides
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.57s
+**Execution Time:** 2.24s
 
 **Error Output:**
 ```
@@ -836,7 +835,7 @@ key=value host variable assignment, got: kompletny
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.12s
+**Execution Time:** 1.88s
 
 **Error Output:**
 ```
@@ -863,7 +862,7 @@ key=value host variable assignment, got: Python
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.74s
+**Execution Time:** 2.04s
 
 **Error Output:**
 ```
@@ -890,7 +889,7 @@ Syntax Error while loading YAML...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.66s
+**Execution Time:** 2.88s
 
 **Error Output:**
 ```
@@ -916,7 +915,7 @@ host variable assignment, got: INSTRUCTIONS
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.07s
+**Execution Time:** 1.80s
 
 **Error Output:**
 ```
@@ -943,7 +942,7 @@ key=value host variable assignment, got: na
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.52s
+**Execution Time:** 2.46s
 
 **Error Output:**
 ```
@@ -970,7 +969,7 @@ inv...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.66s
+**Execution Time:** 2.30s
 
 **Error Output:**
 ```
@@ -997,7 +996,7 @@ key=value host variable assignment, got: commands
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.30s
+**Execution Time:** 2.11s
 
 **Error Output:**
 ```
@@ -1024,7 +1023,7 @@ dictionary, got: <class 'ansible.parsing.yaml.objects.AnsibleUnicode'>
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.29s
+**Execution Time:** 2.11s
 
 **Error Output:**
 ```
@@ -1051,7 +1050,7 @@ key=value host variable assignment, got: `make
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.26s
+**Execution Time:** 2.06s
 
 **Error Output:**
 ```
@@ -1079,7 +1078,7 @@ inventory has invalid structure, it should be a dictionary, got: <class
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.04s
+**Execution Time:** 2.04s
 
 **Error Output:**
 ```
@@ -1106,7 +1105,7 @@ the implicit localhost does not match 'all'
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 0.91s
+**Execution Time:** 1.99s
 
 **Error Output:**
 ```
@@ -1133,7 +1132,7 @@ the implicit localhost does not match 'all'
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.11s
+**Execution Time:** 1.70s
 
 **Output:**
 ```
@@ -1175,7 +1174,7 @@ key=value host variable assignment, got: -e
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.71s
+**Execution Time:** 1.46s
 
 **Error Output:**
 ```
@@ -1202,7 +1201,7 @@ it is a <class 'bool'>
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.58s
+**Execution Time:** 1.80s
 
 **Error Output:**
 ```
@@ -1228,7 +1227,7 @@ and that there are no other invalid c...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.75s
+**Execution Time:** 2.41s
 
 **Error Output:**
 ```
@@ -1257,7 +1256,7 @@ and that there are no other invalid c...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.98s
+**Execution Time:** 1.86s
 
 **Output:**
 ```
@@ -1300,7 +1299,7 @@ variable assignment, ...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.74s
+**Execution Time:** 2.63s
 
 **Output:**
 ```
@@ -1322,12 +1321,13 @@ variable assignment, ...
 [WARNING]:  * Failed to parse
 /home/tom/github/wronai/domd/scripts/check_version.py with script plugin:
 Inventory script (/home/tom/github/wronai/domd/scripts/check_version.py) had an
-execution error: Traceback (most recent call last):   File
-"/home/tom/github/wronai/domd/scripts/check_version.py", line 11, in <module>
-import toml ModuleNotFoundError: No module named 'toml'
+execution error:
 [WARNING]:  * Failed to parse
 /home/tom/github/wronai/domd/scripts/check_version.py with ini plugin:
-/home/tom/github/wrona...
+/home/tom/github/wronai/domd/scripts/check_version.py:2: Error parsing host
+definition '"""': No closing quotation
+[WARNING]: Unable to parse
+/home/tom/github/wronai/domd/scripts/check_version.py as...
 ```
 
 **Metadata:**
@@ -1343,7 +1343,7 @@ import toml ModuleNotFoundError: No module named 'toml'
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.75s
+**Execution Time:** 1.57s
 
 **Output:**
 ```
@@ -1386,7 +1386,7 @@ host variable assignme...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.44s
+**Execution Time:** 1.91s
 
 **Output:**
 ```
@@ -1429,7 +1429,7 @@ host variable assi...
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 4.65s
+**Execution Time:** 2.71s
 
 **Output:**
 ```
@@ -1455,7 +1455,7 @@ an execution error: npm warn Unknown global config "python". This will stop
 working in the next major version of npm. npm error Missing script: "format"
 npm error npm error To see a list of scripts, run: npm error   npm run npm
 error A complete log of this run can be found in:
-/home/tom/.npm/_logs/2025-06-18T11_36...
+/home/tom/.npm/_logs/2025-06-18T11_48...
 ```
 
 **Metadata:**
@@ -1464,57 +1464,14 @@ error A complete log of this run can be found in:
 
 ---
 
-## 53. Dynamic inventory: scripts/install_backend.sh
-
-**Command:** `ansible-inventory -i scripts/install_backend.sh --list`
-**Source:** /home/tom/github/wronai/domd/scripts/install_backend.sh
-**Type:** ansible_inventory
-**Status:** ✅ Success
-**Return Code:** 0
-**Execution Time:** 17.76s
-
-**Output:**
-```
-{
-    "_meta": {
-        "hostvars": {}
-    },
-    "all": {
-        "children": [
-            "ungrouped"
-        ]
-    }
-}
-
-```
-
-**Error Output:**
-```
-[WARNING]:  * Failed to parse
-/home/tom/github/wronai/domd/scripts/install_backend.sh with script plugin:
-failed to parse executable inventory script results from
-/home/tom/github/wronai/domd/scripts/install_backend.sh: Expecting value: line
-1 column 1 (char 0). Expecting value: line 1 column 1 (char 0) Project
-environment contains an invalid distribution
-(/home/tom/github/wronai/domd/.venv/lib64/python3.13/site-
-packages/domd-2.2.56.dist-info). Consider removing it manually or recreate the
-envi...
-```
-
-**Metadata:**
-- **inventory_type:** dynamic
-- **file:** scripts/install_backend.sh
-
----
-
-## 54. Dynamic inventory: scripts/lint_frontend.sh
+## 53. Dynamic inventory: scripts/lint_frontend.sh
 
 **Command:** `ansible-inventory -i scripts/lint_frontend.sh --list`
 **Source:** /home/tom/github/wronai/domd/scripts/lint_frontend.sh
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 4.76s
+**Execution Time:** 8.81s
 
 **Output:**
 ```
@@ -1549,14 +1506,14 @@ npm error ...
 
 ---
 
-## 55. Test inventory: scripts/publish.sh
+## 54. Test inventory: scripts/publish.sh
 
 **Command:** `ansible all -i scripts/publish.sh -m ping`
 **Source:** /home/tom/github/wronai/domd/scripts/publish.sh
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.81s
+**Execution Time:** 4.70s
 
 **Error Output:**
 ```
@@ -1576,6 +1533,47 @@ key=value host variable assignment, got: install
 
 ---
 
+## 55. Dynamic inventory: scripts/reset_db.sh
+
+**Command:** `ansible-inventory -i scripts/reset_db.sh --list`
+**Source:** /home/tom/github/wronai/domd/scripts/reset_db.sh
+**Type:** ansible_inventory
+**Status:** ✅ Success
+**Return Code:** 0
+**Execution Time:** 4.15s
+
+**Output:**
+```
+{
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+
+```
+
+**Error Output:**
+```
+[WARNING]:  * Failed to parse /home/tom/github/wronai/domd/scripts/reset_db.sh
+with script plugin: failed to parse executable inventory script results from
+/home/tom/github/wronai/domd/scripts/reset_db.sh: Expecting value: line 1
+column 1 (char 0). Expecting value: line 1 column 1 (char 0)
+[WARNING]:  * Failed to parse /home/tom/github/wronai/domd/scripts/reset_db.sh
+with ini plugin: /home/tom/github/wronai/domd/scripts/reset_db.sh:5: Expected
+key=value host variable assignment, got: ${BASH_SOUR...
+```
+
+**Metadata:**
+- **inventory_type:** dynamic
+- **file:** scripts/reset_db.sh
+
+---
+
 ## 56. Dynamic inventory: scripts/start.sh
 
 **Command:** `ansible-inventory -i scripts/start.sh --list`
@@ -1583,7 +1581,7 @@ key=value host variable assignment, got: install
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 9.28s
+**Execution Time:** 26.76s
 
 **Output:**
 ```
@@ -1626,7 +1624,7 @@ specify one.
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 20.53s
+**Execution Time:** 13.07s
 
 **Output:**
 ```
@@ -1669,7 +1667,7 @@ not found
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 12.47s
+**Execution Time:** 17.99s
 
 **Output:**
 ```
@@ -1711,7 +1709,7 @@ host variable assignment, got: -e
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 6.02s
+**Execution Time:** 15.92s
 
 **Output:**
 ```
@@ -1747,57 +1745,14 @@ execution error: Traceback (most recent call last):   File
 
 ---
 
-## 60. Dynamic inventory: scripts/test_commands_in_docker.py
-
-**Command:** `ansible-inventory -i scripts/test_commands_in_docker.py --list`
-**Source:** /home/tom/github/wronai/domd/scripts/test_commands_in_docker.py
-**Type:** ansible_inventory
-**Status:** ✅ Success
-**Return Code:** 0
-**Execution Time:** 13.53s
-
-**Output:**
-```
-{
-    "_meta": {
-        "hostvars": {}
-    },
-    "all": {
-        "children": [
-            "ungrouped"
-        ]
-    }
-}
-
-```
-
-**Error Output:**
-```
-[WARNING]:  * Failed to parse
-/home/tom/github/wronai/domd/scripts/test_commands_in_docker.py with script
-plugin: failed to parse executable inventory script results from
-/home/tom/github/wronai/domd/scripts/test_commands_in_docker.py: Expecting
-value: line 2 column 1 (char 1). Expecting value: line 2 column 1 (char 1)
-[WARNING]:  * Failed to parse
-/home/tom/github/wronai/domd/scripts/test_commands_in_docker.py with ini
-plugin: /home/tom/github/wronai/domd/scripts/test_commands_in_docker.py:2:
-E...
-```
-
-**Metadata:**
-- **inventory_type:** dynamic
-- **file:** scripts/test_commands_in_docker.py
-
----
-
-## 61. Test inventory: setup.cfg
+## 60. Test inventory: setup.cfg
 
 **Command:** `ansible all -i setup.cfg -m ping`
 **Source:** /home/tom/github/wronai/domd/setup.cfg
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.12s
+**Execution Time:** 5.88s
 
 **Error Output:**
 ```
@@ -1818,14 +1773,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 62. Test inventory: site/mkdocs.yml
+## 61. Test inventory: site/mkdocs.yml
 
 **Command:** `ansible all -i site/mkdocs.yml -m ping`
 **Source:** /home/tom/github/wronai/domd/site/mkdocs.yml
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.15s
+**Execution Time:** 4.24s
 
 **Error Output:**
 ```
@@ -1845,14 +1800,14 @@ string>", line 16...
 
 ---
 
-## 63. Test inventory: src/domd/__init__.py
+## 62. Test inventory: src/domd/__init__.py
 
 **Command:** `ansible all -i src/domd/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.49s
+**Execution Time:** 5.02s
 
 **Error Output:**
 ```
@@ -1872,14 +1827,14 @@ parsing host definition '"""': No closing quotation
 
 ---
 
-## 64. Test inventory: src/domd/adapters/__init__.py
+## 63. Test inventory: src/domd/adapters/__init__.py
 
 **Command:** `ansible all -i src/domd/adapters/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.03s
+**Execution Time:** 4.07s
 
 **Error Output:**
 ```
@@ -1894,14 +1849,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 65. Test inventory: src/domd/adapters/api/__init__.py
+## 64. Test inventory: src/domd/adapters/api/__init__.py
 
 **Command:** `ansible all -i src/domd/adapters/api/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/api/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.07s
+**Execution Time:** 3.96s
 
 **Error Output:**
 ```
@@ -1916,14 +1871,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 66. Test inventory: src/domd/adapters/api/flask_api.py
+## 65. Test inventory: src/domd/adapters/api/flask_api.py
 
 **Command:** `ansible all -i src/domd/adapters/api/flask_api.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/api/flask_api.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.89s
+**Execution Time:** 2.76s
 
 **Error Output:**
 ```
@@ -1945,14 +1900,14 @@ Error parsing host defin...
 
 ---
 
-## 67. Test inventory: src/domd/adapters/cli/__init__.py
+## 66. Test inventory: src/domd/adapters/cli/__init__.py
 
 **Command:** `ansible all -i src/domd/adapters/cli/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/cli/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.41s
+**Execution Time:** 3.32s
 
 **Error Output:**
 ```
@@ -1967,14 +1922,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 68. Test inventory: src/domd/adapters/cli/command_presenter.py
+## 67. Test inventory: src/domd/adapters/cli/command_presenter.py
 
 **Command:** `ansible all -i src/domd/adapters/cli/command_presenter.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/cli/command_presenter.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.10s
+**Execution Time:** 3.18s
 
 **Error Output:**
 ```
@@ -1996,14 +1951,14 @@ ini plugin:
 
 ---
 
-## 69. Test inventory: src/domd/adapters/formatters/__init__.py
+## 68. Test inventory: src/domd/adapters/formatters/__init__.py
 
 **Command:** `ansible all -i src/domd/adapters/formatters/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/formatters/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.08s
+**Execution Time:** 3.08s
 
 **Error Output:**
 ```
@@ -2018,14 +1973,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 70. Test inventory: src/domd/adapters/formatters/markdown_formatter.py
+## 69. Test inventory: src/domd/adapters/formatters/markdown_formatter.py
 
 **Command:** `ansible all -i src/domd/adapters/formatters/markdown_formatter.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/formatters/markdown_formatter.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.16s
+**Execution Time:** 3.48s
 
 **Error Output:**
 ```
@@ -2046,14 +2001,14 @@ with ini plugin: /home/tom/github/wronai/do...
 
 ---
 
-## 71. Test inventory: src/domd/adapters/persistence/__init__.py
+## 70. Test inventory: src/domd/adapters/persistence/__init__.py
 
 **Command:** `ansible all -i src/domd/adapters/persistence/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/persistence/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.04s
+**Execution Time:** 2.40s
 
 **Error Output:**
 ```
@@ -2068,14 +2023,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 72. Test inventory: src/domd/adapters/persistence/in_memory_command_repository.py
+## 71. Test inventory: src/domd/adapters/persistence/in_memory_command_repository.py
 
 **Command:** `ansible all -i src/domd/adapters/persistence/in_memory_command_repository.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/persistence/in_memory_command_repository.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.16s
+**Execution Time:** 3.01s
 
 **Error Output:**
 ```
@@ -2094,14 +2049,14 @@ rsistence/in_memory_command_repositor...
 
 ---
 
-## 73. Test inventory: src/domd/adapters/persistence/shell_command_executor.py
+## 72. Test inventory: src/domd/adapters/persistence/shell_command_executor.py
 
 **Command:** `ansible all -i src/domd/adapters/persistence/shell_command_executor.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/adapters/persistence/shell_command_executor.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.21s
+**Execution Time:** 3.32s
 
 **Error Output:**
 ```
@@ -2120,14 +2075,14 @@ rsistence/shell_command_executor.py with ini plugin: /ho...
 
 ---
 
-## 74. Dynamic inventory: src/domd/api.py
+## 73. Dynamic inventory: src/domd/api.py
 
 **Command:** `ansible-inventory -i src/domd/api.py --list`
 **Source:** /home/tom/github/wronai/domd/src/domd/api.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.40s
+**Execution Time:** 2.33s
 
 **Output:**
 ```
@@ -2162,14 +2117,14 @@ ini p...
 
 ---
 
-## 75. Test inventory: src/domd/application/__init__.py
+## 74. Test inventory: src/domd/application/__init__.py
 
 **Command:** `ansible all -i src/domd/application/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/application/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.27s
+**Execution Time:** 3.39s
 
 **Error Output:**
 ```
@@ -2184,14 +2139,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 76. Test inventory: src/domd/application/factory.py
+## 75. Test inventory: src/domd/application/factory.py
 
 **Command:** `ansible all -i src/domd/application/factory.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/application/factory.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.41s
+**Execution Time:** 3.02s
 
 **Error Output:**
 ```
@@ -2213,14 +2168,14 @@ host definition '"""': No...
 
 ---
 
-## 77. Dynamic inventory: src/domd/cli.py
+## 76. Dynamic inventory: src/domd/cli.py
 
 **Command:** `ansible-inventory -i src/domd/cli.py --list`
 **Source:** /home/tom/github/wronai/domd/src/domd/cli.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.46s
+**Execution Time:** 3.00s
 
 **Output:**
 ```
@@ -2255,14 +2210,14 @@ ini plugin: /home/tom/github...
 
 ---
 
-## 78. Test inventory: src/domd/command_execution/__init__.py
+## 77. Test inventory: src/domd/command_execution/__init__.py
 
 **Command:** `ansible all -i src/domd/command_execution/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/command_execution/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.07s
+**Execution Time:** 2.55s
 
 **Error Output:**
 ```
@@ -2284,14 +2239,14 @@ Erro...
 
 ---
 
-## 79. Test inventory: src/domd/core/__init__.py
+## 78. Test inventory: src/domd/core/__init__.py
 
 **Command:** `ansible all -i src/domd/core/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.82s
+**Execution Time:** 2.06s
 
 **Error Output:**
 ```
@@ -2313,14 +2268,14 @@ definition '"""': No closing quotation
 
 ---
 
-## 80. Test inventory: src/domd/core/command_execution/__init__.py
+## 79. Test inventory: src/domd/core/command_execution/__init__.py
 
 **Command:** `ansible all -i src/domd/core/command_execution/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/command_execution/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.07s
+**Execution Time:** 2.58s
 
 **Error Output:**
 ```
@@ -2342,14 +2297,14 @@ ini plugin:
 
 ---
 
-## 81. Test inventory: src/domd/core/detector.py
+## 80. Test inventory: src/domd/core/detector.py
 
 **Command:** `ansible all -i src/domd/core/detector.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/detector.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.28s
+**Execution Time:** 1.90s
 
 **Error Output:**
 ```
@@ -2370,14 +2325,14 @@ definition '"""Project command detector for findin...
 
 ---
 
-## 82. Test inventory: src/domd/core/domain/__init__.py
+## 81. Test inventory: src/domd/core/domain/__init__.py
 
 **Command:** `ansible all -i src/domd/core/domain/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/domain/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.37s
+**Execution Time:** 2.11s
 
 **Error Output:**
 ```
@@ -2392,14 +2347,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 83. Test inventory: src/domd/core/domain/command.py
+## 82. Test inventory: src/domd/core/domain/command.py
 
 **Command:** `ansible all -i src/domd/core/domain/command.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/domain/command.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.09s
+**Execution Time:** 1.82s
 
 **Error Output:**
 ```
@@ -2421,14 +2376,14 @@ host definition '"""': No...
 
 ---
 
-## 84. Test inventory: src/domd/core/parsing/__init__.py
+## 83. Test inventory: src/domd/core/parsing/__init__.py
 
 **Command:** `ansible all -i src/domd/core/parsing/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/parsing/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.56s
+**Execution Time:** 2.02s
 
 **Error Output:**
 ```
@@ -2450,14 +2405,14 @@ host definition...
 
 ---
 
-## 85. Test inventory: src/domd/core/ports/__init__.py
+## 84. Test inventory: src/domd/core/ports/__init__.py
 
 **Command:** `ansible all -i src/domd/core/ports/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/ports/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.84s
+**Execution Time:** 1.95s
 
 **Error Output:**
 ```
@@ -2472,14 +2427,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 86. Test inventory: src/domd/core/ports/command_executor.py
+## 85. Test inventory: src/domd/core/ports/command_executor.py
 
 **Command:** `ansible all -i src/domd/core/ports/command_executor.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/ports/command_executor.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.13s
+**Execution Time:** 1.93s
 
 **Error Output:**
 ```
@@ -2500,14 +2455,14 @@ plugin: /home/tom/github/wronai/domd/src/domd/core/ports/command_executor.py:1:.
 
 ---
 
-## 87. Test inventory: src/domd/core/ports/command_repository.py
+## 86. Test inventory: src/domd/core/ports/command_repository.py
 
 **Command:** `ansible all -i src/domd/core/ports/command_repository.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/ports/command_repository.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.94s
+**Execution Time:** 1.89s
 
 **Error Output:**
 ```
@@ -2529,14 +2484,14 @@ plugin:
 
 ---
 
-## 88. Test inventory: src/domd/core/ports/report_formatter.py
+## 87. Test inventory: src/domd/core/ports/report_formatter.py
 
 **Command:** `ansible all -i src/domd/core/ports/report_formatter.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/ports/report_formatter.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.29s
+**Execution Time:** 2.02s
 
 **Error Output:**
 ```
@@ -2557,14 +2512,14 @@ plugin: /home/tom/github/wronai/domd/src/domd/core/ports/report_formatter.py:1:.
 
 ---
 
-## 89. Test inventory: src/domd/core/reporting/__init__.py
+## 88. Test inventory: src/domd/core/reporting/__init__.py
 
 **Command:** `ansible all -i src/domd/core/reporting/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/reporting/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.33s
+**Execution Time:** 1.92s
 
 **Error Output:**
 ```
@@ -2586,14 +2541,14 @@ Error parsing host ...
 
 ---
 
-## 90. Test inventory: src/domd/core/services/__init__.py
+## 89. Test inventory: src/domd/core/services/__init__.py
 
 **Command:** `ansible all -i src/domd/core/services/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/services/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.72s
+**Execution Time:** 1.91s
 
 **Error Output:**
 ```
@@ -2608,14 +2563,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 91. Test inventory: src/domd/core/services/command_service.py
+## 90. Test inventory: src/domd/core/services/command_service.py
 
 **Command:** `ansible all -i src/domd/core/services/command_service.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/services/command_service.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.92s
+**Execution Time:** 1.80s
 
 **Error Output:**
 ```
@@ -2637,14 +2592,14 @@ plugin:
 
 ---
 
-## 92. Test inventory: src/domd/core/services/report_service.py
+## 91. Test inventory: src/domd/core/services/report_service.py
 
 **Command:** `ansible all -i src/domd/core/services/report_service.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/services/report_service.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.10s
+**Execution Time:** 1.82s
 
 **Error Output:**
 ```
@@ -2666,14 +2621,14 @@ plugin:
 
 ---
 
-## 93. Test inventory: src/domd/core/utils/__init__.py
+## 92. Test inventory: src/domd/core/utils/__init__.py
 
 **Command:** `ansible all -i src/domd/core/utils/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/utils/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.89s
+**Execution Time:** 2.17s
 
 **Error Output:**
 ```
@@ -2695,14 +2650,14 @@ host definition '"""': No...
 
 ---
 
-## 94. Test inventory: src/domd/core/utils/command_utils.py
+## 93. Test inventory: src/domd/core/utils/command_utils.py
 
 **Command:** `ansible all -i src/domd/core/utils/command_utils.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/utils/command_utils.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.95s
+**Execution Time:** 2.26s
 
 **Error Output:**
 ```
@@ -2724,14 +2679,14 @@ Error parsing ...
 
 ---
 
-## 95. Test inventory: src/domd/core/utils/file_utils.py
+## 94. Test inventory: src/domd/core/utils/file_utils.py
 
 **Command:** `ansible all -i src/domd/core/utils/file_utils.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/core/utils/file_utils.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.89s
+**Execution Time:** 2.38s
 
 **Error Output:**
 ```
@@ -2753,14 +2708,14 @@ host definition...
 
 ---
 
-## 96. Test inventory: src/domd/parsers/__init__.py
+## 95. Test inventory: src/domd/parsers/__init__.py
 
 **Command:** `ansible all -i src/domd/parsers/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsers/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.50s
+**Execution Time:** 1.76s
 
 **Error Output:**
 ```
@@ -2781,14 +2736,14 @@ definition '"""Parsers package for ...
 
 ---
 
-## 97. Test inventory: src/domd/parsers/base.py
+## 96. Test inventory: src/domd/parsers/base.py
 
 **Command:** `ansible all -i src/domd/parsers/base.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsers/base.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.98s
+**Execution Time:** 2.09s
 
 **Error Output:**
 ```
@@ -2810,14 +2765,14 @@ definition '"""': No closing quotation
 
 ---
 
-## 98. Test inventory: src/domd/parsers/ci_cd.py
+## 97. Test inventory: src/domd/parsers/ci_cd.py
 
 **Command:** `ansible all -i src/domd/parsers/ci_cd.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsers/ci_cd.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.28s
+**Execution Time:** 2.27s
 
 **Error Output:**
 ```
@@ -2838,14 +2793,14 @@ definition '"""CI/CD workflow parsers for backward...
 
 ---
 
-## 99. Test inventory: src/domd/parsers/docker.py
+## 98. Test inventory: src/domd/parsers/docker.py
 
 **Command:** `ansible all -i src/domd/parsers/docker.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsers/docker.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.43s
+**Execution Time:** 2.12s
 
 **Error Output:**
 ```
@@ -2867,14 +2822,14 @@ definition '"""': No closing quotation
 
 ---
 
-## 100. Test inventory: src/domd/parsers/javascript.py
+## 99. Test inventory: src/domd/parsers/javascript.py
 
 **Command:** `ansible all -i src/domd/parsers/javascript.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsers/javascript.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.44s
+**Execution Time:** 1.77s
 
 **Error Output:**
 ```
@@ -2895,14 +2850,14 @@ host definition '"""': No clos...
 
 ---
 
-## 101. Test inventory: src/domd/parsers/test_ci_cd.py
+## 100. Test inventory: src/domd/parsers/test_ci_cd.py
 
 **Command:** `ansible all -i src/domd/parsers/test_ci_cd.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsers/test_ci_cd.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.66s
+**Execution Time:** 1.96s
 
 **Error Output:**
 ```
@@ -2923,14 +2878,14 @@ host definition '"""': No clos...
 
 ---
 
-## 102. Test inventory: src/domd/parsers/test_docker.py
+## 101. Test inventory: src/domd/parsers/test_docker.py
 
 **Command:** `ansible all -i src/domd/parsers/test_docker.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsers/test_docker.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.53s
+**Execution Time:** 1.85s
 
 **Error Output:**
 ```
@@ -2952,14 +2907,14 @@ host definition '"""': No...
 
 ---
 
-## 103. Test inventory: src/domd/parsers/test_javascript.py
+## 102. Test inventory: src/domd/parsers/test_javascript.py
 
 **Command:** `ansible all -i src/domd/parsers/test_javascript.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsers/test_javascript.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.42s
+**Execution Time:** 2.27s
 
 **Error Output:**
 ```
@@ -2981,14 +2936,14 @@ Error parsing host ...
 
 ---
 
-## 104. Test inventory: src/domd/parsers/test_python.py
+## 103. Test inventory: src/domd/parsers/test_python.py
 
 **Command:** `ansible all -i src/domd/parsers/test_python.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsers/test_python.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.70s
+**Execution Time:** 2.21s
 
 **Error Output:**
 ```
@@ -3010,14 +2965,14 @@ host definition '"""': No...
 
 ---
 
-## 105. Test inventory: src/domd/parsing/__init__.py
+## 104. Test inventory: src/domd/parsing/__init__.py
 
 **Command:** `ansible all -i src/domd/parsing/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/parsing/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.20s
+**Execution Time:** 2.28s
 
 **Error Output:**
 ```
@@ -3038,14 +2993,14 @@ definition '"""': No closing quotat...
 
 ---
 
-## 106. Test inventory: src/domd/reporters/console.py
+## 105. Test inventory: src/domd/reporters/console.py
 
 **Command:** `ansible all -i src/domd/reporters/console.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/reporters/console.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.77s
+**Execution Time:** 2.48s
 
 **Error Output:**
 ```
@@ -3066,14 +3021,14 @@ host definition '"""': No closing q...
 
 ---
 
-## 107. Test inventory: src/domd/reporters/json_reporter.py
+## 106. Test inventory: src/domd/reporters/json_reporter.py
 
 **Command:** `ansible all -i src/domd/reporters/json_reporter.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/reporters/json_reporter.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.35s
+**Execution Time:** 2.02s
 
 **Error Output:**
 ```
@@ -3095,14 +3050,14 @@ Error parsing host ...
 
 ---
 
-## 108. Test inventory: src/domd/reporters/test_console.py
+## 107. Test inventory: src/domd/reporters/test_console.py
 
 **Command:** `ansible all -i src/domd/reporters/test_console.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/reporters/test_console.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.61s
+**Execution Time:** 2.44s
 
 **Error Output:**
 ```
@@ -3124,14 +3079,14 @@ Error parsing host defin...
 
 ---
 
-## 109. Test inventory: src/domd/reporters/test_json_reporter.py
+## 108. Test inventory: src/domd/reporters/test_json_reporter.py
 
 **Command:** `ansible all -i src/domd/reporters/test_json_reporter.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/reporters/test_json_reporter.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.28s
+**Execution Time:** 2.98s
 
 **Error Output:**
 ```
@@ -3153,14 +3108,14 @@ plugin:
 
 ---
 
-## 110. Test inventory: src/domd/reporters/test_todo_md.py
+## 109. Test inventory: src/domd/reporters/test_todo_md.py
 
 **Command:** `ansible all -i src/domd/reporters/test_todo_md.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/reporters/test_todo_md.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.90s
+**Execution Time:** 2.37s
 
 **Error Output:**
 ```
@@ -3182,14 +3137,14 @@ Error parsing host defin...
 
 ---
 
-## 111. Test inventory: src/domd/reporters/todo_md.py
+## 110. Test inventory: src/domd/reporters/todo_md.py
 
 **Command:** `ansible all -i src/domd/reporters/todo_md.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/reporters/todo_md.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.49s
+**Execution Time:** 2.82s
 
 **Error Output:**
 ```
@@ -3210,14 +3165,14 @@ host definition '"""': No closing q...
 
 ---
 
-## 112. Test inventory: src/domd/reporting/__init__.py
+## 111. Test inventory: src/domd/reporting/__init__.py
 
 **Command:** `ansible all -i src/domd/reporting/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/reporting/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.44s
+**Execution Time:** 2.06s
 
 **Error Output:**
 ```
@@ -3238,14 +3193,14 @@ host definition '"""': No clos...
 
 ---
 
-## 113. Test inventory: src/domd/utils/command_runner.py
+## 112. Test inventory: src/domd/utils/command_runner.py
 
 **Command:** `ansible all -i src/domd/utils/command_runner.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/utils/command_runner.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.27s
+**Execution Time:** 2.06s
 
 **Error Output:**
 ```
@@ -3267,14 +3222,14 @@ host definition '"""...
 
 ---
 
-## 114. Test inventory: src/domd/utils/file_utils.py
+## 113. Test inventory: src/domd/utils/file_utils.py
 
 **Command:** `ansible all -i src/domd/utils/file_utils.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/utils/file_utils.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.65s
+**Execution Time:** 1.95s
 
 **Error Output:**
 ```
@@ -3295,14 +3250,14 @@ definition '"""': No closing quotat...
 
 ---
 
-## 115. Test inventory: src/domd/utils/test_command_runner.py
+## 114. Test inventory: src/domd/utils/test_command_runner.py
 
 **Command:** `ansible all -i src/domd/utils/test_command_runner.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/utils/test_command_runner.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.24s
+**Execution Time:** 2.45s
 
 **Error Output:**
 ```
@@ -3324,14 +3279,14 @@ Error par...
 
 ---
 
-## 116. Test inventory: src/domd/utils/test_file_utils.py
+## 115. Test inventory: src/domd/utils/test_file_utils.py
 
 **Command:** `ansible all -i src/domd/utils/test_file_utils.py -m ping`
 **Source:** /home/tom/github/wronai/domd/src/domd/utils/test_file_utils.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.78s
+**Execution Time:** 2.40s
 
 **Error Output:**
 ```
@@ -3353,14 +3308,14 @@ host definition...
 
 ---
 
-## 117. Dynamic inventory: test_in_docker.sh
+## 116. Dynamic inventory: test_in_docker.sh
 
 **Command:** `ansible-inventory -i test_in_docker.sh --list`
 **Source:** /home/tom/github/wronai/domd/test_in_docker.sh
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.52s
+**Execution Time:** 2.51s
 
 **Output:**
 ```
@@ -3400,14 +3355,14 @@ key=value host variable assignment, got: $IGNORE_FILE
 
 ---
 
-## 118. Test inventory: tests/ansible/roles/login_test/tasks/main.yml
+## 117. Test inventory: tests/ansible/roles/login_test/tasks/main.yml
 
 **Command:** `ansible all -i tests/ansible/roles/login_test/tasks/main.yml -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/ansible/roles/login_test/tasks/main.yml
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.64s
+**Execution Time:** 2.21s
 
 **Error Output:**
 ```
@@ -3428,14 +3383,14 @@ got: <class 'ansible.parsing.yaml.o...
 
 ---
 
-## 119. Test inventory: tests/ansible/test_login.yml
+## 118. Test inventory: tests/ansible/test_login.yml
 
 **Command:** `ansible all -i tests/ansible/test_login.yml -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/ansible/test_login.yml
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.44s
+**Execution Time:** 2.70s
 
 **Error Output:**
 ```
@@ -3457,14 +3412,14 @@ YAML inventory has invalid structure, it should be a dictionary, got: <class
 
 ---
 
-## 120. Test inventory: tests/conftest.py
+## 119. Test inventory: tests/conftest.py
 
 **Command:** `ansible all -i tests/conftest.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/conftest.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.04s
+**Execution Time:** 3.38s
 
 **Error Output:**
 ```
@@ -3484,14 +3439,14 @@ parsing host definition '"""': No closing quotation
 
 ---
 
-## 121. Test inventory: tests/fixtures/__init__.py
+## 120. Test inventory: tests/fixtures/__init__.py
 
 **Command:** `ansible all -i tests/fixtures/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/fixtures/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.78s
+**Execution Time:** 2.91s
 
 **Error Output:**
 ```
@@ -3513,14 +3468,14 @@ definition '"""': No closing quotation
 
 ---
 
-## 122. Test inventory: tests/fixtures/ansible_helpers.py
+## 121. Test inventory: tests/fixtures/ansible_helpers.py
 
 **Command:** `ansible all -i tests/fixtures/ansible_helpers.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/fixtures/ansible_helpers.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.95s
+**Execution Time:** 3.20s
 
 **Error Output:**
 ```
@@ -3542,14 +3497,14 @@ host definition...
 
 ---
 
-## 123. Test inventory: tests/fixtures/sample_dockerfile
+## 122. Test inventory: tests/fixtures/sample_dockerfile
 
 **Command:** `ansible all -i tests/fixtures/sample_dockerfile -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/fixtures/sample_dockerfile
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.75s
+**Execution Time:** 3.80s
 
 **Error Output:**
 ```
@@ -3564,14 +3519,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 124. Test inventory: tests/fixtures/sample_makefile
+## 123. Test inventory: tests/fixtures/sample_makefile
 
 **Command:** `ansible all -i tests/fixtures/sample_makefile -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/fixtures/sample_makefile
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.23s
+**Execution Time:** 3.31s
 
 **Error Output:**
 ```
@@ -3586,14 +3541,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 125. Test inventory: tests/fixtures/sample_package.json
+## 124. Test inventory: tests/fixtures/sample_package.json
 
 **Command:** `ansible all -i tests/fixtures/sample_package.json -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/fixtures/sample_package.json
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.92s
+**Execution Time:** 3.23s
 
 **Error Output:**
 ```
@@ -3608,14 +3563,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 126. Test inventory: tests/fixtures/sample_pyproject.toml
+## 125. Test inventory: tests/fixtures/sample_pyproject.toml
 
 **Command:** `ansible all -i tests/fixtures/sample_pyproject.toml -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/fixtures/sample_pyproject.toml
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.07s
+**Execution Time:** 2.01s
 
 **Error Output:**
 ```
@@ -3630,14 +3585,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 127. Test inventory: tests/parsers/__init__.py
+## 126. Test inventory: tests/parsers/__init__.py
 
 **Command:** `ansible all -i tests/parsers/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/parsers/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.83s
+**Execution Time:** 1.93s
 
 **Error Output:**
 ```
@@ -3652,14 +3607,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 128. Test inventory: tests/reporters/__init__.py
+## 127. Test inventory: tests/reporters/__init__.py
 
 **Command:** `ansible all -i tests/reporters/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/reporters/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.36s
+**Execution Time:** 1.85s
 
 **Error Output:**
 ```
@@ -3674,14 +3629,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 129. Test inventory: tests/test_ansible.py
+## 128. Test inventory: tests/test_ansible.py
 
 **Command:** `ansible all -i tests/test_ansible.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/test_ansible.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.52s
+**Execution Time:** 2.03s
 
 **Error Output:**
 ```
@@ -3702,14 +3657,14 @@ definition '"""': No closing quotation
 
 ---
 
-## 130. Test inventory: tests/test_ansible_galaxy.py
+## 129. Test inventory: tests/test_ansible_galaxy.py
 
 **Command:** `ansible all -i tests/test_ansible_galaxy.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/test_ansible_galaxy.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.24s
+**Execution Time:** 1.63s
 
 **Error Output:**
 ```
@@ -3730,14 +3685,14 @@ definition '"""': No closing quotat...
 
 ---
 
-## 131. Test inventory: tests/test_ansible_inventory.py
+## 130. Test inventory: tests/test_ansible_inventory.py
 
 **Command:** `ansible all -i tests/test_ansible_inventory.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/test_ansible_inventory.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.19s
+**Execution Time:** 1.71s
 
 **Error Output:**
 ```
@@ -3759,14 +3714,14 @@ host definition '"""': No...
 
 ---
 
-## 132. Test inventory: tests/test_ansible_playbook.py
+## 131. Test inventory: tests/test_ansible_playbook.py
 
 **Command:** `ansible all -i tests/test_ansible_playbook.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/test_ansible_playbook.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 3.41s
+**Execution Time:** 1.58s
 
 **Error Output:**
 ```
@@ -3787,14 +3742,14 @@ host definition '"""': No clos...
 
 ---
 
-## 133. Test inventory: tests/test_ansible_roles.py
+## 132. Test inventory: tests/test_ansible_roles.py
 
 **Command:** `ansible all -i tests/test_ansible_roles.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/test_ansible_roles.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.78s
+**Execution Time:** 1.46s
 
 **Error Output:**
 ```
@@ -3816,14 +3771,14 @@ definition '"""': No closing quotation
 
 ---
 
-## 134. Test inventory: tests/test_ansible_vault.py
+## 133. Test inventory: tests/test_ansible_vault.py
 
 **Command:** `ansible all -i tests/test_ansible_vault.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/test_ansible_vault.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.47s
+**Execution Time:** 1.34s
 
 **Error Output:**
 ```
@@ -3845,14 +3800,14 @@ definition '"""': No closing quotation
 
 ---
 
-## 135. Test inventory: tests/test_cli.py
+## 134. Test inventory: tests/test_cli.py
 
 **Command:** `ansible all -i tests/test_cli.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/test_cli.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.11s
+**Execution Time:** 1.15s
 
 **Error Output:**
 ```
@@ -3872,14 +3827,14 @@ parsing host definition '"""': No closing quotation
 
 ---
 
-## 136. Test inventory: tests/test_detector.py
+## 135. Test inventory: tests/test_detector.py
 
 **Command:** `ansible all -i tests/test_detector.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/test_detector.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.39s
+**Execution Time:** 0.89s
 
 **Error Output:**
 ```
@@ -3900,14 +3855,14 @@ definition '"""': No closing quotation
 
 ---
 
-## 137. Test inventory: tests/unit/core/detector/test_project_command_detector.py
+## 136. Test inventory: tests/unit/core/detector/test_project_command_detector.py
 
 **Command:** `ansible all -i tests/unit/core/detector/test_project_command_detector.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/unit/core/detector/test_project_command_detector.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.73s
+**Execution Time:** 1.17s
 
 **Error Output:**
 ```
@@ -3926,14 +3881,14 @@ ctor/test_project_command_detector.py with ini pl...
 
 ---
 
-## 138. Test inventory: tests/unit/parsers/test_base_parser.py
+## 137. Test inventory: tests/unit/parsers/test_base_parser.py
 
 **Command:** `ansible all -i tests/unit/parsers/test_base_parser.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/unit/parsers/test_base_parser.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.07s
+**Execution Time:** 1.27s
 
 **Error Output:**
 ```
@@ -3955,14 +3910,14 @@ Erro...
 
 ---
 
-## 139. Test inventory: tests/unit/parsers/test_config_parsers.py
+## 138. Test inventory: tests/unit/parsers/test_config_parsers.py
 
 **Command:** `ansible all -i tests/unit/parsers/test_config_parsers.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/unit/parsers/test_config_parsers.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.16s
+**Execution Time:** 1.18s
 
 **Error Output:**
 ```
@@ -3984,14 +3939,14 @@ plugin:
 
 ---
 
-## 140. Test inventory: tests/unit/reporters/test_todo_md_reporter.py
+## 139. Test inventory: tests/unit/reporters/test_todo_md_reporter.py
 
 **Command:** `ansible all -i tests/unit/reporters/test_todo_md_reporter.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/unit/reporters/test_todo_md_reporter.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.09s
+**Execution Time:** 1.53s
 
 **Error Output:**
 ```
@@ -4013,14 +3968,14 @@ ini plugin:
 
 ---
 
-## 141. Test inventory: tests/utils/__init__.py
+## 140. Test inventory: tests/utils/__init__.py
 
 **Command:** `ansible all -i tests/utils/__init__.py -m ping`
 **Source:** /home/tom/github/wronai/domd/tests/utils/__init__.py
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.96s
+**Execution Time:** 1.43s
 
 **Error Output:**
 ```
@@ -4035,14 +3990,14 @@ the implicit localhost does not match 'all'
 
 ---
 
-## 142. Dynamic inventory: todo.sh
+## 141. Dynamic inventory: todo.sh
 
 **Command:** `ansible-inventory -i todo.sh --list`
 **Source:** /home/tom/github/wronai/domd/todo.sh
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 1.61s
+**Execution Time:** 0.80s
 
 **Output:**
 ```
@@ -4077,14 +4032,14 @@ variable assignment, got: -e
 
 ---
 
-## 143. Test inventory: tox.ini
+## 142. Test inventory: tox.ini
 
 **Command:** `ansible all -i tox.ini -m ping`
 **Source:** /home/tom/github/wronai/domd/tox.ini
 **Type:** ansible_inventory
 **Status:** ✅ Success
 **Return Code:** 0
-**Execution Time:** 2.05s
+**Execution Time:** 0.95s
 
 **Error Output:**
 ```

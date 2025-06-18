@@ -168,10 +168,20 @@ def start_web_interface(args: argparse.Namespace) -> int:
 
 def create_parser() -> argparse.ArgumentParser:
     """Create enhanced argument parser with .doignore support and web interface."""
+    # Create the main parser with add_help=False to handle help and version manually
     parser = argparse.ArgumentParser(
         prog="domd",
         description="Project Command Detector with .doignore support and web interface",
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False,  # We'll add help manually to control its position
+    )
+
+    # Add help and version arguments at the top level
+    parser.add_argument(
+        "-h", "--help", action="store_true", help="Show this help message and exit"
+    )
+    parser.add_argument(
+        "-v", "--version", action="store_true", help="Show version information and exit"
     )
 
     # Create subparsers for different commands
