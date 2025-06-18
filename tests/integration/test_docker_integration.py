@@ -1,4 +1,5 @@
 """Integration tests for Docker command execution."""
+
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch

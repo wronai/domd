@@ -633,9 +633,9 @@ class DomdFlaskApi:
                 "successful_commands": len(successful_commands),
                 "failed_commands": len(failed_commands),
                 "ignored_commands": len(ignored_commands),
-                "success_rate": len(successful_commands) / len(all_commands)
-                if all_commands
-                else 0,
+                "success_rate": (
+                    len(successful_commands) / len(all_commands) if all_commands else 0
+                ),
             }
         )
 
@@ -668,9 +668,11 @@ class DomdFlaskApi:
                         "successful_commands": len(successful_commands),
                         "failed_commands": len(failed_commands),
                         "ignored_commands": len(ignored_commands),
-                        "success_rate": len(successful_commands) / len(all_commands)
-                        if all_commands
-                        else 0,
+                        "success_rate": (
+                            len(successful_commands) / len(all_commands)
+                            if all_commands
+                            else 0
+                        ),
                     },
                     "disk_usage": {
                         "total_size": total_size,

@@ -1,4 +1,5 @@
 """Tests for command execution with Docker support."""
+
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
