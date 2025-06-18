@@ -16,7 +16,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from ...application.factory import ApplicationFactory
 from ...core.domain.command import Command
-from ...core.parsing.pattern_matcher import PatternMatcher
 from .command_testing import register_command_testing_routes
 
 # Configure logging

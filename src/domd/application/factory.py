@@ -3,6 +3,10 @@ Fabryka aplikacji DoMD.
 """
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..core.command_execution.command_runner import CommandRunner
 from typing import List, Optional
 
 from ..adapters.cli.command_presenter import CommandPresenter
