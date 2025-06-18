@@ -9,6 +9,11 @@
 
 **DoMD** (Do Markdown Docs) is a powerful tool that helps you maintain up-to-date project documentation by automatically detecting, running, and documenting commands from your project files. It generates and updates `TODO.md` and `DONE.md` files based on command execution results, making it easier to track what works and what needs attention.
 
+```bash
+# Start DoMD analyzer
+domd
+```
+
 ## Web Interface
 
 DoMD comes with a modern web interface that allows you to interact with your project's commands through a user-friendly dashboard.

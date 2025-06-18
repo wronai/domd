@@ -14,13 +14,13 @@ import webbrowser
 from pathlib import Path
 from typing import Optional
 
-from . import __version__
-from .adapters.cli.command_presenter import CommandPresenter
-from .application.factory import ApplicationFactory
-from .core.detector import ProjectCommandDetector  # For backward compatibility
-from .core.domain.command import Command
-from .core.ports.command_repository import CommandRepository
-from .core.services.command_service import CommandService
+from domd import __version__
+from domd.adapters.cli.command_presenter import CommandPresenter
+from domd.application.factory import ApplicationFactory
+from domd.core.detector import ProjectCommandDetector  # For backward compatibility
+from domd.core.domain.command import Command
+from domd.core.ports.command_repository import CommandRepository
+from domd.core.services.command_service import CommandService
 
 logger = logging.getLogger(__name__)
 
