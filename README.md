@@ -4,16 +4,16 @@
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Tests](https://github.com/wronai/domd/workflows/Tests/badge.svg)](https://github.com/wronai/domd/actions)
-[![Docker Support](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker)](https://www.docker.com/)
-[![Documentation](https://img.shields.io/badge/Docs-Read%20the%20Docs-blue)](https://wronai.github.io/domd/)
+[![Docker Support][docker-badge]][docker-url]
+[![Documentation][docs-badge]][docs-url]
 
 **DoMD** (Do Markdown Docs) is a powerful tool that helps you maintain up-to-date project documentation by automatically detecting, running, and documenting commands from your project files. It generates and updates `TODO.md` and `DONE.md` files based on command execution results, making it easier to track what works and what needs attention.
 
-## 🌟 Web Interface
+## Web Interface
 
 DoMD comes with a modern web interface that allows you to interact with your project's commands through a user-friendly dashboard.
 
-### 🚀 Starting the Web Interface
+### Starting the Web Interface
 
 ```bash
 # Start the web interface on default port (3000)
@@ -26,7 +26,7 @@ domd web --port 8088
 domd web --no-browser
 ```
 
-### 🌈 Features
+### Web Interface Features
 
 - **Command Management**: View, run, and manage all your project commands from one place
 - **Real-time Output**: See command execution results in real-time
@@ -34,13 +34,13 @@ domd web --no-browser
 - **Responsive Design**: Works on both desktop and mobile devices
 - **Dark Mode**: Built-in dark theme for comfortable viewing
 
-### 🛠️ Requirements
+### Requirements
 
 - Node.js 16+ and npm 8+
 - Python 3.9+
 - Modern web browser (Chrome, Firefox, Safari, or Edge)
 
-### Getting Started
+### Web Interface Setup
 
 1. Start the web interface:
 
@@ -66,7 +66,7 @@ cd frontend
 npm start
 ```
 
-## Core Features
+## ✨ Core Features
 
 - **Automatic Command Detection** - Discovers and extracts commands from various project files
 - **Smart Execution** - Runs commands and captures their output and status
@@ -132,7 +132,7 @@ For more details, see the [Command Testing Documentation](docs/command_testing.m
 Choose the installation method that works best for you:
 
 ```bash
-#1. **Install DoMD** (if not already installed):
+1. **Install DoMD** (if not already installed):
 
    ```bash
    pip install domd
@@ -165,11 +165,11 @@ Choose the installation method that works best for you:
    domd web
    ```
 
-## Web Interface
+## Web Interface Overview
 
 DoMD includes a secure web-based interface for a more interactive experience:
 
-### Starting the Web Interface
+### Web Interface Setup
 
 ```bash
 # Start the web interface (default port: 3003)
@@ -184,6 +184,119 @@ domd web --no-browser
 # Start with specific host binding
 domd web --host 0.0.0.0
 ```
+
+   DoMD will:
+   - Scan your project for available commands
+   - Execute the commands in the correct context
+   - Generate a report in `TODO.md` with any issues found
+   - Update `DONE.md` with successfully executed commands
+
+### Common Commands
+
+- List available commands without executing them:
+  ```bash
+  domd --list
+  ```
+
+- Run a specific command by name or pattern:
+  ```bash
+  domd run test
+  domd run "test*"
+  ```
+
+- Generate a report without executing commands:
+  ```bash
+  domd --dry-run
+  ```
+
+- Get help with available options:
+  ```bash
+  domd --help
+  ```
+
+> Pro Tip: Run `domd` regularly to keep your project documentation in sync with your actual project state!
+
+## Web Interface
+
+DoMD comes with a web-based interface for a more interactive experience. Here's how to get it running:
+
+### Development Prerequisites
+
+- Node.js (v14 or later)
+- npm (comes with Node.js) or Yarn
+
+### Running the Development Server
+
+1. Navigate to the frontend directory:
+
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   # or if you use Yarn:
+   # yarn
+   ```
+
+3. Start the development server:
+
+   ```bash
+   npm start
+   # or if you use Yarn:
+   # yarn start
+   ```
+
+4. Open your browser and visit [http://localhost:3003](http://localhost:3003)
+
+### Building for Production
+
+To create a production build:
+
+```bash
+cd frontend
+npm run build
+# or with Yarn:
+# yarn build
+```
+
+This will create an optimized production build in the `build` directory.
+
+## Documentation
+
+For detailed documentation, please visit our [documentation site](https://wronai.github.io/domd/) or check the [docs](./docs) directory.
+
+- [Installation Guide](./docs/installation.md)
+- [Usage Guide](./docs/usage.md)
+- [Docker Integration](./docs/docker.md)
+- [Advanced Configuration](./docs/features/core.md)
+- [API Reference](./docs/api.md)
+
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide][contributing] for details on how to get started.
+
+## License
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
+
+## Need Help?
+
+Open an [issue][issues] if you need help or have questions.
+
+[contributing]: https://github.com/wronai/domd/blob/main/CONTRIBUTING.md
+[issues]: https://github.com/wronai/domd/issues
+
+## Pattern Matching
+
+- Patterns support glob-style wildcards (`*` matches any sequence of characters)
+- Matches are case-insensitive
+
+### Subdirectory README.md Support
+
+DoMD can automatically scan first-level subdirectories for additional `README.md` files and execute commands found within them. This is particularly useful for monorepos or projects with multiple components.
 
 ### Local Development
 
@@ -203,6 +316,9 @@ npm start
 
 The web interface is protected by authentication. Use the following default credentials:
 
+- URL: [http://localhost:3000](http://localhost:3000) (frontend development server) or [http://localhost:3003](http://localhost:3003) (production build)
+- Username: admin
+- Password: admin123
 - **URL**: [http://localhost:3000](http://localhost:3000) (frontend development server) or [http://localhost:3003](http://localhost:3003) (production build)
 - **Username**: admin
 - **Password**: admin123
@@ -242,10 +358,13 @@ If you're having trouble logging in:
    - Stopping the server
    - Deleting the `domd.db` file (or your configured database file)
    - Restarting the server (this will recreate the database with default credentials)
-2. Open http://localhost:3003 in your browser
-3. Log in with the default credentials
-4. Navigate to Settings > Users to change the default password
-5. (Optional) Create additional users with appropriate permissions
+
+Then:
+
+1. Open http://localhost:3003 in your browser
+2. Log in with the default credentials
+3. Navigate to Settings > Users to change the default password
+4. (Optional) Create additional users with appropriate permissions
 
 ### Prerequisites
 
@@ -256,7 +375,7 @@ To use the web interface, you'll need:
 - Internet connection (for loading external resources)
 - Modern web browser (Chrome, Firefox, Safari, or Edge)
 
-## Basic Usage
+## Basic Command Line Usage
 
 1. Navigate to your project directory:
 
@@ -275,7 +394,7 @@ To use the web interface, you'll need:
 
 3. Open your browser and navigate to the displayed URL
 
-## Command Line Usage
+## Advanced Command Line Usage
 
 For command-line usage, you can run:
 
@@ -318,7 +437,7 @@ domd
 
 DoMD comes with a web-based interface for a more interactive experience. Here's how to get it running:
 
-### Prerequisites
+### Development Prerequisites
 
 - Node.js (v14 or later)
 - npm (comes with Node.js) or Yarn
@@ -374,7 +493,7 @@ For detailed documentation, please visit our [documentation site](https://wronai
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
+Contributions are welcome! Please read our [Contributing Guide][contributing] for details on how to get started.
 
 ## 📄 License
 
@@ -382,7 +501,13 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ## 💡 Need Help?
 
-Open an [issue](https://github.com/wronai/domd/issues) if you need help or have questions.
+Open an [issue][issues] if you need help or have questions.
+
+[contributing]: https://github.com/wronai/domd/blob/main/CONTRIBUTING.md
+[issues]: https://github.com/wronai/domd/issues
+
+## Pattern Matching
+
 - Patterns support glob-style wildcards (`*` matches any sequence of characters)
 - Matches are case-insensitive
 
@@ -583,11 +708,17 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 🔗 Links
 
-- [Documentation](https://domd.readthedocs.io)
-- [PyPI Package](https://pypi.org/project/domd/)
-- [GitHub Repository](https://github.com/wronai/domd)
-- [Issue Tracker](https://github.com/wronai/domd/issues)
-- [Changelog](https://github.com/wronai/domd/blob/main/CHANGELOG.md)
+- [Documentation][docs]
+- [PyPI Package][pypi]
+- [GitHub Repository][github]
+- [Issue Tracker][issues]
+- [Changelog][changelog]
+
+[docs]: https://domd.readthedocs.io
+[pypi]: https://pypi.org/project/domd/
+[github]: https://github.com/wronai/domd
+[issues]: https://github.com/wronai/domd/issues
+[changelog]: https://github.com/wronai/domd/blob/main/CHANGELOG.md
 
 ## 💡 Use Cases
 
@@ -651,3 +782,8 @@ repos:
         pass_filenames: false
         always_run: true
 ```
+
+[docker-badge]: https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker
+[docker-url]: https://www.docker.com/
+[docs-badge]: https://img.shields.io/badge/Docs-Read%20the%20Docs-blue
+[docs-url]: https://wronai.github.io/domd/
